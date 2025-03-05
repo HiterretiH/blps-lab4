@@ -5,7 +5,9 @@ import org.lab1.model.MonetizedApplication;
 import org.lab1.repository.InAppPurchaseRepository;
 import org.lab1.repository.MonetizedApplicationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,7 +23,7 @@ public class InAppPurchaseService {
 
     public List<InAppPurchase> createInAppPurchases(List<String> titles, List<String> descriptions, List<Double> prices) {
         if (titles.size() != prices.size() || descriptions.size() != prices.size()) {
-            throw new IllegalArgumentException("The number of titles, prices, and descriptions must be the same.");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "The number of titles, prices, and descriptions must be the same.");
         }
 
         List<InAppPurchase> purchases = new ArrayList<>();
@@ -50,7 +52,7 @@ public class InAppPurchaseService {
 
     public List<InAppPurchase> linkMonetizedAppToPurchases(int monetizedApplicationId) {
         MonetizedApplication monetizedApplication = monetizedApplicationRepository.findById(monetizedApplicationId)
-                .orElseThrow(() -> new RuntimeException("Monetized application not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Monetized application not found"));
 
         List<InAppPurchase> purchases = inAppPurchaseRepository.findByMonetizedApplicationNull();
 

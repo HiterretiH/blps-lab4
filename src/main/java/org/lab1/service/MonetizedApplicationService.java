@@ -8,7 +8,9 @@ import org.lab1.repository.ApplicationRepository;
 import org.lab1.repository.DeveloperRepository;
 import org.lab1.repository.MonetizedApplicationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Optional;
 
@@ -28,10 +30,10 @@ public class MonetizedApplicationService {
 
     public MonetizedApplication createMonetizedApplication(MonetizedApplicationJson monetizedApplicationJson) {
         Developer developer = developerRepository.findById(monetizedApplicationJson.getDeveloperId())
-                .orElseThrow(() -> new RuntimeException("Developer not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Developer not found"));
 
         Application application = applicationRepository.findById(monetizedApplicationJson.getApplicationId())
-                .orElseThrow(() -> new RuntimeException("Application not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Application not found"));
 
         MonetizedApplication monetizedApplication = new MonetizedApplication();
         monetizedApplication.setDeveloper(developer);

@@ -6,8 +6,9 @@ import org.lab1.model.MonetizedApplication;
 import org.lab1.repository.InAppAddRepository;
 import org.lab1.repository.MonetizedApplicationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Optional;
@@ -26,7 +27,7 @@ public class InAppAddService {
 
     public InAppAdd createInAppAdd(InAppAddJson inAppAddJson) {
         MonetizedApplication monetizedApplication = monetizedApplicationRepository.findById(inAppAddJson.getMonetizedApplicationId())
-                .orElseThrow(() -> new RuntimeException("Monetized Application not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Monetized Application not found"));
 
         InAppAdd inAppAdd = new InAppAdd();
         inAppAdd.setMonetizedApplication(monetizedApplication);
