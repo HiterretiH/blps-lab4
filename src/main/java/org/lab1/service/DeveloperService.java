@@ -1,6 +1,7 @@
 package org.lab1.service;
 
 import org.lab1.model.Developer;
+import org.lab1.model.User;
 import org.lab1.repository.DeveloperRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -21,6 +22,14 @@ public class DeveloperService {
         Developer developer = new Developer();
         developer.setName(name);
         developer.setDescription(description);
+        return developerRepository.save(developer);
+    }
+
+    public Developer createDeveloper(User user) {
+        Developer developer = new Developer();
+        developer.setName(user.getUsername());
+        developer.setDescription(user.getEmail());
+        developer.setUser(user);
         return developerRepository.save(developer);
     }
 

@@ -13,6 +13,8 @@ public class Developer {
 
     private String name;
     private String description;
+    @OneToOne(cascade = CascadeType.ALL)
+    private User user;
 
     public int getId() {
         return id;
@@ -36,5 +38,13 @@ public class Developer {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
     }
 }

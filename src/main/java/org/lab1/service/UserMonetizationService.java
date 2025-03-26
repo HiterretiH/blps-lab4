@@ -1,17 +1,17 @@
 package org.lab1.service;
 
-import org.lab1.model.Application;
-import org.lab1.model.ApplicationStats;
-import org.lab1.model.InAppAdd;
-import org.lab1.model.InAppPurchase;
-import org.lab1.model.MonetizedApplication;
-import org.lab1.repository.ApplicationRepository;
-import org.lab1.repository.ApplicationStatsRepository;
-import org.lab1.repository.InAppAddRepository;
-import org.lab1.repository.InAppPurchaseRepository;
-import org.lab1.repository.MonetizedApplicationRepository;
+import org.lab1.json.Card;
+import org.lab1.model.*;
+import org.lab1.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Optional;
 
@@ -33,42 +33,100 @@ public class UserMonetizationService {
     @Autowired
     private ApplicationStatsRepository applicationStatsRepository;
 
-    public boolean downloadApplication(int applicationId) {
-        MonetizedApplication monetizedApplication = monetizedApplicationRepository.findByApplicationId(applicationId);
-        if (monetizedApplication == null) {
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private PlatformTransactionManager transactionManager;
+
+    @Secured("ROLE_USER")
+    public boolean downloadApplication(int applicationId, int userId, String cardNumber, String cardHolderName, String expiryDate, String cvv) {
+        TransactionDefinition def = new DefaultTransactionDefinition();
+        TransactionStatus status = transactionManager.getTransaction(def);
+        try {
+            Optional<User> userOpt = userRepository.findById(userId);
+            if (userOpt.isEmpty()) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User not found");
+            }
+
+            User user = userOpt.get();
+
+            if (!isValidCard(cardNumber, cardHolderName, expiryDate, cvv)) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid card");
+            }
+
+            MonetizedApplication monetizedApplication = monetizedApplicationRepository.findByApplicationId(applicationId);
+            if (monetizedApplication == null) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Application not found");
+            }
+
+            if (Math.random() < 0.1) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Insufficient card balance");
+            }
+
+            monetizedApplication.setCurrentBalance(monetizedApplication.getCurrentBalance() + monetizedApplication.getApplication().getPrice());
+            monetizedApplication.setDownloadRevenue(monetizedApplication.getDownloadRevenue() + monetizedApplication.getApplication().getPrice());
+            monetizedApplication.setRevenue(monetizedApplication.getRevenue() + monetizedApplication.getApplication().getPrice());
+
+            userRepository.save(user);
+            monetizedApplicationRepository.save(monetizedApplication);
+
+            transactionManager.commit(status);
+            return true;
+        } catch (Exception ex) {
+            transactionManager.rollback(status);
             return false;
         }
-
-        Application application = monetizedApplication.getApplication();
-        monetizedApplication.setCurrentBalance(monetizedApplication.getCurrentBalance() + application.getPrice());
-        monetizedApplication.setDownloadRevenue(monetizedApplication.getDownloadRevenue() + application.getPrice());
-        monetizedApplication.setRevenue(monetizedApplication.getRevenue() + application.getPrice());
-
-        ApplicationStats applicationStats = applicationStatsRepository.findByApplicationId(applicationId);
-
-        if (applicationStats != null) {
-            applicationStats.setDownloads(applicationStats.getDownloads() + 1);
-            applicationStatsRepository.save(applicationStats);
-        }
-
-        monetizedApplicationRepository.save(monetizedApplication);
-        return true;
     }
 
-    public boolean purchaseInAppItem(int purchaseId) {
-        Optional<InAppPurchase> purchaseOpt = inAppPurchaseRepository.findById(purchaseId);
-        if (purchaseOpt.isEmpty()) {
+    @Secured("ROLE_USER")
+    public boolean purchaseInAppItem(int purchaseId, int userId, String cardNumber, String cardHolderName, String expiryDate, String cvv) {
+        TransactionDefinition def = new DefaultTransactionDefinition();
+        TransactionStatus status = transactionManager.getTransaction(def);
+        try {
+            Optional<User> userOpt = userRepository.findById(userId);
+            if (userOpt.isEmpty()) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User not found");
+            }
+
+            User user = userOpt.get();
+
+            if (!isValidCard(cardNumber, cardHolderName, expiryDate, cvv)) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid card");
+            }
+
+            Optional<InAppPurchase> purchaseOpt = inAppPurchaseRepository.findById(purchaseId);
+            if (purchaseOpt.isEmpty()) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "In-app purchase item not found");
+            }
+
+            if (Math.random() < 0.1) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Insufficient card balance");
+            }
+
+            InAppPurchase purchase = purchaseOpt.get();
+            MonetizedApplication monetizedApplication = purchase.getMonetizedApplication();
+
+            monetizedApplication.setCurrentBalance(monetizedApplication.getCurrentBalance() + purchase.getPrice());
+            monetizedApplication.setPurchasesRevenue(monetizedApplication.getPurchasesRevenue() + purchase.getPrice());
+            monetizedApplication.setRevenue(monetizedApplication.getRevenue() + purchase.getPrice());
+
+            userRepository.save(user);
+            monetizedApplicationRepository.save(monetizedApplication);
+
+            transactionManager.commit(status);
+            return true;
+        } catch (Exception ex) {
+            transactionManager.rollback(status);
             return false;
         }
+    }
 
-        InAppPurchase purchase = purchaseOpt.get();
-        MonetizedApplication monetizedApplication = purchase.getMonetizedApplication();
-        monetizedApplication.setCurrentBalance(monetizedApplication.getCurrentBalance() + purchase.getPrice());
-        monetizedApplication.setPurchasesRevenue(monetizedApplication.getPurchasesRevenue() + purchase.getPrice());
-        monetizedApplication.setRevenue(monetizedApplication.getRevenue() + purchase.getPrice());
-
-        monetizedApplicationRepository.save(monetizedApplication);
-        return true;
+    private boolean isValidCard(String cardNumber, String cardHolderName, String expiryDate, String cvv) {
+        return cardNumber.matches("^\\d{16}$") &&
+                cardHolderName.matches("^[a-zA-Z\\s]{3,}$") &&
+                expiryDate.matches("^\\d{2}\\.\\d{2}\\.\\d{4}$") &&
+                cvv.matches("^\\d{3,4}$");
     }
 
     public boolean viewAdvertisement(int adId) {

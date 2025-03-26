@@ -5,6 +5,8 @@ import org.lab1.model.PaymentRequest;
 import org.lab1.service.MonetizationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.annotation.Secured;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -14,6 +16,7 @@ public class MonetizationController {
     @Autowired
     private MonetizationService monetizationService;
 
+    @PreAuthorize("hasAuthority('monetization.read')")
     @GetMapping("/info/{applicationId}")
     public ResponseEntity<MonetizedApplication> getMonetizationInfo(@PathVariable int applicationId) {
         MonetizedApplication monetizedApp = monetizationService.getMonetizationInfo(applicationId);
@@ -25,6 +28,7 @@ public class MonetizationController {
         return ResponseEntity.ok(monetizedApp);
     }
 
+    @PreAuthorize("hasAuthority('monetization.payout.request')")
     @PostMapping("/sendForm/{applicationId}")
     public ResponseEntity<PaymentRequest> sendForm(@PathVariable int applicationId, @RequestParam double amount) {
         PaymentRequest paymentRequest = monetizationService.sendForm(applicationId, amount);
@@ -32,6 +36,7 @@ public class MonetizationController {
         return ResponseEntity.ok(paymentRequest);
     }
 
+    @PreAuthorize("hasAuthority('monetization.payout.execute')")
     @PostMapping("/payout")
     public ResponseEntity<String> makePayout(@RequestBody PaymentRequest paymentRequest) {
         String result = monetizationService.makePayout(paymentRequest);

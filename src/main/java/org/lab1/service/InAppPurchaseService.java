@@ -7,6 +7,10 @@ import org.lab1.repository.MonetizedApplicationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
@@ -21,24 +25,33 @@ public class InAppPurchaseService {
     @Autowired
     private MonetizedApplicationRepository monetizedApplicationRepository;
 
+    @Autowired
+    private PlatformTransactionManager transactionManager;
+
     public List<InAppPurchase> createInAppPurchases(List<String> titles, List<String> descriptions, List<Double> prices) {
-        if (titles.size() != prices.size() || descriptions.size() != prices.size()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "The number of titles, prices, and descriptions must be the same.");
-        }
-
+        TransactionDefinition def = new DefaultTransactionDefinition();
+        TransactionStatus status = transactionManager.getTransaction(def);
         List<InAppPurchase> purchases = new ArrayList<>();
+        try {
+            if (titles.size() != prices.size() || descriptions.size() != prices.size()) {
+                transactionManager.rollback(status);
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The number of titles, prices, and descriptions must be the same.");
+            }
 
-        for (int i = 0; i < titles.size(); i++) {
-            InAppPurchase purchase = new InAppPurchase();
-            purchase.setTitle(titles.get(i));
-            purchase.setDescription(descriptions.get(i));
-            purchase.setPrice(prices.get(i));
-            purchase.setMonetizedApplication(null);
-
-            inAppPurchaseRepository.save(purchase);
-            purchases.add(purchase);
+            for (int i = 0; i < titles.size(); i++) {
+                InAppPurchase purchase = new InAppPurchase();
+                purchase.setTitle(titles.get(i));
+                purchase.setDescription(descriptions.get(i));
+                purchase.setPrice(prices.get(i));
+                purchase.setMonetizedApplication(null);
+                inAppPurchaseRepository.save(purchase);
+                purchases.add(purchase);
+            }
+            transactionManager.commit(status);
+        } catch (Exception ex) {
+            transactionManager.rollback(status);
+            throw ex;
         }
-
         return purchases;
     }
 
