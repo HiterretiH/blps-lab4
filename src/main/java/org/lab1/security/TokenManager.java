@@ -7,7 +7,6 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 public class TokenManager {
@@ -28,6 +27,7 @@ public class TokenManager {
                 new SimpleGrantedAuthority("ROLE_DEVELOPER"),
                 new SimpleGrantedAuthority("application.manage"),
                 new SimpleGrantedAuthority("application.read"),
+                new SimpleGrantedAuthority("application.verify"),
                 new SimpleGrantedAuthority("application_stats.manage"),
                 new SimpleGrantedAuthority("application_stats.read"),
                 new SimpleGrantedAuthority("application_stats.verify"),
