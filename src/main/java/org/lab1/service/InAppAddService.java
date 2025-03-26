@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.jta.JtaTransactionManager;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -23,10 +24,10 @@ public class InAppAddService {
 
     private final InAppAddRepository inAppAddRepository;
     private final MonetizedApplicationRepository monetizedApplicationRepository;
-    private final PlatformTransactionManager transactionManager;
+    private final JtaTransactionManager transactionManager;
 
     @Autowired
-    public InAppAddService(InAppAddRepository inAppAddRepository, MonetizedApplicationRepository monetizedApplicationRepository, PlatformTransactionManager transactionManager) {
+    public InAppAddService(InAppAddRepository inAppAddRepository, MonetizedApplicationRepository monetizedApplicationRepository, JtaTransactionManager transactionManager) {
         this.inAppAddRepository = inAppAddRepository;
         this.monetizedApplicationRepository = monetizedApplicationRepository;
         this.transactionManager = transactionManager;

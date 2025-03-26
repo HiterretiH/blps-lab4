@@ -5,6 +5,10 @@ import org.lab1.model.FormField;
 import org.lab1.repository.FormFieldRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.jta.JtaTransactionManager;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
 
 import java.util.List;
 import java.util.Map;
@@ -12,8 +16,13 @@ import java.util.stream.Collectors;
 
 @Service
 public class FormGenerationService {
-    @Autowired
-    private FormFieldRepository formFieldRepository;
+    private final FormFieldRepository formFieldRepository;
+    private final JtaTransactionManager transactionManager;
+
+    public FormGenerationService(FormFieldRepository formFieldRepository, JtaTransactionManager transactionManager) {
+        this.formFieldRepository = formFieldRepository;
+        this.transactionManager = transactionManager;
+    }
 
     public Map<String, String> generateFormFields() {
         List<FormField> formFields = formFieldRepository.findAll();
@@ -22,12 +31,19 @@ public class FormGenerationService {
                 .collect(Collectors.toMap(FormField::getFieldName, field -> ""));
     }
 
-    @Transactional
     public void addFields(List<String> fieldNames) {
-        for (String fieldName : fieldNames) {
-            FormField newField = new FormField();
-            newField.setFieldName(fieldName);
-            formFieldRepository.save(newField);
+        TransactionDefinition def = new DefaultTransactionDefinition();
+        TransactionStatus status = transactionManager.getTransaction(def);
+        try {
+            for (String fieldName : fieldNames) {
+                FormField newField = new FormField();
+                newField.setFieldName(fieldName);
+                formFieldRepository.save(newField);
+            }
+            transactionManager.commit(status);
+        } catch (Exception ex) {
+            transactionManager.rollback(status);
+            throw ex;
         }
     }
 

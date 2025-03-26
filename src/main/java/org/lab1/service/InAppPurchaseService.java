@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.jta.JtaTransactionManager;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -26,7 +27,7 @@ public class InAppPurchaseService {
     private MonetizedApplicationRepository monetizedApplicationRepository;
 
     @Autowired
-    private PlatformTransactionManager transactionManager;
+    private JtaTransactionManager transactionManager;
 
     public List<InAppPurchase> createInAppPurchases(List<String> titles, List<String> descriptions, List<Double> prices) {
         TransactionDefinition def = new DefaultTransactionDefinition();
