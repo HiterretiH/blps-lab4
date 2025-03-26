@@ -1,6 +1,5 @@
 package org.lab1.security;
 
-import io.github.cdimascio.dotenv.Dotenv;
 import io.jsonwebtoken.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -10,8 +9,7 @@ import java.util.*;
 
 @Service
 public class TokenManager {
-    private static final Dotenv dotenv = Dotenv.load();
-    private static final String SECRET_KEY = dotenv.get("SECRET_KEY");
+    private static final String SECRET_KEY = "fdnjdseifenwkofwepewplqekwfsamklfdsndalksdajsjeqwheouwqio31242131231231270378";
     private final Map<String, List<GrantedAuthority>> roleAuthorities = new HashMap<>() {{
         put("USER", List.of(
                 new SimpleGrantedAuthority("ROLE_USER"),
