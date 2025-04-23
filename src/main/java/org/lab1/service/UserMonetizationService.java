@@ -144,4 +144,5 @@ public class UserMonetizationService {
         monetizedApplicationRepository.save(monetizedApplication);
         return true;
     }
+
 }

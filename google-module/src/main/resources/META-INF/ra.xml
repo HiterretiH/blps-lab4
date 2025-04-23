@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<connector xmlns="https://jakarta.ee/xml/ns/jakartaee"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee https://jakarta.ee/xml/ns/jakartaee/connector_2_1.xsd"
+           version="2.1"
+           metadata-complete="true">
+    <display-name>Google JCA Adapter</display-name>
+    <vendor-name>Google Inc.</vendor-name>
+    <eis-type>Google API Connector</eis-type>
+    <resourceadapter-version>1.0</resourceadapter-version>
+    <license-required>false</license-required>
+
+    <resourceadapter-class>org.lab3.google.GoogleResourceAdapter</resourceadapter-class>
+
+    <config-property>
+        <config-property-name>googleClientId</config-property-name>
+        <config-property-type>java.lang.String</config-property-type>
+        <config-property-value></config-property-value>
+    </config-property>
+    <config-property>
+        <config-property-name>googleClientSecret</config-property-name>
+        <config-property-type>java.lang.String</config-property-type>
+        <config-property-value></config-property-value>
+    </config-property>
+
+    <outbound-resourceadapter>
+        <connection-definition>
+            <managedconnectionfactory-class>org.lab3.google.GoogleManagedConnection</managedconnectionfactory-class>
+            <connectionfactory-interface>org.lab3.google.GoogleConnectionFactory</connectionfactory-interface>
+            <connectionfactory-impl-class>org.lab3.google.GoogleConnectionFactory</connectionfactory-impl-class>
+            <connection-interface>org.lab3.google.GoogleConnection</connection-interface>
+            <connection-impl-class>org.lab3.google.GoogleConnectionImpl</connection-impl-class>
+        </connection-definition>
+    </outbound-resourceadapter>
+
+    <required-work-context>
+        <work-context-type>jakarta.resource.spi.work.SecurityContext</work-context-type>
+    </required-work-context>
+</connector>

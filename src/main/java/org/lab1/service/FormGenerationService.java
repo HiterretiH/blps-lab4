@@ -1,6 +1,6 @@
 package org.lab1.service;
 
-import jakarta.transaction.Transactional;
+import org.lab1.exception.OAuthException;
 import org.lab1.model.FormField;
 import org.lab1.repository.FormFieldRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +10,7 @@ import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.jta.JtaTransactionManager;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -18,10 +19,38 @@ import java.util.stream.Collectors;
 public class FormGenerationService {
     private final FormFieldRepository formFieldRepository;
     private final JtaTransactionManager transactionManager;
+    private final GoogleTaskSender googleTaskSender;
+    private final UserService userService;
+    private final GoogleOAuthService googleOAuthService;
 
-    public FormGenerationService(FormFieldRepository formFieldRepository, JtaTransactionManager transactionManager) {
+    @Autowired
+    public FormGenerationService(FormFieldRepository formFieldRepository, JtaTransactionManager transactionManager, GoogleTaskSender googleTaskSender, UserService userService, GoogleOAuthService googleOAuthService) {
         this.formFieldRepository = formFieldRepository;
         this.transactionManager = transactionManager;
+        this.googleTaskSender = googleTaskSender;
+        this.userService = userService;
+        this.googleOAuthService = googleOAuthService;
+    }
+
+    public String generateAndSendGoogleForm(int userId) throws OAuthException {
+        // 1. Проверяем, что пользователь подключил Google
+        if (!googleOAuthService.isGoogleConnected(userId)) {
+            throw new IllegalStateException("User has not connected Google account");
+        }
+
+        // 2. Получаем email пользователя из Google
+        String googleEmail = googleOAuthService.getUserGoogleEmail(userId);
+
+        // 3. Генерируем поля формы из базы данных
+        Map<String, String> formFields = generateFormFields();
+
+        // 4. Создаем название формы на основе email и текущего времени
+        String formTitle = "Form for " + googleEmail + " - " + Instant.now().toString();
+
+        // 5. Отправляем задачу на создание формы
+        googleTaskSender.sendFormCreationRequest(userId, formFields, formTitle, googleEmail);
+
+        return "Form creation request sent for user: " + userId;
     }
 
     public Map<String, String> generateFormFields() {

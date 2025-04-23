@@ -1,6 +1,7 @@
 package org.lab1.security;
 
 import io.jsonwebtoken.*;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Service;
@@ -9,7 +10,9 @@ import java.util.*;
 
 @Service
 public class TokenManager {
-    private static final String SECRET_KEY = "fdnjdseifenwkofwepewplqekwfsamklfdsndalksdajsjeqwheouwqio31242131231231270378";
+    @Value("${token.secret.key}")
+    private String SECRET_KEY;
+
     private final Map<String, List<GrantedAuthority>> roleAuthorities = new HashMap<>() {{
         put("USER", List.of(
                 new SimpleGrantedAuthority("ROLE_USER"),
@@ -47,14 +50,18 @@ public class TokenManager {
                 new SimpleGrantedAuthority("payout_log.manage"),
                 new SimpleGrantedAuthority("payout_log.read"),
                 new SimpleGrantedAuthority("verification_log.manage"),
-                new SimpleGrantedAuthority("verification_log.read")
+                new SimpleGrantedAuthority("verification_log.read"),
+                new SimpleGrantedAuthority("form.create"),
+                new SimpleGrantedAuthority("stats.add_sheets"),
+                new SimpleGrantedAuthority("stats.create")
         ));
         put("PRIVACY_POLICY", List.of(
                 new SimpleGrantedAuthority("ROLE_PRIVACY_POLICY"),
                 new SimpleGrantedAuthority("developer.manage"),
                 new SimpleGrantedAuthority("developer.read"),
                 new SimpleGrantedAuthority("form.manage"),
-                new SimpleGrantedAuthority("form.read")
+                new SimpleGrantedAuthority("form.read"),
+                new SimpleGrantedAuthority("stats.update")
         ));
     }};
 

@@ -90,4 +90,9 @@ public class UserService {
         User savedUser = registerUser(username, email, password, role);
         return generateToken(savedUser);
     }
+
+    public User getUserById(int userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+    }
 }
