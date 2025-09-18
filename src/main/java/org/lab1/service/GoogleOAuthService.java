@@ -1,5 +1,8 @@
 package org.lab1.service;
 
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
 import org.lab1.exception.OAuthException;
 import org.lab1.json.GoogleTokenResponse;
 import org.lab1.model.GoogleAuthData;
@@ -23,14 +26,30 @@ public class GoogleOAuthService {
     private final RestTemplate restTemplate;
     private final OAuthStateService googleStateService;
     private final GoogleAuthDataRepository googleAuthDataRepository;
+    private final MeterRegistry meterRegistry;
+    private final Counter googleAuthSuccessCounter;
+    private final Counter googleAuthFailCounter;
+    private final Timer googleAuthTimer;
 
     @Autowired
     public GoogleOAuthService(RestTemplate restTemplate,
                               OAuthStateService googleStateService,
-                              GoogleAuthDataRepository googleAuthDataRepository) {
+                              GoogleAuthDataRepository googleAuthDataRepository,
+                              MeterRegistry meterRegistry) {
         this.restTemplate = restTemplate;
         this.googleStateService = googleStateService;
         this.googleAuthDataRepository = googleAuthDataRepository;
+        this.meterRegistry = meterRegistry;
+        this.googleAuthSuccessCounter = Counter.builder("auth.google.connect")
+                .tag("status", "success")
+                .register(meterRegistry);
+
+        this.googleAuthFailCounter = Counter.builder("auth.google.connect")
+                .tag("status", "fail")
+                .register(meterRegistry);
+
+        this.googleAuthTimer = Timer.builder("auth.google.time")
+                .register(meterRegistry);
     }
 
     @Value("${google.client.id}")
@@ -67,15 +86,25 @@ public class GoogleOAuthService {
     }
 
     public void processGoogleCallback(int userId, String code, String state) throws OAuthException {
-        if (!googleStateService.validateGoogleAuthState(userId, state)) {
-            throw new OAuthException("Invalid state parameter");
+        Timer.Sample timer = Timer.start(meterRegistry);
+
+        try {
+            if (!googleStateService.validateGoogleAuthState(userId, state)) {
+                throw new OAuthException("Invalid state parameter");
+            }
+
+            GoogleTokenResponse tokenResponse = exchangeCodeForTokens(code);
+
+            String userEmail = getUserEmail(tokenResponse.getAccessToken());
+
+            saveAuthData(userId, userEmail, tokenResponse);
         }
-
-        GoogleTokenResponse tokenResponse = exchangeCodeForTokens(code);
-
-        String userEmail = getUserEmail(tokenResponse.getAccessToken());
-
-        saveAuthData(userId, userEmail, tokenResponse);
+        catch (OAuthException e){
+            googleAuthFailCounter.increment();
+        }
+        finally{
+            timer.stop(googleAuthTimer);
+        }
     }
 
     private GoogleTokenResponse exchangeCodeForTokens(String code) throws OAuthException {
@@ -108,11 +137,14 @@ public class GoogleOAuthService {
                                 "Empty response"));
             }
 
+            googleAuthSuccessCounter.increment();
             return response.getBody();
 
         } catch (RestClientException e) {
+            googleAuthFailCounter.increment();
             throw new OAuthException("Google API request failed: " + e.getMessage());
         } catch (Exception e) {
+            googleAuthFailCounter.increment();
             throw new OAuthException("Unexpected error during token exchange");
         }
     }

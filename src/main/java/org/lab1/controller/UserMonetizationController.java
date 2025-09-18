@@ -1,5 +1,8 @@
 package org.lab1.controller;
 
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
 import org.lab1.json.Card;
 import org.lab1.model.Application;
 import org.lab1.model.User;
@@ -30,6 +33,10 @@ public class UserMonetizationController {
     private final InAppAddRepository addRepository;
     private final ApplicationRepository applicationRepository;
     private final UserRepository userRepository;
+    private final MeterRegistry meterRegistry;
+
+    private final Timer purchaseProcessingTime;
+    private final Timer adViewProcessingTime;
 
 
     @Autowired
@@ -38,13 +45,17 @@ public class UserMonetizationController {
                                       InAppPurchaseRepository purchaseRepository,
                                       InAppAddRepository addRepository,
                                       ApplicationRepository applicationRepository,
-                                      UserRepository userRepository) {
+                                      UserRepository userRepository,
+                                      MeterRegistry meterRegistry) {
         this.userMonetizationService = userMonetizationService;
         this.googleTaskSender = googleTaskSender;
         this.purchaseRepository = purchaseRepository;
         this.addRepository = addRepository;
         this.applicationRepository = applicationRepository;
         this.userRepository = userRepository;
+        this.meterRegistry = meterRegistry;
+        this.purchaseProcessingTime = meterRegistry.timer("user.monetization.purchase.processing.time");
+        this.adViewProcessingTime = meterRegistry.timer("user.monetization.ad_view.processing.time");
     }
 
     @PreAuthorize("hasAuthority('user.download_application')")
@@ -85,7 +96,6 @@ public class UserMonetizationController {
                     application.getPrice() // Используем цену приложения
             );
             googleTaskSender.sendMonetizationEvent(userId, event);
-
             return ResponseEntity.ok("Application downloaded successfully.");
         }
         return ResponseEntity.badRequest().body("Application not found or download failed.");
@@ -97,6 +107,7 @@ public class UserMonetizationController {
             @PathVariable int purchaseId,
             @RequestBody Card card,
             Authentication authentication) {
+        Timer.Sample sample = Timer.start(meterRegistry);
 
         // Извлекаем userId из аутентификации
         Optional<User> userOptional = userRepository.findByUsername(authentication.getPrincipal().toString());
@@ -128,8 +139,8 @@ public class UserMonetizationController {
                     purchaseId,
                     price
             );
+            sample.stop(purchaseProcessingTime);
             googleTaskSender.sendMonetizationEvent(userId, event);
-
             return ResponseEntity.ok("In-app purchase successful.");
         }
         return ResponseEntity.badRequest().body("Purchase not found or failed.");
@@ -140,6 +151,7 @@ public class UserMonetizationController {
     public ResponseEntity<String> viewAdvertisement(
             @PathVariable int adId,
             Authentication authentication) {
+        Timer.Sample sample = Timer.start(meterRegistry);
 
         // Извлекаем userId из аутентификации
         Optional<User> userOptional = userRepository.findByUsername(authentication.getPrincipal().toString());
@@ -164,8 +176,8 @@ public class UserMonetizationController {
                     adId,
                     revenue
             );
+            sample.stop(adViewProcessingTime);
             googleTaskSender.sendMonetizationEvent(userId, event);
-
             return ResponseEntity.ok("Ad viewed successfully. Revenue: " + revenue);
         }
         return ResponseEntity.badRequest().body("Ad not found or view failed.");

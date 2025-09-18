@@ -1,17 +1,45 @@
 package org.lab1.security;
 
 import io.jsonwebtoken.*;
+import io.micrometer.core.instrument.Gauge;
+import io.micrometer.core.instrument.MeterRegistry;
+import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
 public class TokenManager {
     @Value("${token.secret.key}")
     private String SECRET_KEY;
+    private final ConcurrentHashMap<String, Boolean> activeTokens = new ConcurrentHashMap<>();
+
+    private final MeterRegistry meterRegistry;
+    private final PasswordEncoder passwordEncoder;
+    private AtomicInteger activeSessionsGauge;
+
+    @Autowired
+    public TokenManager(MeterRegistry meterRegistry, PasswordEncoder passwordEncoder) {
+        this.meterRegistry = meterRegistry;
+        this.passwordEncoder = passwordEncoder;
+    }
+
+    @PostConstruct
+    public void initMetrics() {
+        this.activeSessionsGauge = new AtomicInteger(0);
+
+        Gauge.builder("auth.sessions.active", activeSessionsGauge, AtomicInteger::get)
+                .strongReference(true)
+                .register(meterRegistry);
+    }
 
     private final Map<String, List<GrantedAuthority>> roleAuthorities = new HashMap<>() {{
         put("USER", List.of(
@@ -73,13 +101,16 @@ public class TokenManager {
         claims.put("userId", userId);
         Date now = new Date();
         Date validity = new Date(now.getTime() + VALIDITY_IN_MILLISECONDS);
-
-        return Jwts.builder()
+        String token = Jwts.builder()
                 .setClaims(claims)
                 .setIssuedAt(now)
                 .setExpiration(validity)
                 .signWith(SignatureAlgorithm.HS256, SECRET_KEY)
                 .compact();
+        String hashedToken = passwordEncoder.encode(token);
+        activeTokens.put(hashedToken, true);
+        activeSessionsGauge.set(activeTokens.size());
+        return token;
     }
 
     public Claims getClaimsFromToken(String token) {
@@ -103,6 +134,9 @@ public class TokenManager {
                 System.out.println("Token is valid.");
                 return true;
             } else {
+                String hashedToken = passwordEncoder.encode(token);
+                activeTokens.remove(token);
+                activeSessionsGauge.set(activeTokens.size());
                 System.out.println("Token has expired.");
                 return false;
             }

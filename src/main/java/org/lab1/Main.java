@@ -1,5 +1,6 @@
 package org.lab1;
 
+import org.lab.logger.Logger;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;

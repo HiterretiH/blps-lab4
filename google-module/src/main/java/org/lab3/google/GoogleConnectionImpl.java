@@ -22,6 +22,7 @@ public class GoogleConnectionImpl implements GoogleConnection {
     private final Sheets sheetsService;
     private final Forms formsService;
     private final GoogleManagedConnection managedConnection;
+    private final MetricsManager metrics = MetricsManager.getInstance();
 
     public GoogleConnectionImpl(GoogleManagedConnection managedConnection) {
         this.managedConnection = managedConnection;
@@ -48,6 +49,7 @@ public class GoogleConnectionImpl implements GoogleConnection {
                 .setProperties(new SpreadsheetProperties().setTitle(title));
 
         Spreadsheet created = sheetsService.spreadsheets().create(spreadsheet).execute();
+        metrics.recordSheetCreated();
         return created.getSpreadsheetId();
     }
 
@@ -98,6 +100,7 @@ public class GoogleConnectionImpl implements GoogleConnection {
             formsService.forms().batchUpdate(formId, batchUpdateRequest).execute();
         }
 
+        metrics.recordFormCreated();
         // 5. Возвращаем URL формы
         return "https://docs.google.com/forms/d/" + formId + "/edit";
     }
@@ -195,11 +198,14 @@ public class GoogleConnectionImpl implements GoogleConnection {
                                     .setSheetId(nextSheetId++))));
         }
 
+
         BatchUpdateSpreadsheetRequest createBatchRequest = new BatchUpdateSpreadsheetRequest()
                 .setRequests(createRequests);
         BatchUpdateSpreadsheetResponse response = sheetsService.spreadsheets()
                 .batchUpdate(spreadsheetId, createBatchRequest)
                 .execute();
+
+        metrics.recordTabsCreated(sheetNames.length);
 
         // 6. Добавляем данные в листы
         List<ValueRange> data = new ArrayList<>();
@@ -300,6 +306,8 @@ public class GoogleConnectionImpl implements GoogleConnection {
         // 2. Обновляем доход от загрузок
         updateRevenueColumn(spreadsheetId, appName + " Revenue",
                 "revenueFromDownloads", event.getAmount());
+
+        metrics.recordRevenueUpdate();
     }
 
     private void handlePurchaseEvent(String spreadsheetId, String appName, MonetizationEvent event) throws IOException {
@@ -310,6 +318,8 @@ public class GoogleConnectionImpl implements GoogleConnection {
         // 2. Обновляем доход от покупок
         updateRevenueColumn(spreadsheetId, appName + " Revenue",
                 "revenueFromMicrotransactions", event.getAmount());
+
+        metrics.recordRevenueUpdate();
     }
 
     private void handleAdViewEvent(String spreadsheetId, String appName, MonetizationEvent event) throws IOException {
@@ -320,6 +330,8 @@ public class GoogleConnectionImpl implements GoogleConnection {
         // 2. Обновляем доход от рекламы
         updateRevenueColumn(spreadsheetId, appName + " Revenue",
                 "revenueFromAdds", event.getAmount());
+
+        metrics.recordRevenueUpdate();
     }
 
     private void appendToSheet(String spreadsheetId, String sheetName, List<Object> rowData) throws IOException {
@@ -532,7 +544,7 @@ public class GoogleConnectionImpl implements GoogleConnection {
         }
 
         allAppsRevenue.sort((a1, a2) -> Double.compare(a2.getTotalRevenue(), a1.getTotalRevenue()));
-
+        metrics.recordTopUpdate();
         for (File file : spreadsheets.getFiles()) {
             String spreadsheetId = file.getId();
             updateSingleTop(spreadsheetId, allAppsRevenue);

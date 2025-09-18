@@ -1,7 +1,6 @@
 package org.lab1.service;
 
-import com.rabbitmq.client.MessageProperties;
-import jakarta.jms.Message;
+import org.lab.logger.Logger;
 import org.lab1.exception.OAuthException;
 import org.lab1.json.GoogleSheetRequestWithData;
 import org.lab1.model.Application;
@@ -12,12 +11,10 @@ import org.lab1.repository.ApplicationRepository;
 import org.lab1.repository.MonetizedApplicationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -29,28 +26,31 @@ public class GoogleSheetService {
     private final UserService userService;
     private final MonetizedApplicationRepository monetizedApplicationRepository;
     private final ApplicationRepository applicationRepository;
+    private final Logger logger;
 
     @Autowired
     public GoogleSheetService(GoogleTaskSender googleTaskSender,
                               GoogleOAuthService googleOAuthService,
                               UserService userService,
                               MonetizedApplicationRepository monetizedApplicationRepository,
-                              ApplicationRepository applicationRepository) {
+                              ApplicationRepository applicationRepository,
+                              Logger logger) {
         this.googleTaskSender = googleTaskSender;
         this.googleOAuthService = googleOAuthService;
         this.userService = userService;
         this.monetizedApplicationRepository = monetizedApplicationRepository;
         this.applicationRepository = applicationRepository;
+        this.logger = logger;
     }
 
     public String createRevenueSheet(int userId) throws OAuthException {
+        logger.info("Creating revenue sheet for user ID: " + userId);
         if (!googleOAuthService.isGoogleConnected(userId)) {
+            logger.error("User ID " + userId + " has not connected Google account.");
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User has not connected Google account");
         }
-
         String googleEmail = googleOAuthService.getUserGoogleEmail(userId);
         String sheetTitle = "Revenue Statistics - " + googleEmail + " - " + "52";
-
         List<MonetizedApplication> apps = monetizedApplicationRepository.findByDeveloperUserId(userId);
         List<List<Object>> appData = apps.stream()
                 .map(app -> {
@@ -64,55 +64,51 @@ public class GoogleSheetService {
                     return row;
                 })
                 .collect(Collectors.toList());
-
         GoogleSheetRequestWithData request = new GoogleSheetRequestWithData(
                 googleEmail,
                 sheetTitle,
                 List.of("ID", "Application", "Ads Revenue", "Download Revenue", "Purchases Revenue", "Total Revenue"),
                 appData
         );
-
         googleTaskSender.sendSheetCreationRequest(userId, request);
-
+        logger.info("Revenue sheet creation request sent for user ID: " + userId + " to email: " + googleEmail + ", title: " + sheetTitle);
         return "Revenue sheet creation with data request sent for user: " + userId;
     }
 
     @Transactional
     public String addAppSheets(int userId, int appId) {
+        logger.info("Adding app sheets for user ID: " + userId + ", app ID: " + appId);
         try {
-            // 1. Проверяем существование пользователя
             User user = userService.getUserById(userId);
-
-            // 2. Проверяем, что пользователь - разработчик
             if (user.getRole() != Role.DEVELOPER) {
+                logger.error("User ID " + userId + " is not a developer.");
                 throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Only developers can add app sheets");
             }
-
-            // 3. Получаем приложение
             Application app = applicationRepository.findById(appId)
-                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Application not found"));
-
-            // 4. Проверяем, что приложение принадлежит разработчику
+                    .orElseThrow(() -> {
+                        logger.error("Application not found with ID: " + appId);
+                        return new ResponseStatusException(HttpStatus.NOT_FOUND, "Application not found");
+                    });
             if (app.getDeveloper().getUser().getId() != userId) {
+                logger.error("Application ID " + appId + " does not belong to developer ID " + userId);
                 throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Application doesn't belong to this developer");
             }
-
-            // 5. Проверяем подключение Google
             if (!googleOAuthService.isGoogleConnected(userId)) {
+                logger.error("User ID " + userId + " has not connected Google account.");
                 throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User has not connected Google account");
             }
-
-            // 6. Отправляем задачу на добавление листов
             googleTaskSender.sendAddAppSheetsRequest(userId, app.getName());
-
+            logger.info("App sheets creation request sent for app: " + app.getName() + ", user ID: " + userId);
             return "App sheets creation request sent for app: " + appId;
-        }
-        catch (OAuthException e) {
+        } catch (OAuthException e) {
+            logger.error("Google connection failed for user ID: " + userId + ". Reason: " + e.getMessage());
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Google connection failed");
         }
     }
 
     public void triggerUpdateAppsTop() {
+        logger.info("Triggering update apps top request.");
         googleTaskSender.sendUpdateAppsTopRequest();
+        logger.info("Update apps top request sent.");
     }
 }

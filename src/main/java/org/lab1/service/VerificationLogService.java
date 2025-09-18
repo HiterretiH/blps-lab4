@@ -1,5 +1,6 @@
 package org.lab1.service;
 
+import org.lab.logger.Logger;
 import org.lab1.model.VerificationLog;
 import org.lab1.repository.VerificationLogRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +12,8 @@ import java.util.Optional;
 public class VerificationLogService {
 
     private final VerificationLogRepository verificationLogRepository;
+    @Autowired
+    private Logger logger;
 
     @Autowired
     public VerificationLogService(VerificationLogRepository verificationLogRepository) {
@@ -18,6 +21,7 @@ public class VerificationLogService {
     }
 
     public VerificationLog createVerificationLog(boolean securityCheckPassed, boolean policyCheckPassed, boolean adsCheckPassed, String logMessage) {
+        logger.info("Creating VerificationLog");
         VerificationLog verificationLog = new VerificationLog();
         verificationLog.setSecurityCheckPassed(securityCheckPassed);
         verificationLog.setPolicyCheckPassed(policyCheckPassed);
@@ -27,6 +31,7 @@ public class VerificationLogService {
     }
 
     public Optional<VerificationLog> getVerificationLogById(int id) {
+        logger.info("Getting VerificationLog by ID: " + id);
         return verificationLogRepository.findById(id);
     }
 }

@@ -1,8 +1,7 @@
-version: '3.8'
 services:
   db:
     image: postgres:13
-    container_name: postgres_db
+    container_name: postgres_service
     environment:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: password
@@ -12,22 +11,85 @@ services:
     volumes:
       - pg_data:/var/lib/postgresql/data
 
+  rabbit:
+    image: rabbitmq:3-management
+    container_name: rabbitmq_service
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: password
+      RABBITMQ_SERVER_START_ARGS: "--wait"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_running"]
+      interval: 5s
+      timeout: 10s
+      retries: 10
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbit_data:/var/lib/rabbitmq
+
   app:
     image: openjdk:23
     container_name: spring_app
     working_dir: /app
     command: java -jar blps-lab1-1.0.jar
     volumes:
+      - ./logs:/app/logs
       - ./target:/app
     ports:
       - "727:727"
     depends_on:
       - db
+      - rabbit
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/mydatabase
       SPRING_DATASOURCE_USERNAME: user
       SPRING_DATASOURCE_PASSWORD: password
       SPRING_JPA_HIBERNATE_DDL_AUTO: create-drop
+      SPRING_RABBITMQ_HOST: rabbit
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: admin
+      SPRING_RABBITMQ_PASSWORD: password
+
+  google-module:
+    build:
+      context: ./google-module
+    container_name: google_service
+    depends_on:
+      rabbit:
+        condition: service_healthy
+    volumes:
+      - ./logs:/app/logs
+    environment:
+      RABBITMQ_HOST: rabbit
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USERNAME: admin
+      RABBITMQ_PASSWORD: password
+    ports:
+      - "8080:8080"
+
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus_service
+    ports:
+      - "9090:9090"
+    depends_on:
+      - app
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+
+  grafana:
+    image: grafana/grafana
+    container_name: grafana_service
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - prometheus
 
 volumes:
   pg_data:
+  rabbit_data:
+  grafana_data:

@@ -1,5 +1,6 @@
 package org.lab1.controller;
 
+import org.lab.logger.Logger;
 import org.lab1.json.ApplicationStatsJson;
 import org.lab1.model.ApplicationStats;
 import org.lab1.service.ApplicationStatsService;
@@ -15,37 +16,61 @@ import java.util.Optional;
 @RequestMapping("/api/application-stats")
 public class ApplicationStatsController {
 
+    private final ApplicationStatsService applicationStatsService;
+    private final Logger logger;
+
     @Autowired
-    private ApplicationStatsService applicationStatsService;
+    public ApplicationStatsController(ApplicationStatsService applicationStatsService, Logger logger) {
+        this.applicationStatsService = applicationStatsService;
+        this.logger = logger;
+    }
 
     @PreAuthorize("hasAuthority('application_stats.manage')")
     @PostMapping
     public ApplicationStats create(@RequestBody ApplicationStatsJson applicationStatsJson) {
-        return applicationStatsService.save(applicationStatsJson);
+        logger.info("Received request to create ApplicationStats");
+        ApplicationStats stats = applicationStatsService.save(applicationStatsJson);
+        logger.info("ApplicationStats created with ID: " + stats.getId());
+        return stats;
     }
 
     @PreAuthorize("hasAuthority('application_stats.manage')")
     @PutMapping("/{id}")
     public ApplicationStats update(@PathVariable int id, @RequestBody ApplicationStatsJson applicationStats) {
+        logger.info("Received request to update ApplicationStats with ID: " + id);
         applicationStats.setId(id);
-        return applicationStatsService.save(applicationStats);
+        ApplicationStats updatedStats = applicationStatsService.save(applicationStats);
+        logger.info("ApplicationStats updated with ID: " + updatedStats.getId());
+        return updatedStats;
     }
 
     @PreAuthorize("hasAuthority('application_stats.read')")
     @GetMapping("/{id}")
     public Optional<ApplicationStats> getById(@PathVariable int id) {
-        return applicationStatsService.findById(id);
+        logger.info("Received request to get ApplicationStats with ID: " + id);
+        Optional<ApplicationStats> stats = applicationStatsService.findById(id);
+        if (stats.isPresent()) {
+            logger.info("ApplicationStats found with ID: " + id);
+        } else {
+            logger.info("ApplicationStats not found with ID: " + id);
+        }
+        return stats;
     }
 
     @PreAuthorize("hasAuthority('application_stats.read')")
     @GetMapping
     public List<ApplicationStats> getAll() {
-        return applicationStatsService.findAll();
+        logger.info("Received request to get all ApplicationStats");
+        List<ApplicationStats> allStats = applicationStatsService.findAll();
+        logger.info("Found " + allStats.size() + " ApplicationStats");
+        return allStats;
     }
 
     @PreAuthorize("hasAuthority('application_stats.manage')")
     @DeleteMapping("/{id}")
     public void delete(@PathVariable int id) {
+        logger.info("Received request to delete ApplicationStats with ID: " + id);
         applicationStatsService.delete(id);
+        logger.info("ApplicationStats deleted with ID: " + id);
     }
 }

@@ -1,5 +1,6 @@
 package org.lab1.service;
 
+import org.lab.logger.Logger;
 import org.lab1.json.ApplicationStatsJson;
 import org.lab1.model.Application;
 import org.lab1.model.ApplicationStats;
@@ -16,14 +17,26 @@ import java.util.Optional;
 @Service
 public class ApplicationStatsService {
 
+    private final ApplicationStatsRepository applicationStatsRepository;
+    private final ApplicationRepository applicationRepository;
+    private final Logger logger;
+
     @Autowired
-    private ApplicationStatsRepository applicationStatsRepository;
-    @Autowired
-    private ApplicationRepository applicationRepository;
+    public ApplicationStatsService(ApplicationStatsRepository applicationStatsRepository,
+                                   ApplicationRepository applicationRepository,
+                                   Logger logger) {
+        this.applicationStatsRepository = applicationStatsRepository;
+        this.applicationRepository = applicationRepository;
+        this.logger = logger;
+    }
 
     public ApplicationStats save(ApplicationStatsJson applicationStatsJson) {
+        logger.info("Saving ApplicationStats for application ID: " + applicationStatsJson.getApplicationId());
         Application application = applicationRepository.findById(applicationStatsJson.getApplicationId())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Application not found"));
+                .orElseThrow(() -> {
+                    logger.error("Application not found with ID: " + applicationStatsJson.getApplicationId());
+                    return new ResponseStatusException(HttpStatus.NOT_FOUND, "Application not found");
+                });
 
         ApplicationStats applicationStats = new ApplicationStats();
         applicationStats.setId(application.getId());
@@ -31,18 +44,32 @@ public class ApplicationStatsService {
         applicationStats.setDownloads(applicationStatsJson.getDownloads());
         applicationStats.setRating(applicationStatsJson.getRating());
 
-        return applicationStatsRepository.save(applicationStats);
+        ApplicationStats savedStats = applicationStatsRepository.save(applicationStats);
+        logger.info("ApplicationStats saved with ID: " + savedStats.getId() + " for application ID: " + application.getId());
+        return savedStats;
     }
 
     public Optional<ApplicationStats> findById(int id) {
-        return applicationStatsRepository.findById(id);
+        logger.info("Finding ApplicationStats by ID: " + id);
+        Optional<ApplicationStats> stats = applicationStatsRepository.findById(id);
+        if (stats.isPresent()) {
+            logger.info("ApplicationStats found with ID: " + id);
+        } else {
+            logger.info("ApplicationStats not found with ID: " + id);
+        }
+        return stats;
     }
 
     public List<ApplicationStats> findAll() {
-        return applicationStatsRepository.findAll();
+        logger.info("Finding all ApplicationStats");
+        List<ApplicationStats> allStats = applicationStatsRepository.findAll();
+        logger.info("Found " + allStats.size() + " ApplicationStats");
+        return allStats;
     }
 
     public void delete(int id) {
+        logger.info("Deleting ApplicationStats with ID: " + id);
         applicationStatsRepository.deleteById(id);
+        logger.info("ApplicationStats deleted with ID: " + id);
     }
 }

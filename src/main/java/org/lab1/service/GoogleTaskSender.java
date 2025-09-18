@@ -2,6 +2,7 @@ package org.lab1.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.lab.logger.Logger;
 import org.lab1.json.*;
 import org.lab1.model.User;
 import org.springframework.amqp.core.Message;
@@ -19,16 +20,19 @@ public class GoogleTaskSender {
     private final UserService userService;
     private final GoogleOAuthService googleOAuthService;
     private final ObjectMapper objectMapper;
+    private final Logger logger;
 
     @Autowired
     public GoogleTaskSender(RabbitTemplate rabbitTemplate,
                             UserService userService,
                             GoogleOAuthService googleOAuthService,
-                            ObjectMapper objectMapper) {
+                            ObjectMapper objectMapper,
+                            Logger logger) {
         this.rabbitTemplate = rabbitTemplate;
         this.userService = userService;
         this.googleOAuthService = googleOAuthService;
         this.objectMapper = objectMapper;
+        this.logger = logger;
     }
 
     public void sendFormCreationRequest(int userId, Map<String, String> fields, String formTitle, String googleEmail) {
@@ -49,7 +53,9 @@ public class GoogleTaskSender {
             );
 
             rabbitTemplate.send("google.requests", message);
+            logger.info("Sent form creation request for user ID: " + userId);
         } catch (JsonProcessingException e) {
+            logger.error("Failed to serialize form request for user ID: " + userId + ". Reason: " + e.getMessage());
             throw new RuntimeException("Failed to serialize form request", e);
         }
     }
@@ -66,7 +72,9 @@ public class GoogleTaskSender {
             );
 
             rabbitTemplate.send("google.requests", message);
+            logger.info("Sent sheet creation request with data for user ID: " + userId);
         } catch (JsonProcessingException e) {
+            logger.error("Failed to serialize sheet request with data for user ID: " + userId + ". Reason: " + e.getMessage());
             throw new RuntimeException("Failed to serialize sheet request with data", e);
         }
     }
@@ -89,7 +97,9 @@ public class GoogleTaskSender {
             );
 
             rabbitTemplate.send("google.requests", message);
+            logger.info("Sent add app sheets request for user ID: " + userId + ", app name: " + appName);
         } catch (Exception e) {
+            logger.error("Failed to send add app sheets request for user ID: " + userId + ", app name: " + appName + ". Reason: " + e.getMessage());
             throw new RuntimeException("Failed to send add app sheets request", e);
         }
     }
@@ -107,7 +117,9 @@ public class GoogleTaskSender {
             );
 
             rabbitTemplate.send("google.requests", message);
+            logger.info("Sent monetization event for user ID: " + userId + ", event type: " + event.getEventType().name());
         } catch (JsonProcessingException e) {
+            logger.error("Failed to serialize monetization event for user ID: " + userId + ", event type: " + event.getEventType().name() + ". Reason: " + e.getMessage());
             throw new RuntimeException("Failed to serialize monetization event", e);
         }
     }
@@ -123,7 +135,9 @@ public class GoogleTaskSender {
                     .build();
 
             rabbitTemplate.send("google.requests", message);
+            logger.info("Sent update apps top request");
         } catch (Exception e) {
+            logger.error("Failed to send update apps top request. Reason: " + e.getMessage());
             throw new RuntimeException("Failed to send update apps top request", e);
         }
     }

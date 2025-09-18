@@ -1,5 +1,7 @@
 package org.lab1.service;
 
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.lab1.model.Role;
 import org.lab1.json.Token;
 import org.lab1.model.User;
@@ -18,57 +20,96 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final TokenManager tokenManager;
+    private final MeterRegistry meterRegistry;
+    private final Counter loginSuccessCounter;
+    private final Counter loginFailCounter;
+    private final Counter registerSuccessCounter;
+    private final Counter registerFailCounter;
+    private final Counter tokenGeneratedCounter;
+
 
     @Autowired
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, TokenManager tokenManager) {
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, TokenManager tokenManager, MeterRegistry meterRegistry) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.tokenManager = tokenManager;
+        this.meterRegistry = meterRegistry;
+        this.loginSuccessCounter = Counter.builder("auth.login")
+                .tag("status", "success")
+                .register(meterRegistry);
+
+        this.loginFailCounter = Counter.builder("auth.login")
+                .tag("status", "fail")
+                .register(meterRegistry);
+
+        this.registerSuccessCounter = Counter.builder("auth.register")
+                .tag("status", "success")
+                .register(meterRegistry);
+
+        this.registerFailCounter = Counter.builder("auth.register")
+                .tag("status", "fail")
+                .register(meterRegistry);
+
+        this.tokenGeneratedCounter = Counter.builder("auth.tokens.issued")
+                .register(meterRegistry);
     }
 
     public Token authenticateUser(String username, String password) {
-        Optional<User> userOptional = userRepository.findByUsername(username);
-        if (userOptional.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid username or password");
+        try {
+            Optional<User> userOptional = userRepository.findByUsername(username);
+            if (userOptional.isEmpty()) {
+                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid username or password");
+            }
+
+            User user = userOptional.get();
+
+            if (!passwordEncoder.matches(password, user.getPasswordHash())) {
+                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid username or password");
+            }
+
+            String tokenString = tokenManager.generateToken(
+                    user.getUsername(),
+                    user.getRole().toString(),
+                    user.getId()
+            );
+
+            Token token = new Token();
+            token.setToken(tokenString);
+            token.setExpirationDate(tokenManager.getClaimsFromToken(tokenString).getExpiration().getTime());
+            token.setRole(user.getRole());
+            tokenGeneratedCounter.increment();
+            loginSuccessCounter.increment();
+            return token;
         }
-
-        User user = userOptional.get();
-
-        if (!passwordEncoder.matches(password, user.getPasswordHash())) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid username or password");
+        catch (ResponseStatusException e){
+            loginFailCounter.increment();
+            throw e;
         }
-
-        String tokenString = tokenManager.generateToken(
-                user.getUsername(),
-                user.getRole().toString(),
-                user.getId()
-        );
-
-        Token token = new Token();
-        token.setToken(tokenString);
-        token.setExpirationDate(tokenManager.getClaimsFromToken(tokenString).getExpiration().getTime());
-        token.setRole(user.getRole());
-
-        return token;
     }
 
     public User registerUser(String username, String email, String password, Role role) {
-        if (userRepository.existsByUsername(username)) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Username already exists");
+        try {
+            if (userRepository.existsByUsername(username)) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "Username already exists");
+            }
+            if (userRepository.existsByEmail(email)) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "Email already exists");
+            }
+
+            String passwordHash = passwordEncoder.encode(password);
+
+            User newUser = new User();
+            newUser.setUsername(username);
+            newUser.setRole(role);
+            newUser.setEmail(email);
+            newUser.setPasswordHash(passwordHash);
+
+            return userRepository.save(newUser);
         }
-        if (userRepository.existsByEmail(email)) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Email already exists");
+        catch (ResponseStatusException e){
+            registerFailCounter.increment();
+            throw e;
         }
-
-        String passwordHash = passwordEncoder.encode(password);
-
-        User newUser = new User();
-        newUser.setUsername(username);
-        newUser.setRole(role);
-        newUser.setEmail(email);
-        newUser.setPasswordHash(passwordHash);
-
-        return userRepository.save(newUser);
     }
 
     public Token generateToken(User user) {
