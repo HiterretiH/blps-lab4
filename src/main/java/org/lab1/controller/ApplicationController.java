@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -38,6 +39,24 @@ public class ApplicationController {
                                  Logger logger) {
         this.applicationService = applicationService;
         this.logger = logger;
+    }
+
+    @PreAuthorize("hasAuthority('application.read')")
+    @GetMapping
+    public ResponseEntity<List<Application>> getAllApplications() {
+        logger.info("Fetching all applications");
+        List<Application> applications = applicationService.getAllApplications();
+        logger.info("Found " + applications.size() + " applications");
+        return ResponseEntity.ok(applications);
+    }
+
+    @PreAuthorize("hasAuthority('application.read')")
+    @GetMapping("/developer/{developerId}")
+    public ResponseEntity<List<Application>> getApplicationsByDeveloperId(@PathVariable int developerId) {
+        logger.info("Fetching applications for developer ID: " + developerId);
+        List<Application> applications = applicationService.getApplicationsByDeveloperId(developerId);
+        logger.info("Found " + applications.size() + " applications for developer ID: " + developerId);
+        return ResponseEntity.ok(applications);
     }
 
     @PreAuthorize("hasAuthority('application.manage')")

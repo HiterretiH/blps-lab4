@@ -108,11 +108,11 @@ public class ApplicationService {
         return ResponseEntity.notFound().build();
     }
 
-    public ResponseEntity<List<Application>> getApplicationsByDeveloperId(int developerId) {
+    public List<Application> getApplicationsByDeveloperId(int developerId) {
         logger.info(FETCH_BY_DEV_LOG + developerId);
         List<Application> applications = applicationRepository.findByDeveloperId(developerId);
         logger.info(FOUND_FOR_DEV_LOG + applications.size() + APPS_FOR_DEV_LOG + developerId);
-        return ResponseEntity.ok(applications);
+        return applications;
     }
 
     public Application createApplication(ApplicationJson applicationJson) {
