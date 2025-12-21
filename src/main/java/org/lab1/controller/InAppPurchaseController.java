@@ -15,6 +15,21 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/api/in-app-purchases")
 public class InAppPurchaseController {
+    private static final String CREATE_REQUEST_LOG = "Received request to create InAppPurchases. Titles count: ";
+    private static final String DESCRIPTIONS_COUNT_LOG = ", Descriptions count: ";
+    private static final String PRICES_COUNT_LOG = ", Prices count: ";
+    private static final String CREATE_SUCCESS_LOG = "Successfully created ";
+    private static final String IN_APP_PURCHASES_LOG = " InAppPurchases.";
+    private static final String CREATE_ERROR_LOG = "Failed to create InAppPurchases. Reason: ";
+    private static final String LIST_REQUEST_LOG = "Received request to list all InAppPurchases.";
+    private static final String LIST_FOUND_LOG = "Found ";
+    private static final String GET_REQUEST_LOG = "Received request to get InAppPurchase by ID: ";
+    private static final String GET_NOT_FOUND_LOG = "InAppPurchase not found with ID: ";
+    private static final String LINK_REQUEST_LOG = "Received request to link InAppPurchases to MonetizedApplication ID: ";
+    private static final String LINK_SUCCESS_LOG = "Successfully linked ";
+    private static final String TO_APP_ID_LOG = " InAppPurchases to MonetizedApplication ID: ";
+    private static final String LINK_ERROR_LOG = "Failed to link InAppPurchases to MonetizedApplication ID: ";
+    private static final String REASON_LOG = ". Reason: ";
 
     private final InAppPurchaseService inAppPurchaseService;
     private final Logger logger;
@@ -28,18 +43,21 @@ public class InAppPurchaseController {
     @PreAuthorize("hasAuthority('in_app_purchase.manage')")
     @PostMapping("/create")
     public ResponseEntity<List<InAppPurchase>> createInAppPurchases(@RequestBody InAppPurchasesJson inAppPurchases) {
-        logger.info("Received request to create InAppPurchases. Titles count: " + (inAppPurchases.getTitles() != null ? inAppPurchases.getTitles().size() : 0) +
-                ", Descriptions count: " + (inAppPurchases.getDescriptions() != null ? inAppPurchases.getDescriptions().size() : 0) +
-                ", Prices count: " + (inAppPurchases.getPrices() != null ? inAppPurchases.getPrices().size() : 0));
+        int titlesCount = inAppPurchases.getTitles() != null ? inAppPurchases.getTitles().size() : 0;
+        int descriptionsCount = inAppPurchases.getDescriptions() != null ? inAppPurchases.getDescriptions().size() : 0;
+        int pricesCount = inAppPurchases.getPrices() != null ? inAppPurchases.getPrices().size() : 0;
+
+        logger.info(CREATE_REQUEST_LOG + titlesCount + DESCRIPTIONS_COUNT_LOG + descriptionsCount + PRICES_COUNT_LOG + pricesCount);
+
         try {
             List<InAppPurchase> purchases = inAppPurchaseService.createInAppPurchases(
                     inAppPurchases.getTitles(),
                     inAppPurchases.getDescriptions(),
                     inAppPurchases.getPrices());
-            logger.info("Successfully created " + purchases.size() + " InAppPurchases.");
+            logger.info(CREATE_SUCCESS_LOG + purchases.size() + IN_APP_PURCHASES_LOG);
             return ResponseEntity.ok(purchases);
-        } catch (IllegalArgumentException e) {
-            logger.error("Failed to create InAppPurchases. Reason: " + e.getMessage());
+        } catch (IllegalArgumentException exception) {
+            logger.error(CREATE_ERROR_LOG + exception.getMessage());
             return ResponseEntity.badRequest().body(null);
         }
     }
@@ -47,34 +65,37 @@ public class InAppPurchaseController {
     @PreAuthorize("hasAuthority('in_app_purchase.read')")
     @GetMapping("/all")
     public ResponseEntity<List<InAppPurchase>> getAllInAppPurchases() {
-        logger.info("Received request to list all InAppPurchases.");
+        logger.info(LIST_REQUEST_LOG);
         List<InAppPurchase> purchases = inAppPurchaseService.getAllInAppPurchases();
-        logger.info("Found " + purchases.size() + " InAppPurchases.");
+        logger.info(LIST_FOUND_LOG + purchases.size() + IN_APP_PURCHASES_LOG);
         return ResponseEntity.ok(purchases);
     }
 
     @PreAuthorize("hasAuthority('in_app_purchase.read')")
     @GetMapping("/{id}")
     public ResponseEntity<InAppPurchase> getInAppPurchaseById(@PathVariable int id) {
-        logger.info("Received request to get InAppPurchase by ID: " + id);
+        logger.info(GET_REQUEST_LOG + id);
         Optional<InAppPurchase> purchase = inAppPurchaseService.getInAppPurchaseById(id);
-        return purchase.map(ResponseEntity::ok)
-                .orElseGet(() -> {
-                    logger.info("InAppPurchase not found with ID: " + id);
-                    return ResponseEntity.notFound().build();
-                });
+
+        if (purchase.isPresent()) {
+            return ResponseEntity.ok(purchase.get());
+        }
+
+        logger.info(GET_NOT_FOUND_LOG + id);
+        return ResponseEntity.notFound().build();
     }
 
     @PreAuthorize("hasAuthority('in_app_purchase.manage')")
     @PostMapping("/link-to-monetized-app/{monetizedApplicationId}")
     public ResponseEntity<List<InAppPurchase>> linkMonetizedAppToPurchases(@PathVariable int monetizedApplicationId) {
-        logger.info("Received request to link InAppPurchases to MonetizedApplication ID: " + monetizedApplicationId);
+        logger.info(LINK_REQUEST_LOG + monetizedApplicationId);
+
         try {
             List<InAppPurchase> linkedPurchases = inAppPurchaseService.linkMonetizedAppToPurchases(monetizedApplicationId);
-            logger.info("Successfully linked " + linkedPurchases.size() + " InAppPurchases to MonetizedApplication ID: " + monetizedApplicationId);
+            logger.info(LINK_SUCCESS_LOG + linkedPurchases.size() + TO_APP_ID_LOG + monetizedApplicationId);
             return ResponseEntity.ok(linkedPurchases);
-        } catch (RuntimeException e) {
-            logger.error("Failed to link InAppPurchases to MonetizedApplication ID: " + monetizedApplicationId + ". Reason: " + e.getMessage());
+        } catch (RuntimeException exception) {
+            logger.error(LINK_ERROR_LOG + monetizedApplicationId + REASON_LOG + exception.getMessage());
             return ResponseEntity.badRequest().body(null);
         }
     }

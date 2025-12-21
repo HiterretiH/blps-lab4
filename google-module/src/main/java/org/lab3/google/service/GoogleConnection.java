@@ -1,4 +1,4 @@
-package org.lab3.google;
+package org.lab3.google.service;
 
 import org.lab3.google.json.MonetizationEvent;
 

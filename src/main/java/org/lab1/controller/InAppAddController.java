@@ -16,6 +16,20 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/api/in-app-ads")
 public class InAppAddController {
+    private static final String CREATE_REQUEST_LOG = "Received request to create InAppAdd for MonetizedApplication ID: ";
+    private static final String CREATE_SUCCESS_LOG = "InAppAdd created with ID: ";
+    private static final String FOR_MONETIZED_APP_LOG = " for MonetizedApplication ID: ";
+    private static final String BULK_CREATE_REQUEST_LOG = "Received request to create multiple InAppAdds. Count: ";
+    private static final String BULK_CREATE_SUCCESS_LOG = "Successfully created ";
+    private static final String IN_APP_ADDS_LOG = " InAppAdds.";
+    private static final String BULK_CREATE_ERROR_LOG = "Failed to create multiple InAppAdds. Reason: ";
+    private static final String LIST_REQUEST_LOG = "Received request to list all InAppAdds.";
+    private static final String LIST_FOUND_LOG = "Found ";
+    private static final String GET_REQUEST_LOG = "Received request to get InAppAdd by ID: ";
+    private static final String GET_NOT_FOUND_LOG = "InAppAdd not found with ID: ";
+    private static final String GET_BY_APP_REQUEST_LOG = "Received request to get InAppAdds by MonetizedApplication ID: ";
+    private static final String GET_BY_APP_FOUND_LOG = "Found ";
+    private static final String FOR_APP_ID_LOG = " for MonetizedApplication ID: ";
 
     private final InAppAddService inAppAddService;
     private final Logger logger;
@@ -29,22 +43,24 @@ public class InAppAddController {
     @PreAuthorize("hasAuthority('in_app_add.manage')")
     @PostMapping("/create")
     public ResponseEntity<InAppAdd> createInAppAdd(@RequestBody InAppAddJson inAppAddJson) {
-        logger.info("Received request to create InAppAdd for MonetizedApplication ID: " + inAppAddJson.getMonetizedApplicationId());
+        logger.info(CREATE_REQUEST_LOG + inAppAddJson.getMonetizedApplicationId());
         InAppAdd inAppAdd = inAppAddService.createInAppAdd(inAppAddJson);
-        logger.info("InAppAdd created with ID: " + inAppAdd.getId() + " for MonetizedApplication ID: " + inAppAdd.getMonetizedApplication().getId());
+        logger.info(CREATE_SUCCESS_LOG + inAppAdd.getId() + FOR_MONETIZED_APP_LOG + inAppAdd.getMonetizedApplication().getId());
         return ResponseEntity.ok(inAppAdd);
     }
 
     @PreAuthorize("hasAuthority('in_app_add.manage')")
     @PostMapping("/bulk")
     public ResponseEntity<List<InAppAdd>> createMultipleInAppAdds(@RequestBody List<InAppAddJson> inAppAddJsons) {
-        logger.info("Received request to create multiple InAppAdds. Count: " + (inAppAddJsons != null ? inAppAddJsons.size() : 0));
+        int count = inAppAddJsons != null ? inAppAddJsons.size() : 0;
+        logger.info(BULK_CREATE_REQUEST_LOG + count);
+
         try {
             List<InAppAdd> inAppAdds = inAppAddService.createMultipleInAppAdds(inAppAddJsons);
-            logger.info("Successfully created " + inAppAdds.size() + " InAppAdds.");
+            logger.info(BULK_CREATE_SUCCESS_LOG + inAppAdds.size() + IN_APP_ADDS_LOG);
             return ResponseEntity.status(HttpStatus.CREATED).body(inAppAdds);
-        } catch (IllegalArgumentException e) {
-            logger.error("Failed to create multiple InAppAdds. Reason: " + e.getMessage());
+        } catch (IllegalArgumentException exception) {
+            logger.error(BULK_CREATE_ERROR_LOG + exception.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         }
     }
@@ -52,29 +68,32 @@ public class InAppAddController {
     @PreAuthorize("hasAuthority('in_app_add.read')")
     @GetMapping("/list")
     public ResponseEntity<List<InAppAdd>> getAllInAppAds() {
-        logger.info("Received request to list all InAppAdds.");
+        logger.info(LIST_REQUEST_LOG);
         List<InAppAdd> inAppAdds = inAppAddService.getAllInAppAds();
-        logger.info("Found " + inAppAdds.size() + " InAppAdds.");
+        logger.info(LIST_FOUND_LOG + inAppAdds.size() + IN_APP_ADDS_LOG);
         return ResponseEntity.ok(inAppAdds);
     }
 
     @PreAuthorize("hasAuthority('in_app_add.read')")
     @GetMapping("get/{id}")
     public ResponseEntity<InAppAdd> getInAppAddById(@PathVariable int id) {
-        logger.info("Received request to get InAppAdd by ID: " + id);
+        logger.info(GET_REQUEST_LOG + id);
         Optional<InAppAdd> inAppAdd = inAppAddService.getInAppAddById(id);
-        return inAppAdd.map(ResponseEntity::ok).orElseGet(() -> {
-            logger.info("InAppAdd not found with ID: " + id);
-            return ResponseEntity.notFound().build();
-        });
+
+        if (inAppAdd.isPresent()) {
+            return ResponseEntity.ok(inAppAdd.get());
+        }
+
+        logger.info(GET_NOT_FOUND_LOG + id);
+        return ResponseEntity.notFound().build();
     }
 
     @PreAuthorize("hasAuthority('in_app_add.read')")
     @GetMapping("/monetized/{monetizedApplicationId}")
     public ResponseEntity<List<InAppAdd>> getInAppAdsByMonetizedApplication(@PathVariable int monetizedApplicationId) {
-        logger.info("Received request to get InAppAdds by MonetizedApplication ID: " + monetizedApplicationId);
+        logger.info(GET_BY_APP_REQUEST_LOG + monetizedApplicationId);
         List<InAppAdd> inAppAdds = inAppAddService.getInAppAddByMonetizedApplication(monetizedApplicationId);
-        logger.info("Found " + inAppAdds.size() + " InAppAdds for MonetizedApplication ID: " + monetizedApplicationId);
+        logger.info(GET_BY_APP_FOUND_LOG + inAppAdds.size() + FOR_APP_ID_LOG + monetizedApplicationId);
         return ResponseEntity.ok(inAppAdds);
     }
 }

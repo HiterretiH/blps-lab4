@@ -20,6 +20,11 @@ import java.util.List;
 
 @Component
 public class JwtAuthorizationFilter extends OncePerRequestFilter {
+    private static final String AUTHORIZATION_HEADER = "Authorization";
+    private static final String BEARER_PREFIX = "Bearer ";
+    private static final int BEARER_PREFIX_LENGTH = 7;
+    private static final String ROLE_CLAIM = "role";
+
     private final TokenManager tokenManager;
 
     @Autowired
@@ -28,24 +33,36 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, @NotNull HttpServletResponse response, @NotNull FilterChain filterChain)
-            throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request, @NotNull HttpServletResponse response,
+                                    @NotNull FilterChain filterChain) throws ServletException, IOException {
 
-        String authorizationHeader = request.getHeader("Authorization");
+        String authorizationHeader = request.getHeader(AUTHORIZATION_HEADER);
 
-        if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
+        if (!isValidAuthorizationHeader(authorizationHeader)) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        String token = authorizationHeader.substring(7);
+        String token = extractToken(authorizationHeader);
+        processTokenAuthentication(token, response, filterChain, request);
+    }
 
+    private boolean isValidAuthorizationHeader(String authorizationHeader) {
+        return authorizationHeader != null && authorizationHeader.startsWith(BEARER_PREFIX);
+    }
+
+    private String extractToken(String authorizationHeader) {
+        return authorizationHeader.substring(BEARER_PREFIX_LENGTH);
+    }
+
+    private void processTokenAuthentication(String token, HttpServletResponse response,
+                                            FilterChain filterChain, HttpServletRequest request)
+            throws IOException, ServletException {
         try {
             if (tokenManager.isTokenValid(token)) {
                 Claims claims = tokenManager.getClaimsFromToken(token);
                 String username = claims.getSubject();
-                String role = claims.get("role", String.class);
-
+                String role = claims.get(ROLE_CLAIM, String.class);
                 List<GrantedAuthority> authorities = tokenManager.getAuthoritiesByRole(role);
 
                 UsernamePasswordAuthenticationToken authenticationToken =
@@ -53,7 +70,7 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
 
                 SecurityContextHolder.getContext().setAuthentication(authenticationToken);
             }
-        } catch (JwtException e) {
+        } catch (JwtException jwtException) {
             response.setStatus(HttpStatus.FORBIDDEN.value());
             return;
         }

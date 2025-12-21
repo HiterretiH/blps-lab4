@@ -7,7 +7,6 @@ public class GoogleFormRequest {
     private Map<String, String> fields;
     private String formTitle;
 
-    // Constructors, getters and setters
     public GoogleFormRequest() {}
 
     public GoogleFormRequest(String googleEmail, Map<String, String> fields, String formTitle) {
@@ -16,7 +15,6 @@ public class GoogleFormRequest {
         this.formTitle = formTitle;
     }
 
-    // Getters and setters
     public String getGoogleEmail() {
         return googleEmail;
     }

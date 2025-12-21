@@ -13,6 +13,11 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/api/payout-logs")
 public class PayoutLogController {
+    private static final String CREATE_LOG = "Creating PayoutLog";
+    private static final String UPDATE_LOG = "Updating PayoutLog with ID: ";
+    private static final String GET_LOG = "Getting PayoutLog with ID: ";
+    private static final String GET_ALL_LOG = "Getting all PayoutLogs";
+    private static final String DELETE_LOG = "Deleting PayoutLog with ID: ";
 
     @Autowired
     private PayoutLogService payoutLogService;
@@ -21,14 +26,14 @@ public class PayoutLogController {
 
     @PostMapping
     public PayoutLog create(@RequestBody PayoutLog payoutLog) {
-        logger.info("Creating PayoutLog");
+        logger.info(CREATE_LOG);
         return payoutLogService.save(payoutLog);
     }
 
     @PreAuthorize("hasAuthority('payout_log.manage')")
     @PutMapping("/{id}")
     public PayoutLog update(@PathVariable int id, @RequestBody PayoutLog payoutLog) {
-        logger.info("Updating PayoutLog with ID: " + id);
+        logger.info(UPDATE_LOG + id);
         payoutLog.setId(id);
         return payoutLogService.save(payoutLog);
     }
@@ -36,21 +41,21 @@ public class PayoutLogController {
     @PreAuthorize("hasAuthority('payout_log.read')")
     @GetMapping("/{id}")
     public Optional<PayoutLog> getById(@PathVariable int id) {
-        logger.info("Getting PayoutLog with ID: " + id);
+        logger.info(GET_LOG + id);
         return payoutLogService.findById(id);
     }
 
     @PreAuthorize("hasAuthority('payout_log.read')")
     @GetMapping
     public List<PayoutLog> getAll() {
-        logger.info("Getting all PayoutLogs");
+        logger.info(GET_ALL_LOG);
         return payoutLogService.findAll();
     }
 
     @PreAuthorize("hasAuthority('payout_log.manage')")
     @DeleteMapping("/{id}")
     public void delete(@PathVariable int id) {
-        logger.info("Deleting PayoutLog with ID: " + id);
+        logger.info(DELETE_LOG + id);
         payoutLogService.delete(id);
     }
 }

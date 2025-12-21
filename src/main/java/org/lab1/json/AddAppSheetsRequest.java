@@ -4,7 +4,6 @@ public class AddAppSheetsRequest {
     private String spreadsheetId;
     private int appId;
 
-    // Constructors, getters and setters
     public AddAppSheetsRequest() {}
 
     public AddAppSheetsRequest(String spreadsheetId, int appId) {

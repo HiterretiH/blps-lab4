@@ -15,6 +15,18 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/api/application-stats")
 public class ApplicationStatsController {
+    private static final String CREATE_REQUEST_LOG = "Received request to create ApplicationStats";
+    private static final String CREATE_SUCCESS_LOG = "ApplicationStats created with ID: ";
+    private static final String UPDATE_REQUEST_LOG = "Received request to update ApplicationStats with ID: ";
+    private static final String UPDATE_SUCCESS_LOG = "ApplicationStats updated with ID: ";
+    private static final String GET_REQUEST_LOG = "Received request to get ApplicationStats with ID: ";
+    private static final String GET_FOUND_LOG = "ApplicationStats found with ID: ";
+    private static final String GET_NOT_FOUND_LOG = "ApplicationStats not found with ID: ";
+    private static final String GET_ALL_REQUEST_LOG = "Received request to get all ApplicationStats";
+    private static final String GET_ALL_FOUND_LOG = "Found ";
+    private static final String APPLICATION_STATS_COUNT_LOG = " ApplicationStats";
+    private static final String DELETE_REQUEST_LOG = "Received request to delete ApplicationStats with ID: ";
+    private static final String DELETE_SUCCESS_LOG = "ApplicationStats deleted with ID: ";
 
     private final ApplicationStatsService applicationStatsService;
     private final Logger logger;
@@ -28,49 +40,51 @@ public class ApplicationStatsController {
     @PreAuthorize("hasAuthority('application_stats.manage')")
     @PostMapping
     public ApplicationStats create(@RequestBody ApplicationStatsJson applicationStatsJson) {
-        logger.info("Received request to create ApplicationStats");
+        logger.info(CREATE_REQUEST_LOG);
         ApplicationStats stats = applicationStatsService.save(applicationStatsJson);
-        logger.info("ApplicationStats created with ID: " + stats.getId());
+        logger.info(CREATE_SUCCESS_LOG + stats.getId());
         return stats;
     }
 
     @PreAuthorize("hasAuthority('application_stats.manage')")
     @PutMapping("/{id}")
     public ApplicationStats update(@PathVariable int id, @RequestBody ApplicationStatsJson applicationStats) {
-        logger.info("Received request to update ApplicationStats with ID: " + id);
+        logger.info(UPDATE_REQUEST_LOG + id);
         applicationStats.setId(id);
         ApplicationStats updatedStats = applicationStatsService.save(applicationStats);
-        logger.info("ApplicationStats updated with ID: " + updatedStats.getId());
+        logger.info(UPDATE_SUCCESS_LOG + updatedStats.getId());
         return updatedStats;
     }
 
     @PreAuthorize("hasAuthority('application_stats.read')")
     @GetMapping("/{id}")
     public Optional<ApplicationStats> getById(@PathVariable int id) {
-        logger.info("Received request to get ApplicationStats with ID: " + id);
+        logger.info(GET_REQUEST_LOG + id);
         Optional<ApplicationStats> stats = applicationStatsService.findById(id);
+
         if (stats.isPresent()) {
-            logger.info("ApplicationStats found with ID: " + id);
+            logger.info(GET_FOUND_LOG + id);
         } else {
-            logger.info("ApplicationStats not found with ID: " + id);
+            logger.info(GET_NOT_FOUND_LOG + id);
         }
+
         return stats;
     }
 
     @PreAuthorize("hasAuthority('application_stats.read')")
     @GetMapping
     public List<ApplicationStats> getAll() {
-        logger.info("Received request to get all ApplicationStats");
+        logger.info(GET_ALL_REQUEST_LOG);
         List<ApplicationStats> allStats = applicationStatsService.findAll();
-        logger.info("Found " + allStats.size() + " ApplicationStats");
+        logger.info(GET_ALL_FOUND_LOG + allStats.size() + APPLICATION_STATS_COUNT_LOG);
         return allStats;
     }
 
     @PreAuthorize("hasAuthority('application_stats.manage')")
     @DeleteMapping("/{id}")
     public void delete(@PathVariable int id) {
-        logger.info("Received request to delete ApplicationStats with ID: " + id);
+        logger.info(DELETE_REQUEST_LOG + id);
         applicationStatsService.delete(id);
-        logger.info("ApplicationStats deleted with ID: " + id);
+        logger.info(DELETE_SUCCESS_LOG + id);
     }
 }

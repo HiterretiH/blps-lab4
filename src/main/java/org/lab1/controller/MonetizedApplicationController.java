@@ -14,6 +14,12 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/api/monetized-applications")
 public class MonetizedApplicationController {
+    private static final String CREATE_REQUEST_LOG = "Received request to create MonetizedApplication for developer ID: ";
+    private static final String APPLICATION_ID_LOG = ", application ID: ";
+    private static final String CREATE_SUCCESS_LOG = "MonetizedApplication created with ID: ";
+    private static final String DEVELOPER_ID_LOG = ", developer ID: ";
+    private static final String GET_REQUEST_LOG = "Received request to get MonetizedApplication by ID: ";
+    private static final String GET_NOT_FOUND_LOG = "MonetizedApplication not found with ID: ";
 
     private final MonetizedApplicationService monetizedApplicationService;
     private final Logger logger;
@@ -27,23 +33,23 @@ public class MonetizedApplicationController {
     @PreAuthorize("hasAuthority('monetized_application.manage')")
     @PostMapping
     public ResponseEntity<MonetizedApplication> createMonetizedApplication(@RequestBody MonetizedApplicationJson monetizedApplicationJson) {
-        logger.info("Received request to create MonetizedApplication for developer ID: " + monetizedApplicationJson.getDeveloperId() +
-                ", application ID: " + monetizedApplicationJson.getApplicationId());
+        logger.info(CREATE_REQUEST_LOG + monetizedApplicationJson.getDeveloperId() + APPLICATION_ID_LOG + monetizedApplicationJson.getApplicationId());
         MonetizedApplication monetizedApplication = monetizedApplicationService.createMonetizedApplication(monetizedApplicationJson);
-        logger.info("MonetizedApplication created with ID: " + monetizedApplication.getId() +
-                ", developer ID: " + monetizedApplication.getDeveloper().getId() +
-                ", application ID: " + monetizedApplication.getApplication().getId());
+        logger.info(CREATE_SUCCESS_LOG + monetizedApplication.getId() + DEVELOPER_ID_LOG + monetizedApplication.getDeveloper().getId() + APPLICATION_ID_LOG + monetizedApplication.getApplication().getId());
         return ResponseEntity.ok(monetizedApplication);
     }
 
     @PreAuthorize("hasAuthority('monetized_application.read')")
     @GetMapping("/{id}")
     public ResponseEntity<MonetizedApplication> getMonetizedApplicationById(@PathVariable int id) {
-        logger.info("Received request to get MonetizedApplication by ID: " + id);
+        logger.info(GET_REQUEST_LOG + id);
         Optional<MonetizedApplication> monetizedApplication = monetizedApplicationService.getMonetizedApplicationById(id);
-        return monetizedApplication.map(ResponseEntity::ok).orElseGet(() -> {
-            logger.info("MonetizedApplication not found with ID: " + id);
-            return ResponseEntity.notFound().build();
-        });
+
+        if (monetizedApplication.isPresent()) {
+            return ResponseEntity.ok(monetizedApplication.get());
+        }
+
+        logger.info(GET_NOT_FOUND_LOG + id);
+        return ResponseEntity.notFound().build();
     }
 }

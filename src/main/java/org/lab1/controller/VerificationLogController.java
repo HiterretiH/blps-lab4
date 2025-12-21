@@ -13,6 +13,8 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/api/verification-logs")
 public class VerificationLogController {
+    private static final String CREATE_LOG = "Creating VerificationLog";
+    private static final String GET_LOG = "Getting VerificationLog by ID: ";
 
     private final VerificationLogService verificationLogService;
     private final Logger logger;
@@ -25,8 +27,11 @@ public class VerificationLogController {
 
     @PreAuthorize("hasAuthority('verification_log.manage')")
     @PostMapping
-    public ResponseEntity<VerificationLog> createVerificationLog(@RequestParam boolean securityCheckPassed, @RequestParam boolean policyCheckPassed, @RequestParam boolean adsCheckPassed, @RequestParam String logMessage) {
-        logger.info("Creating VerificationLog");
+    public ResponseEntity<VerificationLog> createVerificationLog(@RequestParam boolean securityCheckPassed,
+                                                                 @RequestParam boolean policyCheckPassed,
+                                                                 @RequestParam boolean adsCheckPassed,
+                                                                 @RequestParam String logMessage) {
+        logger.info(CREATE_LOG);
         VerificationLog verificationLog = verificationLogService.createVerificationLog(securityCheckPassed, policyCheckPassed, adsCheckPassed, logMessage);
         return ResponseEntity.ok(verificationLog);
     }
@@ -34,7 +39,7 @@ public class VerificationLogController {
     @PreAuthorize("hasAuthority('verification_log.read')")
     @GetMapping("/{id}")
     public ResponseEntity<VerificationLog> getVerificationLog(@PathVariable int id) {
-        logger.info("Getting VerificationLog by ID: " + id);
+        logger.info(GET_LOG + id);
         Optional<VerificationLog> verificationLog = verificationLogService.getVerificationLogById(id);
         return verificationLog.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }

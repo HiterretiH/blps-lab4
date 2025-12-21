@@ -1,4 +1,4 @@
-package org.lab3.google;
+package org.lab3.google.quartz;
 
 import org.quartz.*;
 import org.springframework.context.annotation.Bean;

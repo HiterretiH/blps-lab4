@@ -1,7 +1,5 @@
 package org.lab3.google.json;
 
-import java.time.Instant;
-
 public class MonetizationEvent {
     public enum EventType {
         DOWNLOAD, PURCHASE, AD_VIEW
@@ -64,4 +62,3 @@ public class MonetizationEvent {
         this.amount = amount;
     }
 }
-

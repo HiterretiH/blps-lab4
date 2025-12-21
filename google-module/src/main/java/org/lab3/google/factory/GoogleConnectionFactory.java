@@ -1,9 +1,10 @@
-package org.lab3.google;
+package org.lab3.google.factory;
 
 import jakarta.resource.Referenceable;
 import jakarta.resource.ResourceException;
 import jakarta.resource.spi.ConnectionManager;
 import jakarta.resource.spi.ManagedConnectionFactory;
+import org.lab3.google.service.GoogleConnection;
 
 import javax.naming.NamingException;
 import javax.naming.Reference;
@@ -29,7 +30,7 @@ public class GoogleConnectionFactory implements Serializable, Referenceable {
     }
 
     @Override
-    public Reference getReference() throws NamingException {
+    public Reference getReference() {
         return reference;
     }
 }

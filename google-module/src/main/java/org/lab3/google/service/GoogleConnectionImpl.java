@@ -1,4 +1,4 @@
-package org.lab3.google;
+package org.lab3.google.service;
 
 import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.model.File;
@@ -9,6 +9,8 @@ import com.google.api.services.forms.v1.model.*;
 import com.google.api.services.forms.v1.model.Request;
 import com.google.api.services.sheets.v4.Sheets;
 import com.google.api.services.sheets.v4.model.*;
+import org.lab.logger.Logger;
+import org.lab3.google.resource.GoogleManagedConnection;
 import org.lab3.google.json.MonetizationEvent;
 
 import java.io.IOException;
@@ -20,15 +22,14 @@ import java.util.stream.Collectors;
 public class GoogleConnectionImpl implements GoogleConnection {
     private final Drive driveService;
     private final Sheets sheetsService;
-    private final Forms formsService;
     private final GoogleManagedConnection managedConnection;
     private final MetricsManager metrics = MetricsManager.getInstance();
+    private static final Logger logger = Logger.getInstance("google-module");
 
     public GoogleConnectionImpl(GoogleManagedConnection managedConnection) {
         this.managedConnection = managedConnection;
         this.driveService = managedConnection.getDriveService();
         this.sheetsService = managedConnection.getSheetsService();
-        this.formsService = managedConnection.getFormsService();
     }
 
     @Override
@@ -152,6 +153,8 @@ public class GoogleConnectionImpl implements GoogleConnection {
         }
 
         String spreadsheetId = files.getFiles().get(0).getId();
+
+        logger.info("ID: " + spreadsheetId);
 
         // 2. Получаем информацию о существующих листах
         Spreadsheet spreadsheet = sheetsService.spreadsheets().get(spreadsheetId).execute();

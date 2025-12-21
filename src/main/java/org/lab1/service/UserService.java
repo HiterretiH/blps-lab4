@@ -17,40 +17,44 @@ import java.util.Optional;
 
 @Service
 public class UserService {
+    private static final String AUTH_LOGIN_METRIC = "auth.login";
+    private static final String STATUS_TAG = "status";
+    private static final String SUCCESS_TAG = "success";
+    private static final String FAIL_TAG = "fail";
+    private static final String AUTH_REGISTER_METRIC = "auth.register";
+    private static final String AUTH_TOKENS_METRIC = "auth.tokens.issued";
+    private static final String INVALID_CREDENTIALS_MSG = "Invalid username or password";
+    private static final String USERNAME_EXISTS_MSG = "Username already exists";
+    private static final String EMAIL_EXISTS_MSG = "Email already exists";
+    private static final String USER_NOT_FOUND_MSG = "User not found";
+
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final TokenManager tokenManager;
-    private final MeterRegistry meterRegistry;
     private final Counter loginSuccessCounter;
     private final Counter loginFailCounter;
-    private final Counter registerSuccessCounter;
     private final Counter registerFailCounter;
     private final Counter tokenGeneratedCounter;
 
-
     @Autowired
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, TokenManager tokenManager, MeterRegistry meterRegistry) {
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder,
+                       TokenManager tokenManager, MeterRegistry meterRegistry) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.tokenManager = tokenManager;
-        this.meterRegistry = meterRegistry;
-        this.loginSuccessCounter = Counter.builder("auth.login")
-                .tag("status", "success")
+        this.loginSuccessCounter = Counter.builder(AUTH_LOGIN_METRIC)
+                .tag(STATUS_TAG, SUCCESS_TAG)
                 .register(meterRegistry);
 
-        this.loginFailCounter = Counter.builder("auth.login")
-                .tag("status", "fail")
+        this.loginFailCounter = Counter.builder(AUTH_LOGIN_METRIC)
+                .tag(STATUS_TAG, FAIL_TAG)
                 .register(meterRegistry);
 
-        this.registerSuccessCounter = Counter.builder("auth.register")
-                .tag("status", "success")
+        this.registerFailCounter = Counter.builder(AUTH_REGISTER_METRIC)
+                .tag(STATUS_TAG, FAIL_TAG)
                 .register(meterRegistry);
 
-        this.registerFailCounter = Counter.builder("auth.register")
-                .tag("status", "fail")
-                .register(meterRegistry);
-
-        this.tokenGeneratedCounter = Counter.builder("auth.tokens.issued")
+        this.tokenGeneratedCounter = Counter.builder(AUTH_TOKENS_METRIC)
                 .register(meterRegistry);
     }
 
@@ -58,13 +62,13 @@ public class UserService {
         try {
             Optional<User> userOptional = userRepository.findByUsername(username);
             if (userOptional.isEmpty()) {
-                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid username or password");
+                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, INVALID_CREDENTIALS_MSG);
             }
 
             User user = userOptional.get();
 
             if (!passwordEncoder.matches(password, user.getPasswordHash())) {
-                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid username or password");
+                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, INVALID_CREDENTIALS_MSG);
             }
 
             String tokenString = tokenManager.generateToken(
@@ -80,20 +84,19 @@ public class UserService {
             tokenGeneratedCounter.increment();
             loginSuccessCounter.increment();
             return token;
-        }
-        catch (ResponseStatusException e){
+        } catch (ResponseStatusException responseStatusException) {
             loginFailCounter.increment();
-            throw e;
+            throw responseStatusException;
         }
     }
 
     public User registerUser(String username, String email, String password, Role role) {
         try {
             if (userRepository.existsByUsername(username)) {
-                throw new ResponseStatusException(HttpStatus.CONFLICT, "Username already exists");
+                throw new ResponseStatusException(HttpStatus.CONFLICT, USERNAME_EXISTS_MSG);
             }
             if (userRepository.existsByEmail(email)) {
-                throw new ResponseStatusException(HttpStatus.CONFLICT, "Email already exists");
+                throw new ResponseStatusException(HttpStatus.CONFLICT, EMAIL_EXISTS_MSG);
             }
 
             String passwordHash = passwordEncoder.encode(password);
@@ -105,10 +108,9 @@ public class UserService {
             newUser.setPasswordHash(passwordHash);
 
             return userRepository.save(newUser);
-        }
-        catch (ResponseStatusException e){
+        } catch (ResponseStatusException responseStatusException) {
             registerFailCounter.increment();
-            throw e;
+            throw responseStatusException;
         }
     }
 
@@ -134,6 +136,6 @@ public class UserService {
 
     public User getUserById(int userId) {
         return userRepository.findById(userId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, USER_NOT_FOUND_MSG));
     }
 }

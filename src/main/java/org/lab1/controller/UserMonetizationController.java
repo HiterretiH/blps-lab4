@@ -1,6 +1,5 @@
 package org.lab1.controller;
 
-import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
 import org.lab1.json.Card;
@@ -26,6 +25,20 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/api/user")
 public class UserMonetizationController {
+    private static final String APPLICATION_NOT_FOUND_MESSAGE = "Application not found";
+    private static final String DOWNLOAD_SUCCESS_MESSAGE = "Application downloaded successfully.";
+    private static final String DOWNLOAD_FAILED_MESSAGE = "Application not found or download failed.";
+    private static final String PURCHASE_NOT_FOUND_MESSAGE = "Purchase not found";
+    private static final String PURCHASE_SUCCESS_MESSAGE = "In-app purchase successful.";
+    private static final String PURCHASE_FAILED_MESSAGE = "Purchase not found or failed.";
+    private static final String AD_NOT_FOUND_MESSAGE = "Ad not found";
+    private static final String AD_VIEW_SUCCESS_MESSAGE = "Ad viewed successfully. Revenue: ";
+    private static final String AD_VIEW_FAILED_MESSAGE = "Ad not found or view failed.";
+    private static final String USER_NOT_AUTHORIZED_MESSAGE = "User not authorized";
+    private static final String PURCHASE_NOT_FOUND_EXCEPTION = "Purchase not found";
+    private static final String AD_NOT_FOUND_EXCEPTION = "Ad not found";
+    private static final String PURCHASE_PROCESSING_TIME_METRIC = "user.monetization.purchase.processing.time";
+    private static final String AD_VIEW_PROCESSING_TIME_METRIC = "user.monetization.ad_view.processing.time";
 
     private final UserMonetizationService userMonetizationService;
     private final GoogleTaskSender googleTaskSender;
@@ -34,10 +47,8 @@ public class UserMonetizationController {
     private final ApplicationRepository applicationRepository;
     private final UserRepository userRepository;
     private final MeterRegistry meterRegistry;
-
     private final Timer purchaseProcessingTime;
     private final Timer adViewProcessingTime;
-
 
     @Autowired
     public UserMonetizationController(UserMonetizationService userMonetizationService,
@@ -54,8 +65,8 @@ public class UserMonetizationController {
         this.applicationRepository = applicationRepository;
         this.userRepository = userRepository;
         this.meterRegistry = meterRegistry;
-        this.purchaseProcessingTime = meterRegistry.timer("user.monetization.purchase.processing.time");
-        this.adViewProcessingTime = meterRegistry.timer("user.monetization.ad_view.processing.time");
+        this.purchaseProcessingTime = meterRegistry.timer(PURCHASE_PROCESSING_TIME_METRIC);
+        this.adViewProcessingTime = meterRegistry.timer(AD_VIEW_PROCESSING_TIME_METRIC);
     }
 
     @PreAuthorize("hasAuthority('user.download_application')")
@@ -65,17 +76,16 @@ public class UserMonetizationController {
             @RequestBody Card card,
             Authentication authentication) {
 
-        // Извлекаем userId из аутентификации
         Optional<User> userOptional = userRepository.findByUsername(authentication.getPrincipal().toString());
         if (userOptional.isEmpty()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
+
         User user = userOptional.get();
         int userId = user.getId();
 
-        // Получаем приложение для получения цены
         Application application = applicationRepository.findById(applicationId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Application not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, APPLICATION_NOT_FOUND_MESSAGE));
 
         boolean success = userMonetizationService.downloadApplication(
                 applicationId,
@@ -87,18 +97,18 @@ public class UserMonetizationController {
         );
 
         if (success) {
-            // Отправляем событие в очередь только после успешной загрузки
             MonetizationEvent event = new MonetizationEvent(
                     MonetizationEvent.EventType.DOWNLOAD,
                     userId,
                     applicationId,
                     applicationId,
-                    application.getPrice() // Используем цену приложения
+                    application.getPrice()
             );
             googleTaskSender.sendMonetizationEvent(userId, event);
-            return ResponseEntity.ok("Application downloaded successfully.");
+            return ResponseEntity.ok(DOWNLOAD_SUCCESS_MESSAGE);
         }
-        return ResponseEntity.badRequest().body("Application not found or download failed.");
+
+        return ResponseEntity.badRequest().body(DOWNLOAD_FAILED_MESSAGE);
     }
 
     @PreAuthorize("hasAuthority('user.purchase_in_app_item')")
@@ -109,13 +119,14 @@ public class UserMonetizationController {
             Authentication authentication) {
         Timer.Sample sample = Timer.start(meterRegistry);
 
-        // Извлекаем userId из аутентификации
         Optional<User> userOptional = userRepository.findByUsername(authentication.getPrincipal().toString());
         if (userOptional.isEmpty()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
+
         User user = userOptional.get();
         int userId = user.getId();
+
         boolean success = userMonetizationService.purchaseInAppItem(
                 purchaseId,
                 userId,
@@ -126,24 +137,23 @@ public class UserMonetizationController {
         );
 
         if (success) {
-            // Получаем цену покупки
             double price = purchaseRepository.findById(purchaseId)
-                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Purchase not found"))
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, PURCHASE_NOT_FOUND_MESSAGE))
                     .getPrice();
 
-            // Отправляем событие в очередь только после успешной покупки
             MonetizationEvent event = new MonetizationEvent(
                     MonetizationEvent.EventType.PURCHASE,
                     userId,
-                    getApplicationIdForPurchase(purchaseId), // метод для получения appId по purchaseId
+                    getApplicationIdForPurchase(purchaseId),
                     purchaseId,
                     price
             );
             sample.stop(purchaseProcessingTime);
             googleTaskSender.sendMonetizationEvent(userId, event);
-            return ResponseEntity.ok("In-app purchase successful.");
+            return ResponseEntity.ok(PURCHASE_SUCCESS_MESSAGE);
         }
-        return ResponseEntity.badRequest().body("Purchase not found or failed.");
+
+        return ResponseEntity.badRequest().body(PURCHASE_FAILED_MESSAGE);
     }
 
     @PreAuthorize("hasAuthority('user.view_advertisement')")
@@ -153,49 +163,47 @@ public class UserMonetizationController {
             Authentication authentication) {
         Timer.Sample sample = Timer.start(meterRegistry);
 
-        // Извлекаем userId из аутентификации
         Optional<User> userOptional = userRepository.findByUsername(authentication.getPrincipal().toString());
         if (userOptional.isEmpty()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
+
         User user = userOptional.get();
         int userId = user.getId();
+
         boolean success = userMonetizationService.viewAdvertisement(adId);
 
         if (success) {
-            // Получаем доход от просмотра рекламы
             double revenue = addRepository.findById(adId)
-                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Ad not found"))
-                    .getPrice(); // Предполагаем, что цена InAppAdd и есть доход от просмотра
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, AD_NOT_FOUND_MESSAGE))
+                    .getPrice();
 
-            // Отправляем событие в очередь только после успешного просмотра
             MonetizationEvent event = new MonetizationEvent(
                     MonetizationEvent.EventType.AD_VIEW,
                     userId,
-                    getApplicationIdForAd(adId), // метод для получения appId по adId
+                    getApplicationIdForAd(adId),
                     adId,
                     revenue
             );
             sample.stop(adViewProcessingTime);
             googleTaskSender.sendMonetizationEvent(userId, event);
-            return ResponseEntity.ok("Ad viewed successfully. Revenue: " + revenue);
+            return ResponseEntity.ok(AD_VIEW_SUCCESS_MESSAGE + revenue);
         }
-        return ResponseEntity.badRequest().body("Ad not found or view failed.");
+
+        return ResponseEntity.badRequest().body(AD_VIEW_FAILED_MESSAGE);
     }
 
     private int getApplicationIdForPurchase(int purchaseId) {
-        // Реализация получения applicationId по purchaseId
         return purchaseRepository.findById(purchaseId)
-                .orElseThrow(() -> new IllegalArgumentException("Purchase not found"))
+                .orElseThrow(() -> new IllegalArgumentException(PURCHASE_NOT_FOUND_EXCEPTION))
                 .getMonetizedApplication()
                 .getApplication()
                 .getId();
     }
 
     private int getApplicationIdForAd(int adId) {
-        // Реализация получения applicationId по adId
         return addRepository.findById(adId)
-                .orElseThrow(() -> new IllegalArgumentException("Ad not found"))
+                .orElseThrow(() -> new IllegalArgumentException(AD_NOT_FOUND_EXCEPTION))
                 .getMonetizedApplication()
                 .getApplication()
                 .getId();

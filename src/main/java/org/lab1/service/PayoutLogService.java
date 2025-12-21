@@ -11,28 +11,33 @@ import java.util.Optional;
 
 @Service
 public class PayoutLogService {
+    private static final String SAVE_LOG = "Saving PayoutLog";
+    private static final String FIND_BY_ID_LOG = "Finding PayoutLog by ID: ";
+    private static final String FIND_ALL_LOG = "Finding all PayoutLogs";
+    private static final String DELETE_LOG = "Deleting PayoutLog by ID: ";
+
     @Autowired
     private PayoutLogRepository payoutLogRepository;
     @Autowired
     private Logger logger;
 
     public PayoutLog save(PayoutLog payoutLog) {
-        logger.info("Saving PayoutLog");
+        logger.info(SAVE_LOG);
         return payoutLogRepository.save(payoutLog);
     }
 
     public Optional<PayoutLog> findById(int id) {
-        logger.info("Finding PayoutLog by ID: " + id);
+        logger.info(FIND_BY_ID_LOG + id);
         return payoutLogRepository.findById(id);
     }
 
     public List<PayoutLog> findAll() {
-        logger.info("Finding all PayoutLogs");
+        logger.info(FIND_ALL_LOG);
         return payoutLogRepository.findAll();
     }
 
     public void delete(int id) {
-        logger.info("Deleting PayoutLog by ID: " + id);
+        logger.info(DELETE_LOG + id);
         payoutLogRepository.deleteById(id);
     }
 }

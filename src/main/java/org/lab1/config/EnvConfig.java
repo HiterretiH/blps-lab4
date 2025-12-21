@@ -1,4 +1,4 @@
-package org.lab3.google.config;
+package org.lab1.config;
 
 import io.github.cdimascio.dotenv.Dotenv;
 

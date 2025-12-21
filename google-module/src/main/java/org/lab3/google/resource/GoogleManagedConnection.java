@@ -1,4 +1,4 @@
-package org.lab3.google;
+package org.lab3.google.resource;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
@@ -10,6 +10,7 @@ import com.google.api.services.forms.v1.Forms;
 import com.google.api.services.sheets.v4.Sheets;
 import jakarta.resource.ResourceException;
 import jakarta.resource.spi.*;
+import org.lab3.google.service.GoogleConnectionImpl;
 
 import javax.security.auth.Subject;
 import javax.transaction.xa.XAResource;
@@ -23,7 +24,16 @@ import java.util.List;
 import java.util.logging.Logger;   
 
 public class GoogleManagedConnection implements ManagedConnection {
-    private static final Logger log = Logger.getLogger(GoogleManagedConnection.class.getName());
+    private static final int MAX_CONNECTIONS = 10;
+    private static final String APPLICATION_NAME = "Google JCA Adapter";
+    private static final String EIS_PRODUCT_NAME = "Google API";
+    private static final String EIS_PRODUCT_VERSION = "1.0";
+    private static final String USER_NAME = "google-user";
+    private static final String DRIVE_SCOPE = "https://www.googleapis.com/auth/drive";
+    private static final String SHEETS_SCOPE = "https://www.googleapis.com/auth/spreadsheets";
+    private static final String FORMS_SCOPE = "https://www.googleapis.com/auth/forms";
+
+    private static final Logger LOG = Logger.getLogger(GoogleManagedConnection.class.getName());
 
     private final Drive driveService;
     private final Sheets sheetsService;
@@ -38,25 +48,21 @@ public class GoogleManagedConnection implements ManagedConnection {
         NetHttpTransport httpTransport = GoogleNetHttpTransport.newTrustedTransport();
         JsonFactory jsonFactory = JacksonFactory.getDefaultInstance();
 
-        List<String> scopes = Arrays.asList(
-                "https://www.googleapis.com/auth/drive",
-                "https://www.googleapis.com/auth/spreadsheets",
-                "https://www.googleapis.com/auth/forms"
-        );
+        List<String> scopes = Arrays.asList(DRIVE_SCOPE, SHEETS_SCOPE, FORMS_SCOPE);
 
         GoogleCredential credential = GoogleCredential.fromStream(credentialsStream)
                 .createScoped(scopes);
 
         this.driveService = new Drive.Builder(httpTransport, jsonFactory, credential)
-                .setApplicationName("Google JCA Adapter")
+                .setApplicationName(APPLICATION_NAME)
                 .build();
 
         this.sheetsService = new Sheets.Builder(httpTransport, jsonFactory, credential)
-                .setApplicationName("Google JCA Adapter")
+                .setApplicationName(APPLICATION_NAME)
                 .build();
 
         this.formsService = new Forms.Builder(httpTransport, jsonFactory, credential)
-                .setApplicationName("Google JCA Adapter")
+                .setApplicationName(APPLICATION_NAME)
                 .build();
     }
 
@@ -73,33 +79,31 @@ public class GoogleManagedConnection implements ManagedConnection {
     }
 
     @Override
-    public Object getConnection(Subject subject, ConnectionRequestInfo info) throws ResourceException {
+    public Object getConnection(Subject subject, ConnectionRequestInfo info) {
         return new GoogleConnectionImpl(this);
     }
 
     @Override
     public void destroy() {
-        log.info("Google connection destroyed");
+        LOG.info("Google connection destroyed");
     }
 
     @Override
     public void cleanup() {
-        // Cleanup resources if needed
     }
 
     @Override
-    public void associateConnection(Object connection) throws ResourceException {
-        // Implementation if needed
+    public void associateConnection(Object connection) {
     }
 
     @Override
-    public void addConnectionEventListener(ConnectionEventListener listener) {
-        this.listener = listener;
+    public void addConnectionEventListener(ConnectionEventListener connectionEventListener) {
+        this.listener = connectionEventListener;
     }
 
     @Override
-    public void removeConnectionEventListener(ConnectionEventListener listener) {
-        if (this.listener == listener) {
+    public void removeConnectionEventListener(ConnectionEventListener connectionEventListener) {
+        if (this.listener == connectionEventListener) {
             this.listener = null;
         }
     }
@@ -119,29 +123,28 @@ public class GoogleManagedConnection implements ManagedConnection {
         return new ManagedConnectionMetaData() {
             @Override
             public String getEISProductName() {
-                return "Google API";
+                return EIS_PRODUCT_NAME;
             }
 
             @Override
             public String getEISProductVersion() {
-                return "1.0";
+                return EIS_PRODUCT_VERSION;
             }
 
             @Override
             public int getMaxConnections() {
-                return 10;
+                return MAX_CONNECTIONS;
             }
 
             @Override
             public String getUserName() {
-                return "google-user";
+                return USER_NAME;
             }
         };
     }
 
     @Override
     public void setLogWriter(PrintWriter out) throws ResourceException {
-        // Implementation if needed
     }
 
     @Override

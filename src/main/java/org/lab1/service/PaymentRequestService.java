@@ -10,6 +10,15 @@ import java.util.Optional;
 
 @Service
 public class PaymentRequestService {
+    private static final String CREATE_REQUEST_LOG = "Creating PaymentRequest for application ID: ";
+    private static final String AMOUNT_LOG = ", amount: ";
+    private static final String CREATED_REQUEST_LOG = "PaymentRequest created with ID: ";
+    private static final String FETCH_REQUEST_LOG = "Fetching PaymentRequest by application ID: ";
+    private static final String FOUND_REQUEST_LOG = "PaymentRequest found for application ID: ";
+    private static final String NOT_FOUND_REQUEST_LOG = "PaymentRequest not found for application ID: ";
+    private static final String VALIDATE_CARD_LOG = "Validating card for PaymentRequest ID: ";
+    private static final String VALIDATION_RESULT_LOG = "Card validation result for PaymentRequest ID: ";
+    private static final String COLON_SEPARATOR = ": ";
 
     private final PaymentRequestRepository paymentRequestRepository;
     private final Logger logger;
@@ -21,28 +30,30 @@ public class PaymentRequestService {
     }
 
     public PaymentRequest createPaymentRequest(int applicationId, double amount) {
-        logger.info("Creating PaymentRequest for application ID: " + applicationId + ", amount: " + amount);
+        logger.info(CREATE_REQUEST_LOG + applicationId + AMOUNT_LOG + amount);
         PaymentRequest paymentRequest = new PaymentRequest(applicationId, amount);
         PaymentRequest savedRequest = paymentRequestRepository.save(paymentRequest);
-        logger.info("PaymentRequest created with ID: " + savedRequest.getApplicationId() + ", amount: " + savedRequest.getAmount());
+        logger.info(CREATED_REQUEST_LOG + savedRequest.getApplicationId() + AMOUNT_LOG + savedRequest.getAmount());
         return savedRequest;
     }
 
     public Optional<PaymentRequest> getPaymentRequestById(int applicationId) {
-        logger.info("Fetching PaymentRequest by application ID: " + applicationId);
+        logger.info(FETCH_REQUEST_LOG + applicationId);
         Optional<PaymentRequest> paymentRequest = paymentRequestRepository.findById(applicationId);
+
         if (paymentRequest.isPresent()) {
-            logger.info("PaymentRequest found for application ID: " + applicationId + ", amount: " + paymentRequest.get().getAmount());
+            logger.info(FOUND_REQUEST_LOG + applicationId + AMOUNT_LOG + paymentRequest.get().getAmount());
         } else {
-            logger.info("PaymentRequest not found for application ID: " + applicationId);
+            logger.info(NOT_FOUND_REQUEST_LOG + applicationId);
         }
+
         return paymentRequest;
     }
 
     public boolean validateCard(PaymentRequest paymentRequest) {
-        logger.info("Validating card for PaymentRequest ID: " + paymentRequest.getApplicationId());
+        logger.info(VALIDATE_CARD_LOG + paymentRequest.getApplicationId());
         boolean isValid = paymentRequest.isCardValid();
-        logger.info("Card validation result for PaymentRequest ID: " + paymentRequest.getApplicationId() + ": " + isValid);
+        logger.info(VALIDATION_RESULT_LOG + paymentRequest.getApplicationId() + COLON_SEPARATOR + isValid);
         return isValid;
     }
 }

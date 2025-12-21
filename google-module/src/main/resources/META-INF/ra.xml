@@ -10,7 +10,7 @@
     <resourceadapter-version>1.0</resourceadapter-version>
     <license-required>false</license-required>
 
-    <resourceadapter-class>org.lab3.google.GoogleResourceAdapter</resourceadapter-class>
+    <resourceadapter-class>org.lab3.google.resource.GoogleResourceAdapter</resourceadapter-class>
 
     <config-property>
         <config-property-name>googleClientId</config-property-name>
@@ -25,11 +25,11 @@
 
     <outbound-resourceadapter>
         <connection-definition>
-            <managedconnectionfactory-class>org.lab3.google.GoogleManagedConnection</managedconnectionfactory-class>
-            <connectionfactory-interface>org.lab3.google.GoogleConnectionFactory</connectionfactory-interface>
-            <connectionfactory-impl-class>org.lab3.google.GoogleConnectionFactory</connectionfactory-impl-class>
-            <connection-interface>org.lab3.google.GoogleConnection</connection-interface>
-            <connection-impl-class>org.lab3.google.GoogleConnectionImpl</connection-impl-class>
+            <managedconnectionfactory-class>org.lab3.google.resource.GoogleManagedConnection</managedconnectionfactory-class>
+            <connectionfactory-interface>org.lab3.google.factory.GoogleConnectionFactory</connectionfactory-interface>
+            <connectionfactory-impl-class>org.lab3.google.factory.GoogleConnectionFactory</connectionfactory-impl-class>
+            <connection-interface>org.lab3.google.service.GoogleConnection</connection-interface>
+            <connection-impl-class>org.lab3.google.service.GoogleConnectionImpl</connection-impl-class>
         </connection-definition>
     </outbound-resourceadapter>
 

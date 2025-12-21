@@ -4,7 +4,6 @@ public class GoogleSheetRequest {
     private String googleEmail;
     private String sheetTitle;
 
-    // Constructors, getters and setters
     public GoogleSheetRequest() {}
 
     public GoogleSheetRequest(String googleEmail, String sheetTitle) {

@@ -4,9 +4,8 @@ import io.jsonwebtoken.*;
 import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.annotation.PostConstruct;
+import org.lab1.config.EnvConfig;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -18,13 +17,32 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
 public class TokenManager {
-    @Value("${token.secret.key}")
-    private String SECRET_KEY;
-    private final ConcurrentHashMap<String, Boolean> activeTokens = new ConcurrentHashMap<>();
+    private static final long TOKEN_VALIDITY_MILLISECONDS = 3600000;
+    private static final String USER_ROLE = "USER";
+    private static final String DEVELOPER_ROLE = "DEVELOPER";
+    private static final String PRIVACY_POLICY_ROLE = "PRIVACY_POLICY";
+    private static final String ROLE_USER_AUTHORITY = "ROLE_USER";
+    private static final String ROLE_DEVELOPER_AUTHORITY = "ROLE_DEVELOPER";
+    private static final String ROLE_PRIVACY_POLICY_AUTHORITY = "ROLE_PRIVACY_POLICY";
+    private static final String USER_ID_CLAIM = "userId";
+    private static final String ROLE_CLAIM = "role";
+    private static final String ACTIVE_SESSIONS_METRIC = "auth.sessions.active";
+    private static final String SIGNATURE_ALGORITHM = "HS256";
+    private static final String EXPIRATION_LOG = "Exp: ";
+    private static final String TOKEN_VALID_LOG = "Token is valid.";
+    private static final String TOKEN_EXPIRED_LOG = "Token has expired.";
+    private static final String INVALID_SIGNATURE_LOG = "Invalid signature.";
+    private static final String MALFORMED_TOKEN_LOG = "Malformed token.";
+    private static final String TOKEN_VALIDATION_ERROR_LOG = "Token validation error: ";
 
+    private static final String SECRET_KEY = EnvConfig.get("SECRET_KEY");
+
+    private final ConcurrentHashMap<String, Boolean> activeTokens = new ConcurrentHashMap<>();
     private final MeterRegistry meterRegistry;
     private final PasswordEncoder passwordEncoder;
     private AtomicInteger activeSessionsGauge;
+
+    private final Map<String, List<GrantedAuthority>> roleAuthorities = initializeRoleAuthorities();
 
     @Autowired
     public TokenManager(MeterRegistry meterRegistry, PasswordEncoder passwordEncoder) {
@@ -36,14 +54,24 @@ public class TokenManager {
     public void initMetrics() {
         this.activeSessionsGauge = new AtomicInteger(0);
 
-        Gauge.builder("auth.sessions.active", activeSessionsGauge, AtomicInteger::get)
+        Gauge.builder(ACTIVE_SESSIONS_METRIC, activeSessionsGauge, AtomicInteger::get)
                 .strongReference(true)
                 .register(meterRegistry);
     }
 
-    private final Map<String, List<GrantedAuthority>> roleAuthorities = new HashMap<>() {{
-        put("USER", List.of(
-                new SimpleGrantedAuthority("ROLE_USER"),
+    private Map<String, List<GrantedAuthority>> initializeRoleAuthorities() {
+        Map<String, List<GrantedAuthority>> authorities = new HashMap<>();
+
+        authorities.put(USER_ROLE, createUserAuthorities());
+        authorities.put(DEVELOPER_ROLE, createDeveloperAuthorities());
+        authorities.put(PRIVACY_POLICY_ROLE, createPrivacyPolicyAuthorities());
+
+        return authorities;
+    }
+
+    private List<GrantedAuthority> createUserAuthorities() {
+        return Arrays.asList(
+                new SimpleGrantedAuthority(ROLE_USER_AUTHORITY),
                 new SimpleGrantedAuthority("application.read"),
                 new SimpleGrantedAuthority("application_stats.read"),
                 new SimpleGrantedAuthority("in_app_add.read"),
@@ -51,9 +79,12 @@ public class TokenManager {
                 new SimpleGrantedAuthority("user.download_application"),
                 new SimpleGrantedAuthority("user.purchase_in_app_item"),
                 new SimpleGrantedAuthority("user.view_advertisement")
-        ));
-        put("DEVELOPER", List.of(
-                new SimpleGrantedAuthority("ROLE_DEVELOPER"),
+        );
+    }
+
+    private List<GrantedAuthority> createDeveloperAuthorities() {
+        return Arrays.asList(
+                new SimpleGrantedAuthority(ROLE_DEVELOPER_AUTHORITY),
                 new SimpleGrantedAuthority("application.manage"),
                 new SimpleGrantedAuthority("application.read"),
                 new SimpleGrantedAuthority("application.verify"),
@@ -82,35 +113,50 @@ public class TokenManager {
                 new SimpleGrantedAuthority("form.create"),
                 new SimpleGrantedAuthority("stats.add_sheets"),
                 new SimpleGrantedAuthority("stats.create")
-        ));
-        put("PRIVACY_POLICY", List.of(
-                new SimpleGrantedAuthority("ROLE_PRIVACY_POLICY"),
+        );
+    }
+
+    private List<GrantedAuthority> createPrivacyPolicyAuthorities() {
+        return Arrays.asList(
+                new SimpleGrantedAuthority(ROLE_PRIVACY_POLICY_AUTHORITY),
                 new SimpleGrantedAuthority("developer.manage"),
                 new SimpleGrantedAuthority("developer.read"),
                 new SimpleGrantedAuthority("form.manage"),
                 new SimpleGrantedAuthority("form.read"),
                 new SimpleGrantedAuthority("stats.update")
-        ));
-    }};
-
-    private final long VALIDITY_IN_MILLISECONDS = 3600000;
+        );
+    }
 
     public String generateToken(String username, String role, int userId) {
+        Claims claims = createClaims(username, role, userId);
+        String token = buildToken(claims);
+        storeActiveToken(token);
+        return token;
+    }
+
+    private Claims createClaims(String username, String role, int userId) {
         Claims claims = Jwts.claims().setSubject(username);
-        claims.put("role", role);
-        claims.put("userId", userId);
+        claims.put(ROLE_CLAIM, role);
+        claims.put(USER_ID_CLAIM, userId);
+        return claims;
+    }
+
+    private String buildToken(Claims claims) {
         Date now = new Date();
-        Date validity = new Date(now.getTime() + VALIDITY_IN_MILLISECONDS);
-        String token = Jwts.builder()
+        Date validity = new Date(now.getTime() + TOKEN_VALIDITY_MILLISECONDS);
+
+        return Jwts.builder()
                 .setClaims(claims)
                 .setIssuedAt(now)
                 .setExpiration(validity)
-                .signWith(SignatureAlgorithm.HS256, SECRET_KEY)
+                .signWith(SignatureAlgorithm.valueOf(SIGNATURE_ALGORITHM), SECRET_KEY)
                 .compact();
+    }
+
+    private void storeActiveToken(String token) {
         String hashedToken = passwordEncoder.encode(token);
         activeTokens.put(hashedToken, true);
-        activeSessionsGauge.set(activeTokens.size());
-        return token;
+        updateActiveSessionsMetric();
     }
 
     public Claims getClaimsFromToken(String token) {
@@ -122,34 +168,52 @@ public class TokenManager {
 
     public boolean isTokenValid(String token) {
         try {
-            Claims claims = Jwts.parser()
-                    .setSigningKey(SECRET_KEY)
-                    .parseClaimsJws(token)
-                    .getBody();
-
+            Claims claims = validateTokenAndGetClaims(token);
             Date expiration = claims.getExpiration();
-            System.out.println("Exp: " + expiration);
 
-            if (expiration != null && expiration.after(new Date())) {
-                System.out.println("Token is valid.");
+            System.out.println(EXPIRATION_LOG + expiration);
+
+            if (isTokenNotExpired(expiration)) {
+                System.out.println(TOKEN_VALID_LOG);
                 return true;
-            } else {
-                String hashedToken = passwordEncoder.encode(token);
-                activeTokens.remove(token);
-                activeSessionsGauge.set(activeTokens.size());
-                System.out.println("Token has expired.");
-                return false;
             }
-        } catch (SignatureException e) {
-            System.out.println("Invalid signature.");
-        } catch (ExpiredJwtException e) {
-            System.out.println("Token has expired.");
-        } catch (MalformedJwtException e) {
-            System.out.println("Malformed token.");
-        } catch (Exception e) {
-            System.out.println("Token validation error: " + e.getMessage());
+
+            removeExpiredToken(token);
+            System.out.println(TOKEN_EXPIRED_LOG);
+            return false;
+
+        } catch (SignatureException signatureException) {
+            System.out.println(INVALID_SIGNATURE_LOG);
+        } catch (ExpiredJwtException expiredJwtException) {
+            System.out.println(TOKEN_EXPIRED_LOG);
+        } catch (MalformedJwtException malformedJwtException) {
+            System.out.println(MALFORMED_TOKEN_LOG);
+        } catch (Exception exception) {
+            System.out.println(TOKEN_VALIDATION_ERROR_LOG + exception.getMessage());
         }
+
         return false;
+    }
+
+    private Claims validateTokenAndGetClaims(String token) {
+        return Jwts.parser()
+                .setSigningKey(SECRET_KEY)
+                .parseClaimsJws(token)
+                .getBody();
+    }
+
+    private boolean isTokenNotExpired(Date expiration) {
+        return expiration != null && expiration.after(new Date());
+    }
+
+    private void removeExpiredToken(String token) {
+        String hashedToken = passwordEncoder.encode(token);
+        activeTokens.remove(hashedToken);
+        updateActiveSessionsMetric();
+    }
+
+    private void updateActiveSessionsMetric() {
+        activeSessionsGauge.set(activeTokens.size());
     }
 
     public List<GrantedAuthority> getAuthoritiesByRole(String role) {

@@ -11,6 +11,22 @@ import java.util.Optional;
 
 @Service
 public class DeveloperService {
+    private static final String CREATE_DEV_LOG = "Creating developer with name: ";
+    private static final String CREATED_DEV_LOG = "Developer created with ID: ";
+    private static final String CREATE_FROM_USER_LOG = "Creating developer from user: ";
+    private static final String CREATED_FROM_USER_LOG = "Developer created with ID: ";
+    private static final String FROM_USER_LOG = " from user: ";
+    private static final String FETCH_DEV_LOG = "Fetching developer by ID: ";
+    private static final String DEV_FOUND_LOG = "Developer found with ID: ";
+    private static final String DEV_NOT_FOUND_LOG = "Developer not found with ID: ";
+    private static final String UPDATE_DEV_LOG = "Updating developer with ID: ";
+    private static final String NAME_LOG = ", name: ";
+    private static final String UPDATE_NOT_FOUND_LOG = "Developer not found with ID: ";
+    private static final String UPDATE_NOT_FOUND_MSG = " for update.";
+    private static final String DEV_NOT_FOUND_MSG = "Developer not found";
+    private static final String UPDATED_DEV_LOG = "Developer updated with ID: ";
+    private static final String DELETE_DEV_LOG = "Deleting developer with ID: ";
+    private static final String DELETED_DEV_LOG = "Developer deleted with ID: ";
 
     private final DeveloperRepository developerRepository;
     private final Logger logger;
@@ -22,53 +38,55 @@ public class DeveloperService {
     }
 
     public Developer createDeveloper(String name, String description) {
-        logger.info("Creating developer with name: " + name);
+        logger.info(CREATE_DEV_LOG + name);
         Developer developer = new Developer();
         developer.setName(name);
         developer.setDescription(description);
         Developer savedDeveloper = developerRepository.save(developer);
-        logger.info("Developer created with ID: " + savedDeveloper.getId());
+        logger.info(CREATED_DEV_LOG + savedDeveloper.getId());
         return savedDeveloper;
     }
 
     public Developer createDeveloper(User user) {
-        logger.info("Creating developer from user: " + user.getUsername());
+        logger.info(CREATE_FROM_USER_LOG + user.getUsername());
         Developer developer = new Developer();
         developer.setName(user.getUsername());
         developer.setDescription(user.getEmail());
         developer.setUser(user);
         Developer savedDeveloper = developerRepository.save(developer);
-        logger.info("Developer created with ID: " + savedDeveloper.getId() + " from user: " + user.getUsername());
+        logger.info(CREATED_FROM_USER_LOG + savedDeveloper.getId() + FROM_USER_LOG + user.getUsername());
         return savedDeveloper;
     }
 
     public Optional<Developer> getDeveloperById(int id) {
-        logger.info("Fetching developer by ID: " + id);
+        logger.info(FETCH_DEV_LOG + id);
         Optional<Developer> developer = developerRepository.findById(id);
+
         if (developer.isPresent()) {
-            logger.info("Developer found with ID: " + id);
+            logger.info(DEV_FOUND_LOG + id);
         } else {
-            logger.info("Developer not found with ID: " + id);
+            logger.info(DEV_NOT_FOUND_LOG + id);
         }
+
         return developer;
     }
 
     public Developer updateDeveloper(int id, String name, String description) {
-        logger.info("Updating developer with ID: " + id + ", name: " + name);
+        logger.info(UPDATE_DEV_LOG + id + NAME_LOG + name);
         Developer developer = developerRepository.findById(id).orElseThrow(() -> {
-            logger.error("Developer not found with ID: " + id + " for update.");
-            return new RuntimeException("Developer not found");
+            logger.error(UPDATE_NOT_FOUND_LOG + id + UPDATE_NOT_FOUND_MSG);
+            return new RuntimeException(DEV_NOT_FOUND_MSG);
         });
         developer.setName(name);
         developer.setDescription(description);
         Developer updatedDeveloper = developerRepository.save(developer);
-        logger.info("Developer updated with ID: " + updatedDeveloper.getId());
+        logger.info(UPDATED_DEV_LOG + updatedDeveloper.getId());
         return updatedDeveloper;
     }
 
     public void deleteDeveloper(int id) {
-        logger.info("Deleting developer with ID: " + id);
+        logger.info(DELETE_DEV_LOG + id);
         developerRepository.deleteById(id);
-        logger.info("Developer deleted with ID: " + id);
+        logger.info(DELETED_DEV_LOG + id);
     }
 }

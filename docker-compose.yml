@@ -64,6 +64,7 @@ services:
     volumes:
       - ./logs:/app/logs
       - ./.env:/app/.env:ro
+      - ./google_credentials.json:/app/google_credentials.json:ro
     environment:
       RABBITMQ_HOST: rabbit
       RABBITMQ_PORT: 5672

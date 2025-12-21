@@ -18,12 +18,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.UUID;
@@ -31,6 +26,38 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/auth")
 public class AuthorizationController {
+    private static final String BEARER_PREFIX = "Bearer ";
+    private static final String LOGIN_REQUEST_LOG = "Received login request for user: ";
+    private static final String LOGIN_SUCCESS_LOG = "User ";
+    private static final String LOGGED_IN_SUCCESS_LOG = " logged in successfully.";
+    private static final String LOGIN_FAILED_LOG = "Login failed for user: ";
+    private static final String REASON_LOG = ". Reason: ";
+    private static final String REGISTER_REQUEST_LOG = "Received registration request for user: ";
+    private static final String REGISTER_SUCCESS_LOG = "User ";
+    private static final String REGISTERED_SUCCESS_LOG = " registered successfully.";
+    private static final String REGISTER_FAILED_LOG = "Registration failed for user: ";
+    private static final String DEVELOPER_REGISTER_REQUEST_LOG = "Received developer registration request for user: ";
+    private static final String DEVELOPER_REGISTER_SUCCESS_LOG = "Developer ";
+    private static final String DEVELOPER_REGISTER_FAILED_LOG = "Developer registration failed for user: ";
+    private static final String GOOGLE_CONNECT_INITIATE_LOG = "Received request to initiate Google connect.";
+    private static final String INVALID_TOKEN_LOG = "Invalid system token received for Google connect initiation.";
+    private static final String INVALID_TOKEN_MESSAGE = "Invalid token";
+    private static final String GENERATED_GOOGLE_AUTH_LOG = "Generated Google auth URL for user ID: ";
+    private static final String STATE_LOG = ", state: ";
+    private static final String SECURITY_EXCEPTION_LOG = "Security exception during Google connect initiation: ";
+    private static final String GOOGLE_CALLBACK_LOG = "Received Google connect callback with code: ";
+    private static final String INVALID_CALLBACK_TOKEN_LOG = "Invalid system token received for Google connect callback.";
+    private static final String GOOGLE_ACCOUNT_CONNECTED_LOG = "Google account connected for user ID: ";
+    private static final String CONNECT_SUCCESS_MESSAGE = "Google account connected and email saved successfully!";
+    private static final String GOOGLE_OAUTH_ERROR_LOG = "Google OAuth error during callback: ";
+    private static final String INTERNAL_SERVER_ERROR_LOG = "Internal server error during Google connect callback: ";
+    private static final String AUTH_ERROR_METRIC = "auth.error";
+    private static final String TYPE_LABEL = "type";
+    private static final String LOGIN_TYPE = "login";
+    private static final String AUTH_GOOGLE_ERROR_METRIC = "auth.google.error";
+    private static final String REASON_LABEL = "reason";
+    private static final String USER_ID_CLAIM = "userId";
+
     private final UserService userService;
     private final DeveloperService developerService;
     private final PlatformTransactionManager transactionManager;
@@ -57,24 +84,24 @@ public class AuthorizationController {
 
     @PostMapping("/login")
     public ResponseEntity<Token> login(@RequestBody LoginCredentials credentials) {
-        logger.info("Received login request for user: " + credentials.getUsername());
+        logger.info(LOGIN_REQUEST_LOG + credentials.getUsername());
         try {
             Token token = userService.authenticateUser(
                     credentials.getUsername(),
                     credentials.getPassword()
             );
-            logger.info("User " + credentials.getUsername() + " logged in successfully.");
+            logger.info(LOGIN_SUCCESS_LOG + credentials.getUsername() + LOGGED_IN_SUCCESS_LOG);
             return ResponseEntity.status(HttpStatus.CREATED).body(token);
-        } catch (IllegalArgumentException e) {
-            meterRegistry.counter("auth.error", "type", "login").increment();
-            logger.error("Login failed for user: " + credentials.getUsername() + ". Reason: " + e.getMessage());
+        } catch (IllegalArgumentException exception) {
+            meterRegistry.counter(AUTH_ERROR_METRIC, TYPE_LABEL, LOGIN_TYPE).increment();
+            logger.error(LOGIN_FAILED_LOG + credentials.getUsername() + REASON_LOG + exception.getMessage());
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
         }
     }
 
     @PostMapping("/register")
     public ResponseEntity<Token> registerUser(@RequestBody Credentials credentials) {
-        logger.info("Received registration request for user: " + credentials.getUsername());
+        logger.info(REGISTER_REQUEST_LOG + credentials.getUsername());
         try {
             Token token = userService.registerUserAndGetToken(
                     credentials.getUsername(),
@@ -82,19 +109,20 @@ public class AuthorizationController {
                     credentials.getPassword(),
                     Role.USER
             );
-            logger.info("User " + credentials.getUsername() + " registered successfully.");
+            logger.info(REGISTER_SUCCESS_LOG + credentials.getUsername() + REGISTERED_SUCCESS_LOG);
             return ResponseEntity.status(HttpStatus.CREATED).body(token);
-        } catch (IllegalArgumentException e) {
-            logger.error("Registration failed for user: " + credentials.getUsername() + ". Reason: " + e.getMessage());
+        } catch (IllegalArgumentException exception) {
+            logger.error(REGISTER_FAILED_LOG + credentials.getUsername() + REASON_LOG + exception.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         }
     }
 
     @PostMapping("/developer/register")
     public ResponseEntity<Token> registerDeveloper(@RequestBody Credentials credentials) {
-        logger.info("Received developer registration request for user: " + credentials.getUsername());
-        TransactionDefinition def = new DefaultTransactionDefinition();
-        TransactionStatus status = transactionManager.getTransaction(def);
+        logger.info(DEVELOPER_REGISTER_REQUEST_LOG + credentials.getUsername());
+        TransactionDefinition definition = new DefaultTransactionDefinition();
+        TransactionStatus status = transactionManager.getTransaction(definition);
+
         try {
             User user = userService.registerUser(
                     credentials.getUsername(),
@@ -105,11 +133,11 @@ public class AuthorizationController {
             Token token = userService.generateToken(user);
             developerService.createDeveloper(user);
             transactionManager.commit(status);
-            logger.info("Developer " + credentials.getUsername() + " registered successfully.");
+            logger.info(DEVELOPER_REGISTER_SUCCESS_LOG + credentials.getUsername() + REGISTERED_SUCCESS_LOG);
             return ResponseEntity.status(HttpStatus.CREATED).body(token);
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException exception) {
             transactionManager.rollback(status);
-            logger.error("Developer registration failed for user: " + credentials.getUsername() + ". Reason: " + e.getMessage());
+            logger.error(DEVELOPER_REGISTER_FAILED_LOG + credentials.getUsername() + REASON_LOG + exception.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         }
     }
@@ -117,18 +145,21 @@ public class AuthorizationController {
     @PostMapping("/google/connect")
     public ResponseEntity<GoogleAuthResponse> initiateGoogleConnect(
             @RequestHeader("Authorization") String authHeader) {
-        logger.info("Received request to initiate Google connect.");
+        logger.info(GOOGLE_CONNECT_INITIATE_LOG);
         try {
-            String systemToken = authHeader.replace("Bearer ", "");
+            String systemToken = authHeader.replace(BEARER_PREFIX, "");
+
             if (!tokenManager.isTokenValid(systemToken)) {
-                logger.error("Invalid system token received for Google connect initiation.");
-                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid token");
+                logger.error(INVALID_TOKEN_LOG);
+                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, INVALID_TOKEN_MESSAGE);
             }
-            Claims c = tokenManager.getClaimsFromToken(systemToken);
-            Integer userId = (Integer) c.get("userId");
+
+            Claims claims = tokenManager.getClaimsFromToken(systemToken);
+            Integer userId = (Integer) claims.get(USER_ID_CLAIM);
             String state = UUID.randomUUID().toString();
             String authUrl = googleOAuthService.getAuthorizationUrl(userId, state);
-            logger.info("Generated Google auth URL for user ID: " + userId + ", state: " + state);
+            logger.info(GENERATED_GOOGLE_AUTH_LOG + userId + STATE_LOG + state);
+
             return ResponseEntity.ok(
                     new GoogleAuthResponse(
                             authUrl,
@@ -136,8 +167,8 @@ public class AuthorizationController {
                             "Copy this URL and open in browser to connect Google account"
                     )
             );
-        } catch (SecurityException e) {
-            logger.error("Security exception during Google connect initiation: " + e.getMessage());
+        } catch (SecurityException exception) {
+            logger.error(SECURITY_EXCEPTION_LOG + exception.getMessage());
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
     }
@@ -147,29 +178,27 @@ public class AuthorizationController {
             @RequestParam String code,
             @RequestParam String state,
             @RequestHeader("Authorization") String authHeader) {
-        logger.info("Received Google connect callback with code: " + code + ", state: " + state);
+        logger.info(GOOGLE_CALLBACK_LOG + code + STATE_LOG + state);
         try {
-            String systemToken = authHeader.replace("Bearer ", "");
+            String systemToken = authHeader.replace(BEARER_PREFIX, "");
+
             if (!tokenManager.isTokenValid(systemToken)) {
-                logger.error("Invalid system token received for Google connect callback.");
-                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid token");
+                logger.error(INVALID_CALLBACK_TOKEN_LOG);
+                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, INVALID_TOKEN_MESSAGE);
             }
-            Claims c = tokenManager.getClaimsFromToken(systemToken);
-            Integer userId = (Integer) c.get("userId");
+
+            Claims claims = tokenManager.getClaimsFromToken(systemToken);
+            Integer userId = (Integer) claims.get(USER_ID_CLAIM);
             googleOAuthService.processGoogleCallback(userId, code, state);
-            logger.info("Google account connected for user ID: " + userId + ".");
-            return ResponseEntity.ok("Google account connected and email saved successfully!");
-        } catch (SecurityException e) {
-            meterRegistry.counter("auth.google.error", "reason", e.getMessage()).increment();
-            logger.error("Security exception during Google connect callback: " + e.getMessage());
+            logger.info(GOOGLE_ACCOUNT_CONNECTED_LOG + userId + ".");
+            return ResponseEntity.ok(CONNECT_SUCCESS_MESSAGE);
+        } catch (SecurityException exception) {
+            meterRegistry.counter(AUTH_GOOGLE_ERROR_METRIC, REASON_LABEL, exception.getMessage()).increment();
+            logger.error(SECURITY_EXCEPTION_LOG + exception.getMessage());
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        } catch (OAuthException e) {
-            meterRegistry.counter("auth.google.error", "reason", e.getMessage()).increment();
-            logger.error("Google OAuth error during callback: " + e.getMessage());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-        } catch (Exception e) {
-            meterRegistry.counter("auth.google.error", "reason", e.getMessage()).increment();
-            logger.error("Internal server error during Google connect callback: " + e.getMessage());
+        } catch (Exception exception) {
+            meterRegistry.counter(AUTH_GOOGLE_ERROR_METRIC, REASON_LABEL, exception.getMessage()).increment();
+            logger.error(INTERNAL_SERVER_ERROR_LOG + exception.getMessage());
             return ResponseEntity.internalServerError().build();
         }
     }

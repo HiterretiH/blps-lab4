@@ -17,6 +17,18 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/api/applications")
 public class ApplicationController {
+    private static final String APPLICATION_CREATE_LOG = "Attempting to create new application for developer ID: ";
+    private static final String APPLICATION_CREATE_SUCCESS_LOG = "Successfully created application with ID: ";
+    private static final String APPLICATION_CREATE_ERROR_LOG = "Failed to create application: ";
+    private static final String APPLICATION_FETCH_LOG = "Fetching application with ID: ";
+    private static final String APPLICATION_FOUND_LOG = "Found application with ID: ";
+    private static final String APPLICATION_NOT_FOUND_LOG = "Application not found with ID: ";
+    private static final String APPLICATION_UPDATE_LOG = "Updating application with ID: ";
+    private static final String APPLICATION_UPDATE_SUCCESS_LOG = "Successfully updated application with ID: ";
+    private static final String APPLICATION_UPDATE_ERROR_LOG = "Failed to update application with ID: ";
+    private static final String APPLICATION_DELETE_LOG = "Deleting application with ID: ";
+    private static final String APPLICATION_DELETE_SUCCESS_LOG = "Successfully deleted application with ID: ";
+    private static final String APPLICATION_DELETE_ERROR_LOG = "Failed to delete application with ID: ";
 
     private final ApplicationService applicationService;
     private final Logger logger;
@@ -31,29 +43,30 @@ public class ApplicationController {
     @PreAuthorize("hasAuthority('application.manage')")
     @PostMapping
     public ResponseEntity<Application> createApplication(@RequestBody ApplicationJson applicationJson) {
-        logger.info("Attempting to create new application for developer ID: " + applicationJson.getDeveloperId());
+        logger.info(APPLICATION_CREATE_LOG + applicationJson.getDeveloperId());
         try {
             Application application = applicationService.createApplication(applicationJson);
-            logger.info("Successfully created application with ID: " + application.getId());
+            logger.info(APPLICATION_CREATE_SUCCESS_LOG + application.getId());
             return ResponseEntity.ok(application);
-        } catch (Exception e) {
-            logger.error("Failed to create application: " + e.getMessage());
-            throw e;
+        } catch (Exception exception) {
+            logger.error(APPLICATION_CREATE_ERROR_LOG + exception.getMessage());
+            throw exception;
         }
     }
 
     @PreAuthorize("hasAuthority('application.read')")
     @GetMapping("/{id}")
     public ResponseEntity<Application> getApplication(@PathVariable int id) {
-        logger.info("Fetching application with ID: " + id);
+        logger.info(APPLICATION_FETCH_LOG + id);
         Optional<Application> application = applicationService.getApplicationById(id);
+
         if (application.isPresent()) {
-            logger.info("Found application with ID: " + id);
+            logger.info(APPLICATION_FOUND_LOG + id);
             return ResponseEntity.ok(application.get());
-        } else {
-            logger.error("Application not found with ID: " + id);
-            return ResponseEntity.notFound().build();
         }
+
+        logger.error(APPLICATION_NOT_FOUND_LOG + id);
+        return ResponseEntity.notFound().build();
     }
 
     @PreAuthorize("hasAuthority('application.manage')")
@@ -65,28 +78,28 @@ public class ApplicationController {
                                                          @RequestParam double price,
                                                          @RequestParam String description,
                                                          @RequestParam ApplicationStatus status) {
-        logger.info("Updating application with ID: " + id);
+        logger.info(APPLICATION_UPDATE_LOG + id);
         try {
             Application application = applicationService.updateApplication(id, developer, name, type, price, description, status);
-            logger.info("Successfully updated application with ID: " + id);
+            logger.info(APPLICATION_UPDATE_SUCCESS_LOG + id);
             return ResponseEntity.ok(application);
-        } catch (Exception e) {
-            logger.error("Failed to update application with ID: " + id + ". Error: " + e.getMessage());
-            throw e;
+        } catch (Exception exception) {
+            logger.error(APPLICATION_UPDATE_ERROR_LOG + id + ". Error: " + exception.getMessage());
+            throw exception;
         }
     }
 
     @PreAuthorize("hasAuthority('application.manage')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteApplication(@PathVariable int id) {
-        logger.info("Deleting application with ID: " + id);
+        logger.info(APPLICATION_DELETE_LOG + id);
         try {
             applicationService.deleteApplication(id);
-            logger.info("Successfully deleted application with ID: " + id);
+            logger.info(APPLICATION_DELETE_SUCCESS_LOG + id);
             return ResponseEntity.noContent().build();
-        } catch (Exception e) {
-            logger.error("Failed to delete application with ID: " + id + ". Error: " + e.getMessage());
-            throw e;
+        } catch (Exception exception) {
+            logger.error(APPLICATION_DELETE_ERROR_LOG + id + ". Error: " + exception.getMessage());
+            throw exception;
         }
     }
 }

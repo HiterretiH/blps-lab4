@@ -3,12 +3,12 @@ package org.lab1.service;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
+import org.lab1.config.EnvConfig;
 import org.lab1.exception.OAuthException;
 import org.lab1.json.GoogleTokenResponse;
 import org.lab1.model.GoogleAuthData;
 import org.lab1.repository.GoogleAuthDataRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.*;
@@ -23,6 +23,57 @@ import java.util.Map;
 
 @Service
 public class GoogleOAuthService {
+    private static final String GOOGLE_AUTH_METRIC = "auth.google.connect";
+    private static final String STATUS_TAG = "status";
+    private static final String SUCCESS_TAG = "success";
+    private static final String FAIL_TAG = "fail";
+    private static final String GOOGLE_TIME_METRIC = "auth.google.time";
+    private static final String STATE_PARAM = "state";
+    private static final String INVALID_STATE_ERROR = "Invalid state parameter";
+    private static final String GOOGLE_OAUTH_ERROR = "Google OAuth error: ";
+    private static final String EMPTY_RESPONSE = "Empty response";
+    private static final String GOOGLE_API_ERROR = "Google API request failed: ";
+    private static final String UNEXPECTED_TOKEN_ERROR = "Unexpected error during token exchange";
+    private static final String USER_INFO_URL = "https://www.googleapis.com/oauth2/v3/userinfo";
+    private static final String EMAIL_KEY = "email";
+    private static final String EMAIL_VERIFIED_KEY = "email_verified";
+    private static final String EMAIL_NOT_FOUND_ERROR = "Email not found in Google response";
+    private static final String EMAIL_NOT_VERIFIED_ERROR = "Google email not verified";
+    private static final String GOOGLE_API_STATUS_ERROR = "Google API returned non-success status: ";
+    private static final String GOOGLE_API_CONNECT_ERROR = "Failed to connect to Google API: ";
+    private static final String UNEXPECTED_EMAIL_ERROR = "Unexpected error while fetching user email: ";
+    private static final String EMAIL_NULL_ERROR = "Email cannot be null or empty";
+    private static final String ACCESS_TOKEN_NULL_ERROR = "Access token cannot be null";
+    private static final String DB_SAVE_ERROR = "Failed to save auth data to database: ";
+    private static final String ACCOUNT_NOT_CONNECTED_ERROR = "Google account not connected";
+    private static final String NO_REFRESH_TOKEN_ERROR = "No refresh token available";
+    private static final String REFRESH_TOKEN_FAILED = "Refresh token failed: ";
+    private static final String DB_ERROR = "Database error: ";
+    private static final String TOKEN_REFRESH_FAILED = "Token refresh failed: ";
+    private static final String CLIENT_ID_PARAM = "client_id";
+    private static final String RESPONSE_TYPE_PARAM = "response_type";
+    private static final String SCOPE_PARAM = "scope";
+    private static final String ACCESS_TYPE_PARAM = "access_type";
+    private static final String PROMPT_PARAM = "prompt";
+    private static final String REDIRECT_URI_PARAM = "redirect_uri";
+    private static final String CODE_PARAM = "code";
+    private static final String CLIENT_SECRET_PARAM = "client_secret";
+    private static final String GRANT_TYPE_PARAM = "grant_type";
+    private static final String AUTHORIZATION_CODE = "authorization_code";
+    private static final String REFRESH_TOKEN_PARAM = "refresh_token";
+    private static final String REFRESH_GRANT_TYPE = "refresh_token";
+    private static final String CONTENT_TYPE_HEADER = "Content-Type";
+    private static final String FORM_URLENCODED = "application/x-www-form-urlencoded";
+    private static final String BEARER_AUTH_PREFIX = "Bearer ";
+
+    private static final String GOOGLE_CLIENT_ID = EnvConfig.get("GOOGLE_CLIENT_ID");
+    private static final String GOOGLE_CLIENT_SECRET = EnvConfig.get("GOOGLE_CLIENT_SECRET");
+    private static final String GOOGLE_AUTH_URI = EnvConfig.get("GOOGLE_AUTH_URI");
+    private static final String GOOGLE_TOKEN_URI = EnvConfig.get("GOOGLE_TOKEN_URI");
+    private static final String GOOGLE_SCOPES = EnvConfig.get("GOOGLE_SCOPES");
+    private static final String GOOGLE_REDIRECT_URI = EnvConfig.get("GOOGLE_REDIRECT_URI");
+
+
     private final RestTemplate restTemplate;
     private final OAuthStateService googleStateService;
     private final GoogleAuthDataRepository googleAuthDataRepository;
@@ -40,69 +91,47 @@ public class GoogleOAuthService {
         this.googleStateService = googleStateService;
         this.googleAuthDataRepository = googleAuthDataRepository;
         this.meterRegistry = meterRegistry;
-        this.googleAuthSuccessCounter = Counter.builder("auth.google.connect")
-                .tag("status", "success")
+        this.googleAuthSuccessCounter = Counter.builder(GOOGLE_AUTH_METRIC)
+                .tag(STATUS_TAG, SUCCESS_TAG)
                 .register(meterRegistry);
 
-        this.googleAuthFailCounter = Counter.builder("auth.google.connect")
-                .tag("status", "fail")
+        this.googleAuthFailCounter = Counter.builder(GOOGLE_AUTH_METRIC)
+                .tag(STATUS_TAG, FAIL_TAG)
                 .register(meterRegistry);
 
-        this.googleAuthTimer = Timer.builder("auth.google.time")
+        this.googleAuthTimer = Timer.builder(GOOGLE_TIME_METRIC)
                 .register(meterRegistry);
     }
-
-    @Value("${google.client.id}")
-    private String clientId;
-
-    @Value("${google.client.secret}")
-    private String clientSecret;
-
-    @Value("${google.auth.uri}")
-    private String authUri;
-
-    @Value("${google.token.uri}")
-    private String tokenUri;
-
-    @Value("${google.scopes}")
-    private String scopes;
-
-    @Value("${google.redirect.uri}")
-    private String redirectUri;
 
     public String getAuthorizationUrl(int userId, String state) {
         googleStateService.storeGoogleAuthState(userId, state);
 
-        return UriComponentsBuilder.fromHttpUrl(authUri)
-                .queryParam("client_id", clientId)
-                .queryParam("response_type", "code")
-                .queryParam("scope", scopes)
-                .queryParam("access_type", "offline")
-                .queryParam("state", state)
-                .queryParam("prompt", "consent")
-                .queryParam("redirect_uri", redirectUri)
+        return UriComponentsBuilder.fromHttpUrl(GOOGLE_AUTH_URI)
+                .queryParam(CLIENT_ID_PARAM, GOOGLE_CLIENT_ID)
+                .queryParam(RESPONSE_TYPE_PARAM, "code")
+                .queryParam(SCOPE_PARAM, GOOGLE_SCOPES)
+                .queryParam(ACCESS_TYPE_PARAM, "offline")
+                .queryParam(STATE_PARAM, state)
+                .queryParam(PROMPT_PARAM, "consent")
+                .queryParam(REDIRECT_URI_PARAM, GOOGLE_REDIRECT_URI)
                 .build()
                 .toUriString();
     }
 
-    public void processGoogleCallback(int userId, String code, String state) throws OAuthException {
+    public void processGoogleCallback(int userId, String code, String state) {
         Timer.Sample timer = Timer.start(meterRegistry);
 
         try {
             if (!googleStateService.validateGoogleAuthState(userId, state)) {
-                throw new OAuthException("Invalid state parameter");
+                throw new OAuthException(INVALID_STATE_ERROR);
             }
 
             GoogleTokenResponse tokenResponse = exchangeCodeForTokens(code);
-
             String userEmail = getUserEmail(tokenResponse.getAccessToken());
-
             saveAuthData(userId, userEmail, tokenResponse);
-        }
-        catch (OAuthException e){
+        } catch (OAuthException oAuthException) {
             googleAuthFailCounter.increment();
-        }
-        finally{
+        } finally {
             timer.stop(googleAuthTimer);
         }
     }
@@ -113,11 +142,11 @@ public class GoogleOAuthService {
             headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
             String requestBody = UriComponentsBuilder.newInstance()
-                    .queryParam("code", code)
-                    .queryParam("client_id", clientId)
-                    .queryParam("client_secret", clientSecret)
-                    .queryParam("redirect_uri", redirectUri)
-                    .queryParam("grant_type", "authorization_code")
+                    .queryParam(CODE_PARAM, code)
+                    .queryParam(CLIENT_ID_PARAM, GOOGLE_CLIENT_ID)
+                    .queryParam(CLIENT_SECRET_PARAM, GOOGLE_CLIENT_SECRET)
+                    .queryParam(REDIRECT_URI_PARAM, GOOGLE_REDIRECT_URI)
+                    .queryParam(GRANT_TYPE_PARAM, AUTHORIZATION_CODE)
                     .build()
                     .toString()
                     .substring(1);
@@ -125,34 +154,32 @@ public class GoogleOAuthService {
             HttpEntity<String> request = new HttpEntity<>(requestBody, headers);
 
             ResponseEntity<GoogleTokenResponse> response = restTemplate.postForEntity(
-                    tokenUri,
+                    GOOGLE_TOKEN_URI,
                     request,
                     GoogleTokenResponse.class
             );
 
             if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
-                throw new OAuthException("Google OAuth error: " +
+                throw new OAuthException(GOOGLE_OAUTH_ERROR +
                         (response.getBody() != null ?
                                 response.getBody().toString() :
-                                "Empty response"));
+                                EMPTY_RESPONSE));
             }
 
             googleAuthSuccessCounter.increment();
             return response.getBody();
 
-        } catch (RestClientException e) {
+        } catch (RestClientException restClientException) {
             googleAuthFailCounter.increment();
-            throw new OAuthException("Google API request failed: " + e.getMessage());
-        } catch (Exception e) {
+            throw new OAuthException(GOOGLE_API_ERROR + restClientException.getMessage());
+        } catch (Exception exception) {
             googleAuthFailCounter.increment();
-            throw new OAuthException("Unexpected error during token exchange");
+            throw new OAuthException(UNEXPECTED_TOKEN_ERROR);
         }
     }
 
     private String getUserEmail(String accessToken) throws OAuthException {
         try {
-            String userInfoUrl = "https://www.googleapis.com/oauth2/v3/userinfo";
-
             HttpHeaders headers = new HttpHeaders();
             headers.setBearerAuth(accessToken);
             headers.setContentType(MediaType.APPLICATION_JSON);
@@ -160,38 +187,37 @@ public class GoogleOAuthService {
             HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
 
             ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
-                    userInfoUrl,
+                    USER_INFO_URL,
                     HttpMethod.GET,
                     requestEntity,
-                    new ParameterizedTypeReference<>() {
-                    }
+                    new ParameterizedTypeReference<>() {}
             );
 
             if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
-                throw new OAuthException("Google API returned non-success status: " + response.getStatusCode());
+                throw new OAuthException(GOOGLE_API_STATUS_ERROR + response.getStatusCode());
             }
 
             Map<String, Object> responseBody = response.getBody();
-            String email = (String) responseBody.get("email");
+            String email = (String) responseBody.get(EMAIL_KEY);
 
             if (email == null || email.isEmpty()) {
-                throw new OAuthException("Email not found in Google response");
+                throw new OAuthException(EMAIL_NOT_FOUND_ERROR);
             }
 
-            Boolean emailVerified = (Boolean) responseBody.get("email_verified");
+            Boolean emailVerified = (Boolean) responseBody.get(EMAIL_VERIFIED_KEY);
             if (emailVerified == null || !emailVerified) {
-                throw new OAuthException("Google email not verified");
+                throw new OAuthException(EMAIL_NOT_VERIFIED_ERROR);
             }
 
             return email;
 
-        } catch (HttpClientErrorException e) {
-            String errorDetails = e.getResponseBodyAsString();
-            throw new OAuthException("Google API error: " + e.getStatusCode() + " - " + errorDetails);
-        } catch (RestClientException e) {
-            throw new OAuthException("Failed to connect to Google API: " + e.getMessage());
-        } catch (Exception e) {
-            throw new OAuthException("Unexpected error while fetching user email: " + e.getMessage());
+        } catch (HttpClientErrorException httpClientException) {
+            String errorDetails = httpClientException.getResponseBodyAsString();
+            throw new OAuthException("Google API error: " + httpClientException.getStatusCode() + " - " + errorDetails);
+        } catch (RestClientException restClientException) {
+            throw new OAuthException(GOOGLE_API_CONNECT_ERROR + restClientException.getMessage());
+        } catch (Exception exception) {
+            throw new OAuthException(UNEXPECTED_EMAIL_ERROR + exception.getMessage());
         }
     }
 
@@ -201,12 +227,12 @@ public class GoogleOAuthService {
                     .orElse(new GoogleAuthData());
 
             if (email == null || email.isEmpty()) {
-                throw new OAuthException("Email cannot be null or empty");
+                throw new OAuthException(EMAIL_NULL_ERROR);
             }
             authData.setUserEmail(email);
 
             if (tokenResponse.getAccessToken() == null) {
-                throw new OAuthException("Access token cannot be null");
+                throw new OAuthException(ACCESS_TOKEN_NULL_ERROR);
             }
             authData.setAccessToken(tokenResponse.getAccessToken());
 
@@ -221,15 +247,15 @@ public class GoogleOAuthService {
 
             googleAuthDataRepository.save(authData);
 
-        } catch (DataAccessException e) {
-            throw new OAuthException("Failed to save auth data to database: " + e.getMessage());
+        } catch (DataAccessException dataAccessException) {
+            throw new OAuthException(DB_SAVE_ERROR + dataAccessException.getMessage());
         }
     }
 
     public boolean isGoogleConnected(int userId) throws OAuthException {
         try {
             GoogleAuthData authData = googleAuthDataRepository.findByUserId(userId)
-                    .orElseThrow(() -> new OAuthException("Google account not connected"));
+                    .orElseThrow(() -> new OAuthException(ACCOUNT_NOT_CONNECTED_ERROR));
 
             if (Instant.now().isBefore(authData.getExpiryDate())) {
                 return true;
@@ -239,17 +265,17 @@ public class GoogleOAuthService {
                 try {
                     refreshAccessToken(userId);
                     return true;
-                } catch (OAuthException e) {
+                } catch (OAuthException oAuthException) {
                     googleAuthDataRepository.delete(authData);
-                    throw new OAuthException("Failed to refresh token: " + e.getMessage());
+                    throw new OAuthException("Failed to refresh token: " + oAuthException.getMessage());
                 }
             }
 
             googleAuthDataRepository.delete(authData);
             return false;
 
-        } catch (DataAccessException e) {
-            throw new OAuthException("Database error: " + e.getMessage());
+        } catch (DataAccessException dataAccessException) {
+            throw new OAuthException(DB_ERROR + dataAccessException.getMessage());
         }
     }
 
@@ -259,29 +285,29 @@ public class GoogleOAuthService {
                     .orElseThrow(() -> new OAuthException("User not connected with Google"));
 
             if (authData.getRefreshToken() == null) {
-                throw new OAuthException("No refresh token available");
+                throw new OAuthException(NO_REFRESH_TOKEN_ERROR);
             }
 
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
             String requestBody = UriComponentsBuilder.newInstance()
-                    .queryParam("client_id", clientId)
-                    .queryParam("client_secret", clientSecret)
-                    .queryParam("refresh_token", authData.getRefreshToken())
-                    .queryParam("grant_type", "refresh_token")
+                    .queryParam(CLIENT_ID_PARAM, GOOGLE_CLIENT_ID)
+                    .queryParam(CLIENT_SECRET_PARAM, GOOGLE_CLIENT_SECRET)
+                    .queryParam(REFRESH_TOKEN_PARAM, authData.getRefreshToken())
+                    .queryParam(GRANT_TYPE_PARAM, REFRESH_GRANT_TYPE)
                     .build()
                     .toString()
                     .substring(1);
 
             ResponseEntity<GoogleTokenResponse> response = restTemplate.postForEntity(
-                    tokenUri,
+                    GOOGLE_TOKEN_URI,
                     new HttpEntity<>(requestBody, headers),
                     GoogleTokenResponse.class
             );
 
             if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
-                throw new OAuthException("Refresh token failed: " + response.getStatusCode());
+                throw new OAuthException(REFRESH_TOKEN_FAILED + response.getStatusCode());
             }
 
             GoogleTokenResponse tokenResponse = response.getBody();
@@ -293,23 +319,23 @@ public class GoogleOAuthService {
 
             googleAuthDataRepository.save(authData);
 
-        } catch (HttpClientErrorException e) {
-            if (e.getStatusCode() == HttpStatus.BAD_REQUEST) {
+        } catch (HttpClientErrorException httpClientException) {
+            if (httpClientException.getStatusCode() == HttpStatus.BAD_REQUEST) {
                 googleAuthDataRepository.deleteByUserId(userId);
             }
-            throw new OAuthException("Google API error: " + e.getResponseBodyAsString());
+            throw new OAuthException("Google API error: " + httpClientException.getResponseBodyAsString());
 
-        } catch (DataAccessException e) {
-            throw new OAuthException("Database error: " + e.getMessage());
+        } catch (DataAccessException dataAccessException) {
+            throw new OAuthException(DB_ERROR + dataAccessException.getMessage());
 
-        } catch (Exception e) {
-            throw new OAuthException("Token refresh failed: " + e.getMessage());
+        } catch (Exception exception) {
+            throw new OAuthException(TOKEN_REFRESH_FAILED + exception.getMessage());
         }
     }
 
     public String getUserGoogleEmail(int userId) throws OAuthException {
         GoogleAuthData authData = googleAuthDataRepository.findByUserId(userId)
-                .orElseThrow(() -> new OAuthException("Google account not connected"));
+                .orElseThrow(() -> new OAuthException(ACCOUNT_NOT_CONNECTED_ERROR));
         return authData.getUserEmail();
     }
 }

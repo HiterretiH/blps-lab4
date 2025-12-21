@@ -12,6 +12,19 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/monetization")
 public class MonetizationController {
+    private static final String GET_INFO_REQUEST_LOG = "Received request to get monetization info for application ID: ";
+    private static final String INFO_NOT_FOUND_LOG = "Monetization info not found for application ID: ";
+    private static final String INFO_FOUND_LOG = "Monetization info found for application ID: ";
+    private static final String CURRENT_BALANCE_LOG = ". Current balance: ";
+    private static final String SEND_FORM_REQUEST_LOG = "Received request to send payout form for application ID: ";
+    private static final String AMOUNT_LOG = ", amount: ";
+    private static final String FORM_SENT_LOG = "Payout form sent for application ID: ";
+    private static final String REQUEST_ID_LOG = ", request ID: ";
+    private static final String PAYOUT_REQUEST_LOG = "Received payout request for application ID: ";
+    private static final String PAYOUT_SUCCESS_LOG = "Payout successful for application ID: ";
+    private static final String RESULT_LOG = ". Result: ";
+    private static final String PAYOUT_FAILED_LOG = "Payout failed for application ID: ";
+    private static final String REASON_LOG = ". Reason: ";
 
     private final MonetizationService monetizationService;
     private final Logger logger;
@@ -25,36 +38,39 @@ public class MonetizationController {
     @PreAuthorize("hasAuthority('monetization.read')")
     @GetMapping("/info/{applicationId}")
     public ResponseEntity<MonetizedApplication> getMonetizationInfo(@PathVariable int applicationId) {
-        logger.info("Received request to get monetization info for application ID: " + applicationId);
+        logger.info(GET_INFO_REQUEST_LOG + applicationId);
         MonetizedApplication monetizedApp = monetizationService.getMonetizationInfo(applicationId);
+
         if (monetizedApp == null) {
-            logger.info("Monetization info not found for application ID: " + applicationId);
+            logger.info(INFO_NOT_FOUND_LOG + applicationId);
             return ResponseEntity.notFound().build();
         }
-        logger.info("Monetization info found for application ID: " + applicationId + ". Current balance: " + monetizedApp.getCurrentBalance());
+
+        logger.info(INFO_FOUND_LOG + applicationId + CURRENT_BALANCE_LOG + monetizedApp.getCurrentBalance());
         return ResponseEntity.ok(monetizedApp);
     }
 
     @PreAuthorize("hasAuthority('monetization.payout.request')")
     @PostMapping("/sendForm/{applicationId}")
     public ResponseEntity<PaymentRequest> sendForm(@PathVariable int applicationId, @RequestParam double amount) {
-        logger.info("Received request to send payout form for application ID: " + applicationId + ", amount: " + amount);
+        logger.info(SEND_FORM_REQUEST_LOG + applicationId + AMOUNT_LOG + amount);
         PaymentRequest paymentRequest = monetizationService.sendForm(applicationId, amount);
-        logger.info("Payout form sent for application ID: " + applicationId + ", request ID: " + paymentRequest.getApplicationId() + ", amount: " + paymentRequest.getAmount());
+        logger.info(FORM_SENT_LOG + applicationId + REQUEST_ID_LOG + paymentRequest.getApplicationId() + AMOUNT_LOG + paymentRequest.getAmount());
         return ResponseEntity.ok(paymentRequest);
     }
 
     @PreAuthorize("hasAuthority('monetization.payout.execute')")
     @PostMapping("/payout")
     public ResponseEntity<String> makePayout(@RequestBody PaymentRequest paymentRequest) {
-        logger.info("Received payout request for application ID: " + paymentRequest.getApplicationId() + ", amount: " + paymentRequest.getAmount());
+        logger.info(PAYOUT_REQUEST_LOG + paymentRequest.getApplicationId() + AMOUNT_LOG + paymentRequest.getAmount());
         String result = monetizationService.makePayout(paymentRequest);
+
         if (result.contains("successful")) {
-            logger.info("Payout successful for application ID: " + paymentRequest.getApplicationId() + ", amount: " + paymentRequest.getAmount() + ". Result: " + result);
+            logger.info(PAYOUT_SUCCESS_LOG + paymentRequest.getApplicationId() + AMOUNT_LOG + paymentRequest.getAmount() + RESULT_LOG + result);
             return ResponseEntity.ok(result);
-        } else {
-            logger.error("Payout failed for application ID: " + paymentRequest.getApplicationId() + ", amount: " + paymentRequest.getAmount() + ". Reason: " + result);
-            return ResponseEntity.badRequest().body(result);
         }
+
+        logger.error(PAYOUT_FAILED_LOG + paymentRequest.getApplicationId() + AMOUNT_LOG + paymentRequest.getAmount() + REASON_LOG + result);
+        return ResponseEntity.badRequest().body(result);
     }
 }

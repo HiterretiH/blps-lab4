@@ -21,6 +21,33 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/api/forms")
 public class FormController {
+    private static final String GENERATE_FORM_REQUEST_LOG = "Received request to generate Google Form.";
+    private static final String USER_NOT_FOUND_LOG = "User not found: ";
+    private static final String GENERATE_FORM_SUCCESS_LOG = "Google Form generation initiated for user ID: ";
+    private static final String RESULT_LOG = ". Result: ";
+    private static final String GENERATE_FORM_ERROR_LOG = "Error generating Google Form for user ID: ";
+    private static final String GENERATE_FIELDS_REQUEST_LOG = "Received request to generate form fields.";
+    private static final String GENERATED_FIELDS_LOG = "Generated ";
+    private static final String FORM_FIELDS_LOG = " form fields.";
+    private static final String ADD_FIELD_REQUEST_LOG = "Received request to add field: ";
+    private static final String FIELD_NAME_REQUIRED_LOG = "Field name is required.";
+    private static final String FIELD_ADDED_SUCCESS_LOG = "Field '";
+    private static final String ADDED_SUCCESSFULLY_LOG = "' added successfully.";
+    private static final String ADD_FIELDS_REQUEST_LOG = "Received request to add multiple fields.";
+    private static final String FIELDS_REQUIRED_LOG = "Field names are required.";
+    private static final String NO_VALID_FIELDS_LOG = "No valid field names provided.";
+    private static final String FIELDS_ADDED_SUCCESS_LOG = "Added ";
+    private static final String FIELDS_SUCCESSFULLY_LOG = " fields successfully.";
+    private static final String FIELD_NAME_KEY = "fieldName";
+    private static final String FORMS_GENERATED_METRIC = "forms.generated.total";
+    private static final String FIELDS_ADDED_METRIC = "fields.added.total";
+    private static final String FORMS_GENERATED_DESCRIPTION = "Total number of forms generated";
+    private static final String FIELDS_ADDED_DESCRIPTION = "Total number of fields added";
+    private static final String FIELD_NAME_REQUIRED_MESSAGE = "Field name is required";
+    private static final String NO_VALID_FIELDS_MESSAGE = "No valid field names provided";
+    private static final String FIELDS_ADDED_MESSAGE = "Fields added successfully";
+    private static final String FIELD_ADDED_MESSAGE = "Field added successfully";
+    private static final String REASON_LOG = ". Reason: ";
 
     private final FormGenerationService formGenerationService;
     private final UserRepository userRepository;
@@ -35,11 +62,11 @@ public class FormController {
                           Logger logger) {
         this.formGenerationService = formGenerationService;
         this.userRepository = userRepository;
-        this.formsGeneratedCounter = Counter.builder("forms.generated.total")
-                .description("Total number of forms generated")
+        this.formsGeneratedCounter = Counter.builder(FORMS_GENERATED_METRIC)
+                .description(FORMS_GENERATED_DESCRIPTION)
                 .register(meterRegistry);
-        this.fieldsAddedCounter = Counter.builder("fields.added.total")
-                .description("Total number of fields added")
+        this.fieldsAddedCounter = Counter.builder(FIELDS_ADDED_METRIC)
+                .description(FIELDS_ADDED_DESCRIPTION)
                 .register(meterRegistry);
         this.logger = logger;
     }
@@ -47,71 +74,79 @@ public class FormController {
     @PreAuthorize("hasAuthority('form.create')")
     @PostMapping("/create")
     public ResponseEntity<String> generateGoogleForm() {
-        logger.info("Received request to generate Google Form.");
+        logger.info(GENERATE_FORM_REQUEST_LOG);
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Optional<User> userOptional = userRepository.findByUsername(authentication.getPrincipal().toString());
+
         if (userOptional.isEmpty()) {
-            logger.error("User not found: " + authentication.getPrincipal());
+            logger.error(USER_NOT_FOUND_LOG + authentication.getPrincipal());
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
+
         User user = userOptional.get();
         int userId = user.getId();
 
         try {
             String result = formGenerationService.generateAndSendGoogleForm(userId);
             formsGeneratedCounter.increment();
-            logger.info("Google Form generation initiated for user ID: " + userId + ". Result: " + result);
+            logger.info(GENERATE_FORM_SUCCESS_LOG + userId + RESULT_LOG + result);
             return ResponseEntity.ok(result);
-        } catch (Exception e) {
-            logger.error("Error generating Google Form for user ID: " + userId + ". Reason: " + e.getMessage());
+        } catch (Exception exception) {
+            logger.error(GENERATE_FORM_ERROR_LOG + userId + REASON_LOG + exception.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error generating form: " + e.getMessage());
+                    .body("Error generating form: " + exception.getMessage());
         }
     }
 
     @PreAuthorize("hasAuthority('form.read')")
     @GetMapping("/generate")
     public ResponseEntity<Map<String, String>> generateForm() {
-        logger.info("Received request to generate form fields.");
+        logger.info(GENERATE_FIELDS_REQUEST_LOG);
         Map<String, String> formFields = formGenerationService.generateFormFields();
-        logger.info("Generated " + formFields.size() + " form fields.");
+        logger.info(GENERATED_FIELDS_LOG + formFields.size() + FORM_FIELDS_LOG);
         return ResponseEntity.ok(formFields);
     }
 
     @PreAuthorize("hasAuthority('form.manage')")
     @PostMapping("/addField")
     public ResponseEntity<String> addField(@RequestBody Map<String, String> fieldRequest) {
-        String fieldName = fieldRequest.get("fieldName");
-        logger.info("Received request to add field: " + fieldName);
+        String fieldName = fieldRequest.get(FIELD_NAME_KEY);
+        logger.info(ADD_FIELD_REQUEST_LOG + fieldName);
+
         if (fieldName == null || fieldName.trim().isEmpty()) {
-            logger.error("Field name is required.");
-            return ResponseEntity.badRequest().body("Field name is required");
+            logger.error(FIELD_NAME_REQUIRED_LOG);
+            return ResponseEntity.badRequest().body(FIELD_NAME_REQUIRED_MESSAGE);
         }
+
         formGenerationService.addField(fieldName);
         fieldsAddedCounter.increment();
-        logger.info("Field '" + fieldName + "' added successfully.");
-        return ResponseEntity.status(HttpStatus.CREATED).body("Field added successfully");
+        logger.info(FIELD_ADDED_SUCCESS_LOG + fieldName + ADDED_SUCCESSFULLY_LOG);
+        return ResponseEntity.status(HttpStatus.CREATED).body(FIELD_ADDED_MESSAGE);
     }
 
     @PreAuthorize("hasAuthority('form.manage')")
     @PostMapping("/addFields")
     public ResponseEntity<String> addFields(@RequestBody List<Map<String, String>> fieldsRequest) {
-        logger.info("Received request to add multiple fields.");
+        logger.info(ADD_FIELDS_REQUEST_LOG);
+
         if (fieldsRequest == null || fieldsRequest.isEmpty()) {
-            logger.error("Field names are required.");
-            return ResponseEntity.badRequest().body("Field names are required");
+            logger.error(FIELDS_REQUIRED_LOG);
+            return ResponseEntity.badRequest().body(FIELDS_REQUIRED_LOG);
         }
+
         List<String> fieldNames = fieldsRequest.stream()
-                .map(fieldMap -> fieldMap.get("fieldName"))
+                .map(fieldMap -> fieldMap.get(FIELD_NAME_KEY))
                 .filter(fieldName -> fieldName != null && !fieldName.trim().isEmpty())
                 .toList();
+
         if (fieldNames.isEmpty()) {
-            logger.error("No valid field names provided.");
-            return ResponseEntity.badRequest().body("No valid field names provided");
+            logger.error(NO_VALID_FIELDS_LOG);
+            return ResponseEntity.badRequest().body(NO_VALID_FIELDS_MESSAGE);
         }
+
         formGenerationService.addFields(fieldNames);
         fieldsAddedCounter.increment(fieldNames.size());
-        logger.info("Added " + fieldNames.size() + " fields successfully.");
-        return ResponseEntity.status(HttpStatus.CREATED).body("Fields added successfully");
+        logger.info(FIELDS_ADDED_SUCCESS_LOG + fieldNames.size() + FIELDS_SUCCESSFULLY_LOG);
+        return ResponseEntity.status(HttpStatus.CREATED).body(FIELDS_ADDED_MESSAGE);
     }
 }
