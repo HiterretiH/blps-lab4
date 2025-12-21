@@ -30,13 +30,14 @@ services:
       - rabbit_data:/var/lib/rabbitmq
 
   app:
-    image: openjdk:23
+    image: amazoncorretto:25
     container_name: spring_app
     working_dir: /app
     command: java -jar blps-lab1-1.0.jar
     volumes:
       - ./logs:/app/logs
       - ./target:/app
+      - ./.env:/app/.env:ro
     ports:
       - "727:727"
     depends_on:
@@ -54,20 +55,20 @@ services:
 
   google-module:
     build:
-      context: ./google-module
+      context: .
+      dockerfile: google-module/Dockerfile
     container_name: google_service
     depends_on:
       rabbit:
         condition: service_healthy
     volumes:
       - ./logs:/app/logs
+      - ./.env:/app/.env:ro
     environment:
       RABBITMQ_HOST: rabbit
       RABBITMQ_PORT: 5672
       RABBITMQ_USERNAME: admin
       RABBITMQ_PASSWORD: password
-    ports:
-      - "8080:8080"
 
   prometheus:
     image: prom/prometheus
