@@ -154,7 +154,7 @@ public class GoogleConnectionImpl implements GoogleConnection {
 
         String spreadsheetId = files.getFiles().get(0).getId();
 
-        logger.info("ID: " + spreadsheetId);
+        logger.info("Spreadsheet ID: " + spreadsheetId);
 
         // 2. Получаем информацию о существующих листах
         Spreadsheet spreadsheet = sheetsService.spreadsheets().get(spreadsheetId).execute();
@@ -267,6 +267,8 @@ public class GoogleConnectionImpl implements GoogleConnection {
                     .setRequests(formatRequests);
             sheetsService.spreadsheets().batchUpdate(spreadsheetId, formatBatchRequest).execute();
         }
+
+        logger.info("Added sheets for app '" + appName + "' to spreadsheet: " + spreadsheetTitle);
     }
 
     @Override
@@ -299,6 +301,9 @@ public class GoogleConnectionImpl implements GoogleConnection {
 
         // 5. Обновляем топ приложений
         updateApplicationsRevenue(spreadsheetId, appName, event.getEventType(), event.getAmount());
+
+        logger.info("Monetization updated for app '" + appName + "': " + event.getEventType() +
+                ", amount: " + event.getAmount());
     }
 
     private void handleDownloadEvent(String spreadsheetId, String appName, MonetizationEvent event) throws IOException {
@@ -465,9 +470,7 @@ public class GoogleConnectionImpl implements GoogleConnection {
                     .setValueInputOption("USER_ENTERED")
                     .execute();
         } else {
-            // Обработка случая, если приложение не найдено (что не должно происходить
-            // если лист с названием приложения существует)
-            System.out.println("Warning: Application " + appName + " not found in ApplicationsRevenue to update.");
+            logger.error("Application " + appName + " not found in ApplicationsRevenue to update.");
         }
 
         // 4. Сортируем таблицу по Total Revenue (Quartz job сделает это позже)
@@ -515,7 +518,7 @@ public class GoogleConnectionImpl implements GoogleConnection {
                     .execute();
             formatTopSheet(spreadsheetId);
         } catch (com.google.api.client.googleapis.json.GoogleJsonResponseException e) {
-            System.err.println("Error updating sheet " + topSheetName + ": " + e.getDetails().getMessage());
+            logger.error("Error updating sheet " + topSheetName + ": " + e.getDetails().getMessage());
             throw e;
         }
     }
@@ -532,14 +535,14 @@ public class GoogleConnectionImpl implements GoogleConnection {
         for (File file : spreadsheets.getFiles()) {
             String spreadsheetId = file.getId();
             ValueRange response = sheetsService.spreadsheets().values()
-                    .get(spreadsheetId, "ApplicationsRevenue!B2:F") // Попробуем еще раз этот формат
+                    .get(spreadsheetId, "ApplicationsRevenue!B2:F")
                     .execute();
 
             if (response.getValues() != null) {
                 for (List<Object> row : response.getValues()) {
-                    if (row.size() >= 5) { // Теперь ожидаем 5 столбцов (B-F)
-                        String appName = row.get(0).toString(); // B столбец - Application
-                        double totalRevenue = Double.parseDouble(row.get(4).toString()); // F столбец - Total Revenue (индекс 4)
+                    if (row.size() >= 5) {
+                        String appName = row.get(0).toString();
+                        double totalRevenue = Double.parseDouble(row.get(4).toString());
                         allAppsRevenue.add(new AppRevenue(appName, totalRevenue, spreadsheetId, "ApplicationsRevenue"));
                     }
                 }
@@ -548,20 +551,22 @@ public class GoogleConnectionImpl implements GoogleConnection {
 
         allAppsRevenue.sort((a1, a2) -> Double.compare(a2.getTotalRevenue(), a1.getTotalRevenue()));
         metrics.recordTopUpdate();
+
         for (File file : spreadsheets.getFiles()) {
             String spreadsheetId = file.getId();
             updateSingleTop(spreadsheetId, allAppsRevenue);
         }
+
+        logger.info("Apps top updated for " + spreadsheets.getFiles().size() + " spreadsheets");
     }
 
     private void formatTopSheet(String spreadsheetId) throws IOException {
         List<com.google.api.services.sheets.v4.model.Request> requests = new ArrayList<>();
 
-        // Форматирование заголовков
         requests.add(new com.google.api.services.sheets.v4.model.Request()
                 .setRepeatCell(new RepeatCellRequest()
                         .setRange(new GridRange()
-                                .setSheetId(0) // ApplicationsRevenueTop всегда первый лист
+                                .setSheetId(0)
                                 .setStartRowIndex(0)
                                 .setEndRowIndex(1)
                                 .setStartColumnIndex(0)
@@ -576,14 +581,13 @@ public class GoogleConnectionImpl implements GoogleConnection {
                                                 .setBlue(0.9f))))
                         .setFields("userEnteredFormat")));
 
-        // Чередующаяся заливка строк
         requests.add(new com.google.api.services.sheets.v4.model.Request()
                 .setAddConditionalFormatRule(new AddConditionalFormatRuleRequest()
                         .setRule(new ConditionalFormatRule()
                                 .setRanges(List.of(new GridRange()
                                         .setSheetId(0)
                                         .setStartRowIndex(1)
-                                        .setEndRowIndex(1000) // Достаточно большое число
+                                        .setEndRowIndex(1000)
                                         .setStartColumnIndex(0)
                                         .setEndColumnIndex(3)))
                                 .setBooleanRule(new BooleanRule()
@@ -604,7 +608,6 @@ public class GoogleConnectionImpl implements GoogleConnection {
         sheetsService.spreadsheets().batchUpdate(spreadsheetId, batchUpdateRequest).execute();
     }
 
-    // Вспомогательный класс
     private static class AppRevenue {
         private final String appName;
         private final double totalRevenue;

@@ -112,7 +112,14 @@ public class TokenManager {
                 new SimpleGrantedAuthority("verification_log.read"),
                 new SimpleGrantedAuthority("form.create"),
                 new SimpleGrantedAuthority("stats.add_sheets"),
-                new SimpleGrantedAuthority("stats.create")
+                new SimpleGrantedAuthority("stats.create"),
+                new SimpleGrantedAuthority("google_results.read.own"),
+                new SimpleGrantedAuthority("google_results.read.all"),
+                new SimpleGrantedAuthority("google_results.read.by_operation"),
+                new SimpleGrantedAuthority("google_results.read.errors"),
+                new SimpleGrantedAuthority("google_results.read.successful"),
+                new SimpleGrantedAuthority("google_results.read.by_id"),
+                new SimpleGrantedAuthority("google_stats.read.own")
         );
     }
 
