@@ -12,8 +12,7 @@ public class UpdateAppsTopJob implements Job {
     private static final Logger LOGGER = Logger.getInstance("google-module-job");
     private static final String UPDATE_APPS_TOP_OPERATION = "updateAppsTop";
     private static final String ALL_SPREADSHEETS_TARGET = "All spreadsheets";
-    private static final String SUCCESS_RESULT = "Apps top updated successfully";
-    private static final String ERROR_PREFIX = "Error: ";
+    private static final String SUCCESS_RESULT = "Apps top updated";
 
     @Override
     public void execute(JobExecutionContext context) throws JobExecutionException {
@@ -46,7 +45,7 @@ public class UpdateAppsTopJob implements Job {
                         UPDATE_APPS_TOP_OPERATION,
                         ALL_SPREADSHEETS_TARGET,
                         null,
-                        ERROR_PREFIX + exception.getMessage()
+                        exception.getMessage()
                 );
                 repository.save(result);
             }

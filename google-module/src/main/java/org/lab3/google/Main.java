@@ -31,6 +31,7 @@ public class Main {
     private static final String USER_ID_HEADER = "userId";
     private static final String APP_NAME_HEADER = "appName";
     private static final String GOOGLE_REQUESTS_QUEUE = "google.requests";
+    private static final String ALL_SPREADSHEETS_TARGET = "All spreadsheets";
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private static final MetricsManager METRICS = MetricsManager.getInstance();
@@ -128,32 +129,38 @@ public class Main {
 
             switch (operation) {
                 case CREATE_FORM_OPERATION:
-                    processFormCreation(messageBody, googleConnection, userId);
+                    targetValue = extractFormTitle(messageBody);
+                    result = processFormCreation(messageBody, googleConnection, userId);
                     success = true;
                     break;
 
                 case CREATE_SHEET_WITH_DATA_OPERATION:
-                    processSheetCreationWithData(messageBody, googleConnection, userId);
+                    targetValue = extractSheetTitle(messageBody);
+                    result = processSheetCreationWithData(messageBody, googleConnection, userId);
                     success = true;
                     break;
 
                 case ADD_APP_SHEETS_OPERATION:
-                    processAppSheetsAddition(delivery, messageBody, googleConnection, userId);
+                    targetValue = extractAppNameAndSpreadsheet(delivery, messageBody);
+                    result = processAppSheetsAddition(delivery, messageBody, googleConnection, userId);
                     success = true;
                     break;
 
                 case UPDATE_MONETIZATION_OPERATION:
-                    processMonetizationUpdate(messageBody, googleConnection, userId);
+                    targetValue = extractMonetizationEventInfo(messageBody);
+                    result = processMonetizationUpdate(messageBody, googleConnection, userId);
                     success = true;
                     break;
 
                 case UPDATE_APPS_TOP_OPERATION:
-                    processAppsTopUpdate(googleConnection, userId);
+                    targetValue = ALL_SPREADSHEETS_TARGET;
+                    result = processAppsTopUpdate(googleConnection, userId);
                     success = true;
                     break;
 
                 case HEALTHCHECK_OPERATION:
-                    processHealthcheck(userId);
+                    targetValue = "Health check";
+                    result = processHealthcheck(userId);
                     success = true;
                     break;
 
@@ -163,9 +170,8 @@ public class Main {
                     success = false;
             }
         } catch (Exception e) {
-            error = "Error processing message: " + e.getMessage();
-            LOGGER.error(error);
-            LOGGER.error("Stack trace: " + e);
+            error = e.getMessage();
+            LOGGER.error("Error processing message: " + error);
             success = false;
         } finally {
             METRICS.recordRequest(operation, success);
@@ -189,7 +195,28 @@ public class Main {
         }
     }
 
-    private static void processFormCreation(String messageBody, GoogleConnection googleConnection, int userId)
+    private static String extractFormTitle(String messageBody) throws IOException {
+        GoogleFormRequest formRequest = OBJECT_MAPPER.readValue(messageBody, GoogleFormRequest.class);
+        return formRequest.getFormTitle() + " - " + formRequest.getGoogleEmail();
+    }
+
+    private static String extractSheetTitle(String messageBody) throws IOException {
+        GoogleSheetRequestWithData sheetRequest = OBJECT_MAPPER.readValue(messageBody, GoogleSheetRequestWithData.class);
+        return sheetRequest.getSheetTitle();
+    }
+
+    private static String extractAppNameAndSpreadsheet(Delivery delivery, String messageBody) throws IOException {
+        GoogleSheetIdentifier sheetIdentifier = OBJECT_MAPPER.readValue(messageBody, GoogleSheetIdentifier.class);
+        String appName = delivery.getProperties().getHeaders().get(APP_NAME_HEADER).toString();
+        return appName + " - " + sheetIdentifier.getSpreadsheetTitle();
+    }
+
+    private static String extractMonetizationEventInfo(String messageBody) throws IOException {
+        MonetizationEvent event = OBJECT_MAPPER.readValue(messageBody, MonetizationEvent.class);
+        return "App: " + event.getApplicationId() + " - " + event.getEventType();
+    }
+
+    private static String processFormCreation(String messageBody, GoogleConnection googleConnection, int userId)
             throws IOException {
         GoogleFormRequest formRequest = OBJECT_MAPPER.readValue(messageBody, GoogleFormRequest.class);
         LOGGER.info("Processing form creation for: " + formRequest.getGoogleEmail());
@@ -198,11 +225,13 @@ public class Main {
                 formRequest.getFormTitle(),
                 formRequest.getFields()
         );
-        String result = "Form created with ID: " + formId;
-        LOGGER.info(result);
+
+        String result = formId;
+        LOGGER.info("Form created: " + result);
+        return result;
     }
 
-    private static void processSheetCreationWithData(String messageBody, GoogleConnection googleConnection, int userId)
+    private static String processSheetCreationWithData(String messageBody, GoogleConnection googleConnection, int userId)
             throws IOException {
         GoogleSheetRequestWithData sheetRequestWithData = OBJECT_MAPPER.readValue(messageBody, GoogleSheetRequestWithData.class);
 
@@ -211,12 +240,14 @@ public class Main {
                 sheetRequestWithData.getHeaders(),
                 sheetRequestWithData.getData()
         );
-        String result = "Sheet created: " + sheetUrl;
-        LOGGER.info(result);
+
+        String result = sheetUrl;
+        LOGGER.info("Sheet created: " + result);
+        return result;
     }
 
-    private static void processAppSheetsAddition(Delivery delivery, String messageBody,
-                                                 GoogleConnection googleConnection, int userId)
+    private static String processAppSheetsAddition(Delivery delivery, String messageBody,
+                                                   GoogleConnection googleConnection, int userId)
             throws IOException {
         GoogleSheetIdentifier sheetIdentifier = OBJECT_MAPPER.readValue(messageBody, GoogleSheetIdentifier.class);
         String appName = delivery.getProperties().getHeaders().get(APP_NAME_HEADER).toString();
@@ -229,28 +260,35 @@ public class Main {
                 sheetIdentifier.getSpreadsheetTitle(),
                 appName
         );
-        String result = "Sheets added for app: " + appName;
-        LOGGER.info(result);
+
+        String result = sheetIdentifier.getSpreadsheetTitle();
+        LOGGER.info("Sheets added to: " + result);
+        return result;
     }
 
-    private static void processMonetizationUpdate(String messageBody, GoogleConnection googleConnection, int userId)
+    private static String processMonetizationUpdate(String messageBody, GoogleConnection googleConnection, int userId)
             throws IOException {
         MonetizationEvent event = OBJECT_MAPPER.readValue(messageBody, MonetizationEvent.class);
 
         googleConnection.updateMonetizationSheets(event);
-        String result = "Monetization updated for event: " + event.getEventType();
-        LOGGER.info(result);
+
+        String result = "Updated: " + event.getEventType() + " for app: " + event.getApplicationId();
+        LOGGER.info("Monetization updated: " + result);
+        return result;
     }
 
-    private static void processAppsTopUpdate(GoogleConnection googleConnection, int userId)
+    private static String processAppsTopUpdate(GoogleConnection googleConnection, int userId)
             throws IOException {
         googleConnection.updateAppsTop();
+
         String result = "Apps top updated";
         LOGGER.info(result);
+        return result;
     }
 
-    private static void processHealthcheck(int userId) {
-        String result = "Health check performed";
+    private static String processHealthcheck(int userId) {
+        String result = "Health check OK";
         LOGGER.info(result);
+        return result;
     }
 }
