@@ -1,0 +1,10 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+echo "🔍 Running lint and format checks..."
+
+# Проверка форматирования
+npm run format:check
+
+# Проверка линтера
+npm run lint
