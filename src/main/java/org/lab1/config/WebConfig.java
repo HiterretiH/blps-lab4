@@ -14,7 +14,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
     private static final String ALL_PATHS = "/**";
-    private static final String LOCAL_ANGULAR_URL = "http://localhost:4200";
+    private static final String LOCAL_FRONTEND_URL = "http://localhost:4200";
     private static final String ALL_HEADERS = "*";
     private static final String[] ALLOWED_METHODS = {"GET", "POST", "PUT", "DELETE", "OPTIONS"};
     private static final String PASSWORD_ENCODER_BEAN = "passwordEncoder";
@@ -26,7 +26,7 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping(ALL_PATHS)
-                .allowedOrigins(LOCAL_ANGULAR_URL)
+                .allowedOrigins(LOCAL_FRONTEND_URL)
                 .allowedMethods(ALLOWED_METHODS)
                 .allowedHeaders(ALL_HEADERS);
     }
