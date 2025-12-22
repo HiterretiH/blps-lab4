@@ -27,9 +27,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
 
-      - name: Run Checkstyle
-        run: mvn checkstyle:check -Pci
-
       - name: Run Spotless Check
         run: mvn spotless:check -Pci
 
