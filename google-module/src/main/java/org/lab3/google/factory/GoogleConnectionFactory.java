@@ -4,33 +4,31 @@ import jakarta.resource.Referenceable;
 import jakarta.resource.ResourceException;
 import jakarta.resource.spi.ConnectionManager;
 import jakarta.resource.spi.ManagedConnectionFactory;
+import java.io.Serializable;
+import javax.naming.Reference;
 import org.lab3.google.service.GoogleConnection;
 
-import javax.naming.NamingException;
-import javax.naming.Reference;
-import java.io.Serializable;
-
 public class GoogleConnectionFactory implements Serializable, Referenceable {
-    private final ConnectionManager manager;
-    private final ManagedConnectionFactory mcf;
-    private Reference reference;
+  private final ConnectionManager manager;
+  private final ManagedConnectionFactory mcf;
+  private Reference reference;
 
-    public GoogleConnectionFactory(ManagedConnectionFactory mcf, ConnectionManager manager) {
-        this.mcf = mcf;
-        this.manager = manager;
-    }
+  public GoogleConnectionFactory(ManagedConnectionFactory mcf, ConnectionManager manager) {
+    this.mcf = mcf;
+    this.manager = manager;
+  }
 
-    public GoogleConnection getConnection() throws ResourceException {
-        return (GoogleConnection) manager.allocateConnection(mcf, null);
-    }
+  public GoogleConnection getConnection() throws ResourceException {
+    return (GoogleConnection) manager.allocateConnection(mcf, null);
+  }
 
-    @Override
-    public void setReference(Reference reference) {
-        this.reference = reference;
-    }
+  @Override
+  public void setReference(Reference reference) {
+    this.reference = reference;
+  }
 
-    @Override
-    public Reference getReference() {
-        return reference;
-    }
+  @Override
+  public Reference getReference() {
+    return reference;
+  }
 }

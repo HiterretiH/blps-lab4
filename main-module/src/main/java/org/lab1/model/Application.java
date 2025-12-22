@@ -4,75 +4,74 @@ import jakarta.persistence.*;
 
 @Entity
 public class Application {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private int id;
 
-    @ManyToOne
-    private Developer developer;
+  @ManyToOne private Developer developer;
 
-    private String name;
+  private String name;
 
-    @Enumerated(EnumType.STRING)
-    private ApplicationType type;
+  @Enumerated(EnumType.STRING)
+  private ApplicationType type;
 
-    private double price;
-    private String description;
-    private ApplicationStatus status;
+  private double price;
+  private String description;
+  private ApplicationStatus status;
 
-    public int getId() {
-        return id;
-    }
+  public int getId() {
+    return id;
+  }
 
-    public void setId(int id) {
-        this.id = id;
-    }
+  public void setId(int id) {
+    this.id = id;
+  }
 
-    public Developer getDeveloper() {
-        return developer;
-    }
+  public Developer getDeveloper() {
+    return developer;
+  }
 
-    public void setDeveloper(Developer developer) {
-        this.developer = developer;
-    }
+  public void setDeveloper(Developer developer) {
+    this.developer = developer;
+  }
 
-    public String getName() {
-        return name;
-    }
+  public String getName() {
+    return name;
+  }
 
-    public void setName(String name) {
-        this.name = name;
-    }
+  public void setName(String name) {
+    this.name = name;
+  }
 
-    public ApplicationType getType() {
-        return type;
-    }
+  public ApplicationType getType() {
+    return type;
+  }
 
-    public void setType(ApplicationType type) {
-        this.type = type;
-    }
+  public void setType(ApplicationType type) {
+    this.type = type;
+  }
 
-    public double getPrice() {
-        return price;
-    }
+  public double getPrice() {
+    return price;
+  }
 
-    public void setPrice(double price) {
-        this.price = price;
-    }
+  public void setPrice(double price) {
+    this.price = price;
+  }
 
-    public String getDescription() {
-        return description;
-    }
+  public String getDescription() {
+    return description;
+  }
 
-    public void setDescription(String description) {
-        this.description = description;
-    }
+  public void setDescription(String description) {
+    this.description = description;
+  }
 
-    public ApplicationStatus getStatus() {
-        return status;
-    }
+  public ApplicationStatus getStatus() {
+    return status;
+  }
 
-    public void setStatus(ApplicationStatus status) {
-        this.status = status;
-    }
+  public void setStatus(ApplicationStatus status) {
+    this.status = status;
+  }
 }
