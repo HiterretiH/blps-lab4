@@ -31,7 +31,9 @@ export const LoginPage: React.FC = () => {
       );
       navigate('/dashboard');
     } catch (err) {
+      const error = err as Error;
       setError('Invalid username or password');
+      console.error('Login error:', error);
     } finally {
       setIsLoading(false);
     }

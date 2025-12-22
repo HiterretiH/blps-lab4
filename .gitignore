@@ -1,5 +1,5 @@
 /logs/
-/react-refactoring/node_modules/
+/react-refactoring/node_modules/*
 
 target/
 !.mvn/wrapper/maven-wrapper.jar

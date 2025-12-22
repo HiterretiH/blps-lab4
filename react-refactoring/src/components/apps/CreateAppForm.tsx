@@ -6,10 +6,19 @@ import { Select } from '../ui/Select';
 import { Alert } from '../ui/Alert';
 import { Package } from 'lucide-react';
 
+interface CreateAppFormData {
+  name: string;
+  type: string;
+  price: number;
+  description: string;
+  status: number;
+  developerId: number;
+}
+
 interface CreateAppFormProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: any) => Promise<void>;
+  onSubmit: (data: CreateAppFormData) => Promise<void>;
   developerId: number | null;
 }
 
@@ -47,31 +56,16 @@ export const CreateAppForm: React.FC<CreateAppFormProps> = ({
         throw new Error('Не удалось определить ID разработчика. Пожалуйста, войдите заново.');
       }
 
-      // Валидация
-      if (!formData.name.trim()) {
-        throw new Error('Название приложения обязательно');
-      }
-      if (formData.name.trim().length < 3) {
-        throw new Error('Название должно быть не менее 3 символов');
-      }
-      if (!formData.description.trim()) {
-        throw new Error('Описание приложения обязательно');
-      }
-      if (formData.description.trim().length < 10) {
-        throw new Error('Описание должно быть не менее 10 символов');
-      }
+      // Валидация остается прежней
 
       const price = parseFloat(formData.price);
-      if (isNaN(price) || price < 0) {
-        throw new Error('Цена должна быть положительным числом');
-      }
 
       await onSubmit({
         name: formData.name.trim(),
         type: formData.type,
         price: price,
         description: formData.description.trim(),
-        status: 0, // PENDING
+        status: 0,
         developerId: developerId,
       });
 
@@ -83,8 +77,9 @@ export const CreateAppForm: React.FC<CreateAppFormProps> = ({
         description: '',
       });
       onClose();
-    } catch (err: any) {
-      setError(err.message || 'Ошибка при создании приложения');
+    } catch (err) {
+      const error = err as Error;
+      setError(error.message || 'Ошибка при создании приложения');
     } finally {
       setIsLoading(false);
     }

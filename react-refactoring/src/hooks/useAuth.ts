@@ -2,6 +2,15 @@ import { useState, useCallback } from 'react';
 import { authService } from '../services/auth.service';
 import { LoginCredentials, RegisterCredentials } from '../types';
 
+interface ApiError {
+  response?: {
+    data?: {
+      message?: string;
+    };
+  };
+  message?: string;
+}
+
 export const useAuth = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -20,8 +29,9 @@ export const useAuth = () => {
         })
       );
       return response;
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Login failed');
+    } catch (err) {
+      const error = err as ApiError;
+      setError(error.response?.data?.message || 'Login failed');
       throw err;
     } finally {
       setIsLoading(false);
@@ -45,8 +55,9 @@ export const useAuth = () => {
         })
       );
       return response;
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Registration failed');
+    } catch (err) {
+      const error = err as ApiError;
+      setError(error.response?.data?.message || 'Registration failed');
       throw err;
     } finally {
       setIsLoading(false);
@@ -69,11 +80,11 @@ export const useAuth = () => {
     setIsLoading(true);
     try {
       const response = await authService.connectGoogle();
-      // Открываем OAuth попап
       window.open(response.authUrl, '_blank', 'width=600,height=600');
       return response;
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Google connection failed');
+    } catch (err) {
+      const error = err as ApiError;
+      setError(error.response?.data?.message || 'Google connection failed');
       throw err;
     } finally {
       setIsLoading(false);

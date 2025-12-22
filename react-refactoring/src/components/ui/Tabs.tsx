@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, isValidElement } from 'react';
 import { cn } from '../../utils';
 
 interface TabsProps {
@@ -7,8 +7,21 @@ interface TabsProps {
   defaultTab?: string;
 }
 
+interface TabChildProps {
+  id: string;
+  children?: React.ReactNode;
+}
+
 export const Tabs: React.FC<TabsProps> = ({ tabs, children, defaultTab }) => {
   const [activeTab, setActiveTab] = useState(defaultTab || tabs[0]?.id);
+
+  const childrenArray = React.Children.toArray(children);
+  const activeChild = childrenArray.find(child => {
+    if (isValidElement<TabChildProps>(child)) {
+      return child.props.id === activeTab;
+    }
+    return false;
+  });
 
   return (
     <div>
@@ -30,15 +43,12 @@ export const Tabs: React.FC<TabsProps> = ({ tabs, children, defaultTab }) => {
           ))}
         </nav>
       </div>
-      <div className="py-4">
-        {React.Children.toArray(children).find((child: any) => child.props.id === activeTab)}
-      </div>
+      <div className="py-4">{activeChild}</div>
     </div>
   );
 };
 
-interface TabPanelProps {
-  id: string;
+interface TabPanelProps extends TabChildProps {
   children: React.ReactNode;
 }
 

@@ -7,8 +7,16 @@ import { Alert } from '../components/ui/Alert';
 import { Card, CardContent } from '../components/ui/Card';
 import { useApplications } from '../hooks/useApplications';
 import { authService } from '../services/auth.service';
-import { Application } from '../types';
 import { Loader2, Package, User, Filter } from 'lucide-react';
+
+interface CreateAppFormData {
+  name: string;
+  type: string;
+  price: number;
+  description: string;
+  status: number;
+  developerId: number;
+}
 
 export const ApplicationsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -32,13 +40,14 @@ export const ApplicationsPage: React.FC = () => {
     });
   }, [fetchMyApplications]);
 
-  const handleCreateApp = async (appData: any) => {
+  const handleCreateApp = async (appData: CreateAppFormData) => {
+    // Используем ранее определенный тип
     try {
       await createApplication(appData);
-      await fetchMyApplications(); // Обновляем список
-    } catch (err: any) {
-      console.error('Error creating app:', err);
-      alert(err.message || 'Ошибка при создании приложения');
+      await fetchMyApplications();
+    } catch (err) {
+      const error = err as Error;
+      alert(error.message || 'Ошибка при создании приложения');
     }
   };
 
@@ -46,10 +55,10 @@ export const ApplicationsPage: React.FC = () => {
     if (window.confirm('Вы уверены, что хотите удалить это приложение?')) {
       try {
         await deleteApplication(id);
-        await fetchMyApplications(); // Обновляем список
-      } catch (err: any) {
-        console.error('Error deleting app:', err);
-        alert(err.message || 'Ошибка при удалении приложения');
+        await fetchMyApplications();
+      } catch (err) {
+        const error = err as Error;
+        alert(error.message || 'Ошибка при удалении приложения');
       }
     }
   };

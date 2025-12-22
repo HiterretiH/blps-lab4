@@ -3,6 +3,15 @@ import { applicationsService } from '../services/applications.service';
 import { authService } from '../services/auth.service';
 import { Application } from '../types';
 
+interface ApiError {
+  message?: string;
+  response?: {
+    data?: {
+      message?: string;
+    };
+  };
+}
+
 export const useApplications = () => {
   const [applications, setApplications] = useState<Application[]>([]);
   const [selectedApp, setSelectedApp] = useState<Application | null>(null);
@@ -21,23 +30,21 @@ export const useApplications = () => {
       let data: Application[];
 
       if (isDeveloper) {
-        // Разработчик получает только свои приложения
         data = await applicationsService.getMyApplications();
         console.log(`👨‍💻 Разработчик, получено моих приложений: ${data.length}`);
       } else {
-        // Обычный пользователь или админ получает все приложения
         data = await applicationsService.getAllApplications();
         console.log(`👤 Не разработчик, получено всех приложений: ${data.length}`);
       }
 
       setApplications(data);
       return data;
-    } catch (err: any) {
-      const errorMsg = err.response?.data?.message || 'Не удалось загрузить приложения';
+    } catch (err) {
+      const apiError = err as ApiError;
+      const errorMsg = apiError.response?.data?.message || 'Не удалось загрузить приложения';
       setError(errorMsg);
       console.error('❌ Ошибка загрузки приложений:', err);
 
-      // Возвращаем пустой массив чтобы UI не ломался
       setApplications([]);
       return [];
     } finally {
@@ -52,8 +59,9 @@ export const useApplications = () => {
       const data = await applicationsService.getAllApplications();
       setApplications(data);
       return data;
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to fetch applications');
+    } catch (err) {
+      const apiError = err as ApiError;
+      setError(apiError.response?.data?.message || 'Failed to fetch applications');
       throw err;
     } finally {
       setIsLoading(false);
@@ -70,7 +78,6 @@ export const useApplications = () => {
         throw new Error('Не удалось определить ID разработчика');
       }
 
-      // Добавляем developerId из текущего пользователя
       const dataToSend = {
         ...appData,
         developerId: developerId,
@@ -81,8 +88,9 @@ export const useApplications = () => {
       const newApp = await applicationsService.createApplication(dataToSend);
       setApplications(prev => [...prev, newApp]);
       return newApp;
-    } catch (err: any) {
-      const errorMsg = err.response?.data?.message || 'Не удалось создать приложение';
+    } catch (err) {
+      const apiError = err as ApiError;
+      const errorMsg = apiError.response?.data?.message || 'Не удалось создать приложение';
       setError(errorMsg);
       throw err;
     } finally {
@@ -96,8 +104,9 @@ export const useApplications = () => {
     try {
       await applicationsService.deleteApplication(id);
       setApplications(prev => prev.filter(app => app.id !== id));
-    } catch (err: any) {
-      const errorMsg = err.response?.data?.message || 'Не удалось удалить приложение';
+    } catch (err) {
+      const apiError = err as ApiError;
+      const errorMsg = apiError.response?.data?.message || 'Не удалось удалить приложение';
       setError(errorMsg);
       throw err;
     } finally {

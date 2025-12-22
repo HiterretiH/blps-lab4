@@ -7,10 +7,57 @@ import { authService } from '../services/auth.service';
 import { applicationsService } from '../services/applications.service';
 import { api } from '../services/api';
 
+interface AuthState {
+  tokenExists: boolean;
+  token: string;
+  user: string | Record<string, unknown>;
+  isAuthenticated: boolean;
+  currentUser: { username: string; role: string } | null;
+  developerId?: number | null;
+}
+
+interface ApiTestResult {
+  success: boolean;
+  data?: unknown;
+  error?: string;
+  response?: unknown;
+  status?: number | undefined;
+  message: string;
+}
+
+interface ApiError {
+  message?: string;
+  response?: {
+    data?: {
+      message?: string;
+    };
+    status?: number;
+  };
+}
+
+// Вспомогательная функция для безопасного рендеринга
+const renderJsonSafe = (data: unknown): string => {
+  if (data === null || data === undefined) {
+    return '';
+  }
+  try {
+    return JSON.stringify(data, null, 2);
+  } catch {
+    return String(data);
+  }
+};
+
 export const DebugAuthPage: React.FC = () => {
   const navigate = useNavigate();
-  const [authState, setAuthState] = useState<any>({});
-  const [apiTestResult, setApiTestResult] = useState<any>(null);
+  const [authState, setAuthState] = useState<AuthState>({
+    tokenExists: false,
+    token: '',
+    user: '',
+    isAuthenticated: false,
+    currentUser: null,
+    developerId: null,
+  });
+  const [apiTestResult, setApiTestResult] = useState<ApiTestResult | null>(null);
   const [isTesting, setIsTesting] = useState(false);
 
   useEffect(() => {
@@ -37,7 +84,7 @@ export const DebugAuthPage: React.FC = () => {
       console.group('🧪 Тест API запроса');
       console.log('Делаем запрос к /applications...');
 
-      const response = await applicationsService.getApplications();
+      const response = await applicationsService.getAllApplications();
 
       setApiTestResult({
         success: true,
@@ -47,14 +94,16 @@ export const DebugAuthPage: React.FC = () => {
 
       console.log('✅ Успех:', response);
       console.groupEnd();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('❌ Ошибка:', error);
+
+      const apiError = error as ApiError;
 
       setApiTestResult({
         success: false,
-        error: error.message,
-        response: error.response?.data,
-        status: error.response?.status,
+        error: apiError.message || 'Unknown error',
+        response: apiError.response?.data,
+        status: apiError.response?.status,
         message: 'API запрос провален',
       });
 
@@ -68,16 +117,26 @@ export const DebugAuthPage: React.FC = () => {
     console.log('🧹 Очистка авторизации...');
     localStorage.removeItem('auth_token');
     localStorage.removeItem('user');
-    setAuthState({});
+    setAuthState({
+      tokenExists: false,
+      token: '',
+      user: '',
+      isAuthenticated: false,
+      currentUser: null,
+      developerId: null,
+    });
     setApiTestResult(null);
     console.log('✅ Очищено');
   };
 
   const simulateLogin = async (username: string, password: string) => {
-    console.log(`🔐 Симуляция входа: ${username}`);
+    console.log(`🔑 Симуляция входа: ${username}`);
 
     try {
-      const response = await api.post('/auth/login', { username, password });
+      const response = await api.post<{ token: string; role: string }>('/auth/login', {
+        username,
+        password,
+      });
       console.log('✅ Логин успешен:', response.data);
 
       localStorage.setItem('auth_token', response.data.token);
@@ -90,9 +149,11 @@ export const DebugAuthPage: React.FC = () => {
       );
 
       window.location.reload();
-    } catch (error: any) {
-      console.error('❌ Ошибка логина:', error.response?.data || error.message);
-      alert(`Ошибка: ${error.response?.data?.message || error.message}`);
+    } catch (error: unknown) {
+      const apiError = error as ApiError;
+
+      console.error('❌ Ошибка логина:', apiError.response?.data || apiError.message);
+      alert(`Ошибка: ${apiError.response?.data?.message || apiError.message}`);
     }
   };
 
@@ -147,22 +208,30 @@ export const DebugAuthPage: React.FC = () => {
                 </Alert>
 
                 {apiTestResult.error && (
-                  <pre className="overflow-auto rounded-lg bg-gray-50 p-4 text-sm">
-                    Ошибка: {apiTestResult.error}
-                    {apiTestResult.status && `\nСтатус: ${apiTestResult.status}`}
-                    {apiTestResult.response &&
-                      `\nОтвет: ${JSON.stringify(apiTestResult.response, null, 2)}`}
-                  </pre>
-                )}
-
-                {apiTestResult.success && apiTestResult.data && (
-                  <div>
-                    <p className="mb-2 font-medium text-gray-900">Полученные данные:</p>
+                  <div className="space-y-2">
                     <pre className="overflow-auto rounded-lg bg-gray-50 p-4 text-sm">
-                      {JSON.stringify(apiTestResult.data, null, 2)}
+                      Ошибка: {String(apiTestResult.error)}
+                      {apiTestResult.status !== undefined && `\nСтатус: ${apiTestResult.status}`}
                     </pre>
+
+                    {apiTestResult.response !== undefined && apiTestResult.response !== null && (
+                      <pre className="overflow-auto rounded-lg bg-gray-50 p-4 text-sm">
+                        Ответ: {renderJsonSafe(apiTestResult.response)}
+                      </pre>
+                    )}
                   </div>
                 )}
+
+                {apiTestResult.success &&
+                  apiTestResult.data !== undefined &&
+                  apiTestResult.data !== null && (
+                    <div>
+                      <p className="mb-2 font-medium text-gray-900">Полученные данные:</p>
+                      <pre className="overflow-auto rounded-lg bg-gray-50 p-4 text-sm">
+                        {renderJsonSafe(apiTestResult.data)}
+                      </pre>
+                    </div>
+                  )}
               </div>
             )}
           </div>

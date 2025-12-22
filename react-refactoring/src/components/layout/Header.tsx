@@ -47,8 +47,12 @@ export const Header: React.FC = () => {
             {/* Authors Info */}
             <div className="hidden items-center space-x-2 border-l border-gray-200 pl-4 md:flex">
               <span className="text-xs text-gray-600">Authors:</span>
-              <Badge variant="info" className="text-xs"></Badge>
-              <Badge variant="info" className="text-xs"></Badge>
+              <Badge variant="info" className="text-xs">
+                Гигачадио
+              </Badge>
+              <Badge variant="info" className="text-xs">
+                Эйяу)
+              </Badge>
             </div>
           </div>
 
