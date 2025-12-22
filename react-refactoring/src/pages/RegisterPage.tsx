@@ -36,7 +36,9 @@ export const RegisterPage: React.FC = () => {
       );
       navigate('/dashboard');
     } catch (err) {
-      setError('Registration failed. Please try again.');
+      const error = err as Error;
+      setError('Invalid username or password');
+      console.error('Login error:', error);
     } finally {
       setIsLoading(false);
     }

@@ -39,6 +39,8 @@ export function generateGradient(id: number): string {
     'from-pink-500 to-rose-600',
     'from-indigo-500 to-blue-600',
     'from-purple-500 to-pink-600',
-  ];
-  return gradients[id % gradients.length];
+  ] as const; // Добавить as const для tuple типа
+
+  const index = Math.abs(id) % gradients.length;
+  return gradients[index]!; // Добавить ! для non-null assertion
 }

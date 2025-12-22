@@ -17,7 +17,6 @@ import {
   Download,
   Eye,
   Trash2,
-  Bell,
   Star,
   CheckCircle,
   AlertCircle,

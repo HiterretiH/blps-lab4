@@ -7,10 +7,11 @@ import { Download, Eye, Trash2, Edit3, BarChart3 } from 'lucide-react';
 
 interface AppCardProps {
   application: Application;
-  onSelect?: (app: Application) => void;
-  onDelete?: (id: number) => void;
-  onEdit?: (app: Application) => void;
-  currentDeveloperId?: number;
+  onSelect?: ((app: Application) => void) | undefined;
+  onDelete?: ((id: number) => void) | undefined;
+  onEdit?: ((app: Application) => void) | undefined;
+  currentDeveloperId?: number | undefined;
+  showActions?: boolean | undefined;
 }
 
 export const AppCard: React.FC<AppCardProps> = ({
@@ -74,7 +75,6 @@ export const AppCard: React.FC<AppCardProps> = ({
   const {
     variant: statusVariant,
     label: statusLabel,
-    text: statusText,
     icon: statusIcon,
   } = getStatusInfo(application.status);
   const { color: typeColor, icon: typeIcon, label: typeLabel } = getTypeInfo(application.type);
