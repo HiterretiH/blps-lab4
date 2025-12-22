@@ -29,14 +29,13 @@ services:
     volumes:
       - rabbit_data:/var/lib/rabbitmq
 
-  app:
-    image: amazoncorretto:25
-    container_name: spring_app
-    working_dir: /app
-    command: java -jar blps-lab1-1.0.jar
+  main-app:
+    build:
+      context: .
+      dockerfile: main-module/Dockerfile
+    container_name: main_app
     volumes:
       - ./logs:/app/logs
-      - ./target:/app
       - ./.env:/app/.env:ro
     ports:
       - "727:727"
@@ -48,10 +47,6 @@ services:
       SPRING_DATASOURCE_USERNAME: user
       SPRING_DATASOURCE_PASSWORD: password
       SPRING_JPA_HIBERNATE_DDL_AUTO: create-drop
-      SPRING_RABBITMQ_HOST: rabbit
-      SPRING_RABBITMQ_PORT: 5672
-      SPRING_RABBITMQ_USERNAME: admin
-      SPRING_RABBITMQ_PASSWORD: password
 
   google-module:
     build:
@@ -77,7 +72,7 @@ services:
     ports:
       - "9090:9090"
     depends_on:
-      - app
+      - main-app
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
 
