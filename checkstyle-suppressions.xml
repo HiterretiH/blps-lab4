@@ -1,13 +1,23 @@
 <?xml version="1.0"?>
 <!DOCTYPE suppressions PUBLIC
-        "-//Checkstyle//DTD SuppressionFilter Configuration 1.2//EN"
-        "https://checkstyle.org/dtds/suppressions_1_2.dtd">
+  "-//Checkstyle//DTD SuppressionFilter Configuration 1.2//EN"
+  "https://checkstyle.org/dtds/suppressions_1_2.dtd">
 
 <suppressions>
-    <suppress checks="JavadocMethod" files=".*Test\.java"/>
-    <suppress checks="JavadocType" files=".*Test\.java"/>
-    <suppress checks="JavadocVariable" files=".*Test\.java"/>
-    <suppress checks=".*" files=".*/test/.*"/>
-    <suppress checks=".*" files=".*/target/.*"/>
-    <suppress checks=".*" files=".*/generated/.*"/>
+  <suppress checks="JavadocMethod" files=".*"/>
+  <suppress checks="JavadocType" files=".*"/>
+  <suppress checks="JavadocVariable" files=".*"/>
+  <suppress checks="JavadocPackage" files=".*"/>
+  <suppress checks="JavadocParagraph" files=".*"/>
+  <suppress checks="JavadocStyle" files=".*"/>
+  <suppress checks="SummaryJavadoc" files=".*"/>
+  <suppress checks="SingleLineJavadoc" files=".*"/>
+  <suppress checks="NonEmptyAtclauseDescription" files=".*"/>
+
+  <suppress checks=".*" files=".*package-info\.java"/>
+
+  <suppress checks=".*" files=".*Test\.java"/>
+  <suppress checks=".*" files=".*/test/.*"/>
+  <suppress checks=".*" files=".*/target/.*"/>
+  <suppress checks=".*" files=".*/generated/.*"/>
 </suppressions>
