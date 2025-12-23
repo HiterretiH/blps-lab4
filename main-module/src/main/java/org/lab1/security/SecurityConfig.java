@@ -20,15 +20,15 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @EnableMethodSecurity
 public class SecurityConfig {
   private static final String[] PUBLIC_ENDPOINTS = {
-      "/api/auth/**", "/actuator/health", "/actuator/info", "/actuator/prometheus"
+    "/api/auth/**", "/actuator/health", "/actuator/info", "/actuator/prometheus"
   };
 
   private static final String[] ALLOWED_ORIGINS = {"*"};
   private static final String[] ALLOWED_METHODS = {
-      "GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"
+    "GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"
   };
   private static final String[] ALLOWED_HEADERS = {
-      "Authorization", "Cache-Control", "Content-Type"
+    "Authorization", "Cache-Control", "Content-Type"
   };
   private static final String[] EXPOSED_HEADERS = {"Authorization"};
   private static final String ALL_PATHS = "/**";

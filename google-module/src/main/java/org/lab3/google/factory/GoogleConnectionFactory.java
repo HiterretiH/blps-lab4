@@ -8,8 +8,7 @@ import java.io.Serializable;
 import javax.naming.Reference;
 import org.lab3.google.service.GoogleConnection;
 
-public final class GoogleConnectionFactory
-    implements Serializable, Referenceable {
+public final class GoogleConnectionFactory implements Serializable, Referenceable {
   private final ConnectionManager manager;
   private final ManagedConnectionFactory mcf;
   private Reference reference;

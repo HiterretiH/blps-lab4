@@ -71,10 +71,8 @@ public final class UserMonetizationController {
     this.applicationRepository = applicationRepositoryParam;
     this.userRepository = userRepositoryParam;
     this.meterRegistry = meterRegistryParam;
-    this.purchaseProcessingTime =
-        meterRegistry.timer(PURCHASE_PROCESSING_TIME_METRIC);
-    this.adViewProcessingTime =
-        meterRegistry.timer(AD_VIEW_PROCESSING_TIME_METRIC);
+    this.purchaseProcessingTime = meterRegistry.timer(PURCHASE_PROCESSING_TIME_METRIC);
+    this.adViewProcessingTime = meterRegistry.timer(AD_VIEW_PROCESSING_TIME_METRIC);
   }
 
   @PreAuthorize("hasAuthority('user.download_application')")
@@ -156,8 +154,7 @@ public final class UserMonetizationController {
               .findById(purchaseId)
               .orElseThrow(
                   () ->
-                      new ResponseStatusException(HttpStatus.NOT_FOUND,
-                          PURCHASE_NOT_FOUND_MESSAGE))
+                      new ResponseStatusException(HttpStatus.NOT_FOUND, PURCHASE_NOT_FOUND_MESSAGE))
               .getPrice();
 
       MonetizationEvent event =
@@ -178,8 +175,7 @@ public final class UserMonetizationController {
   @PreAuthorize("hasAuthority('user.view_advertisement')")
   @PostMapping("/view-ad/{adId}")
   public ResponseEntity<String> viewAdvertisement(
-      @PathVariable final int adId,
-      final Authentication authentication) {
+      @PathVariable final int adId, final Authentication authentication) {
     Timer.Sample sample = Timer.start(meterRegistry);
 
     Optional<User> userOptional =
@@ -198,8 +194,7 @@ public final class UserMonetizationController {
           addRepository
               .findById(adId)
               .orElseThrow(
-                  () -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                      AD_NOT_FOUND_MESSAGE))
+                  () -> new ResponseStatusException(HttpStatus.NOT_FOUND, AD_NOT_FOUND_MESSAGE))
               .getPrice();
 
       MonetizationEvent event =

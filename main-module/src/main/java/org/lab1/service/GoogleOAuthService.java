@@ -45,7 +45,8 @@ public class GoogleOAuthService {
   private static final String EMAIL_NOT_VERIFIED_ERROR = "Google email not verified";
   private static final String GOOGLE_API_STATUS_ERROR = "Google API returned non-success status: ";
   private static final String GOOGLE_API_CONNECT_ERROR = "Failed to connect to Google API: ";
-  private static final String UNEXPECTED_EMAIL_ERROR = "Unexpected error while fetching user email: ";
+  private static final String UNEXPECTED_EMAIL_ERROR =
+      "Unexpected error while fetching user email: ";
   private static final String EMAIL_NULL_ERROR = "Email cannot be null or empty";
   private static final String ACCESS_TOKEN_NULL_ERROR = "Access token cannot be null";
   private static final String DB_SAVE_ERROR = "Failed to save auth data to database: ";
@@ -217,7 +218,8 @@ public class GoogleOAuthService {
     }
   }
 
-  private void saveAuthData(final int userId, final String email, final GoogleTokenResponse tokenResponse)
+  private void saveAuthData(
+      final int userId, final String email, final GoogleTokenResponse tokenResponse)
       throws OAuthException {
     try {
       GoogleAuthData authData =

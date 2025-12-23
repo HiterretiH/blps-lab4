@@ -4,11 +4,9 @@ public final class GoogleSheetRequest {
   private String googleEmail;
   private String sheetTitle;
 
-  public GoogleSheetRequest() {
-  }
+  public GoogleSheetRequest() {}
 
-  public GoogleSheetRequest(final String googleEmailParam,
-                            final String sheetTitleParam) {
+  public GoogleSheetRequest(final String googleEmailParam, final String sheetTitleParam) {
     this.googleEmail = googleEmailParam;
     this.sheetTitle = sheetTitleParam;
   }

@@ -69,12 +69,10 @@ public final class GoogleSheetController {
 
     try {
       String result = googleSheetService.createRevenueSheet(userId);
-      logger.info(REVENUE_SHEET_CREATION_LOG + userId
-          + ". Result: " + result);
+      logger.info(REVENUE_SHEET_CREATION_LOG + userId + ". Result: " + result);
       return ResponseEntity.ok(result);
     } catch (Exception exception) {
-      logger.error(REVENUE_SHEET_ERROR_LOG + userId
-          + REASON_LOG + exception.getMessage());
+      logger.error(REVENUE_SHEET_ERROR_LOG + userId + REASON_LOG + exception.getMessage());
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
           .body("Error creating revenue sheet: " + exception.getMessage());
     }
@@ -98,8 +96,7 @@ public final class GoogleSheetController {
 
     try {
       String result = googleSheetService.addAppSheets(userId, appId);
-      logger.info(APP_SHEETS_CREATION_LOG + appId
-          + USER_ID_LOG + userId + ". Result: " + result);
+      logger.info(APP_SHEETS_CREATION_LOG + appId + USER_ID_LOG + userId + ". Result: " + result);
       return ResponseEntity.ok(result);
     } catch (Exception exception) {
       logger.error(

@@ -2,17 +2,14 @@ package org.lab3.google.json;
 
 import java.util.List;
 
-/**
- * Represents a request to create a Google Sheet with data.
- */
+/** Represents a request to create a Google Sheet with data. */
 public final class GoogleSheetRequestWithData {
   private String googleEmail;
   private String sheetTitle;
   private List<String> headers;
   private List<List<Object>> data;
 
-  public GoogleSheetRequestWithData() {
-  }
+  public GoogleSheetRequestWithData() {}
 
   /**
    * Constructs a new GoogleSheetRequestWithData.

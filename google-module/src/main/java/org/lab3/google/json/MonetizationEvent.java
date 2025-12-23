@@ -13,12 +13,14 @@ public final class MonetizationEvent {
   private int itemId;
   private double amount;
 
-  public MonetizationEvent() {
-  }
+  public MonetizationEvent() {}
 
-  public MonetizationEvent(final EventType eventTypeParam,
-                           final int userIdParam, final int applicationIdParam,
-                           final int itemIdParam, final double amountParam) {
+  public MonetizationEvent(
+      final EventType eventTypeParam,
+      final int userIdParam,
+      final int applicationIdParam,
+      final int itemIdParam,
+      final double amountParam) {
     this.eventType = eventTypeParam;
     this.userId = userIdParam;
     this.applicationId = applicationIdParam;

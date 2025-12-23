@@ -52,13 +52,11 @@ public final class AuthorizationController {
   private static final String INVALID_TOKEN_LOG =
       "Invalid system token received for Google connect initiation.";
   private static final String INVALID_TOKEN_MESSAGE = "Invalid token";
-  private static final String GENERATED_GOOGLE_AUTH_LOG =
-      "Generated Google auth URL for user ID: ";
+  private static final String GENERATED_GOOGLE_AUTH_LOG = "Generated Google auth URL for user ID: ";
   private static final String STATE_LOG = ", state: ";
   private static final String SECURITY_EXCEPTION_LOG =
       "Security exception during Google connect initiation: ";
-  private static final String GOOGLE_CALLBACK_LOG =
-      "Received Google connect callback with code: ";
+  private static final String GOOGLE_CALLBACK_LOG = "Received Google connect callback with code: ";
   private static final String INVALID_CALLBACK_TOKEN_LOG =
       "Invalid system token received for Google connect callback.";
   private static final String GOOGLE_ACCOUNT_CONNECTED_LOG =
@@ -153,8 +151,7 @@ public final class AuthorizationController {
       developerService.createDeveloper(user);
       transactionManager.commit(status);
       logger.info(
-          DEVELOPER_REGISTER_SUCCESS_LOG
-              + credentials.getUsername() + REGISTERED_SUCCESS_LOG);
+          DEVELOPER_REGISTER_SUCCESS_LOG + credentials.getUsername() + REGISTERED_SUCCESS_LOG);
       return ResponseEntity.status(HttpStatus.CREATED).body(token);
     } catch (IllegalArgumentException exception) {
       transactionManager.rollback(status);
@@ -187,8 +184,7 @@ public final class AuthorizationController {
 
       return ResponseEntity.ok(
           new GoogleAuthResponse(
-              authUrl, state,
-              "Copy this URL and open in browser to connect Google account"));
+              authUrl, state, "Copy this URL and open in browser to connect Google account"));
     } catch (SecurityException exception) {
       logger.error(SECURITY_EXCEPTION_LOG + exception.getMessage());
       return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();

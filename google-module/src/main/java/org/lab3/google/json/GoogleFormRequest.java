@@ -7,12 +7,12 @@ public final class GoogleFormRequest {
   private Map<String, String> fields;
   private String formTitle;
 
-  public GoogleFormRequest() {
-  }
+  public GoogleFormRequest() {}
 
-  public GoogleFormRequest(final String googleEmailParam,
-                           final Map<String, String> fieldsParam,
-                           final String formTitleParam) {
+  public GoogleFormRequest(
+      final String googleEmailParam,
+      final Map<String, String> fieldsParam,
+      final String formTitleParam) {
     this.googleEmail = googleEmailParam;
     this.fields = fieldsParam;
     this.formTitle = formTitleParam;

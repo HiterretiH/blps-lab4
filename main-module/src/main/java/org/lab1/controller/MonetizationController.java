@@ -40,8 +40,7 @@ public final class MonetizationController {
 
   @Autowired
   public MonetizationController(
-      final MonetizationService monetizationServiceParam,
-      final Logger loggerParam) {
+      final MonetizationService monetizationServiceParam, final Logger loggerParam) {
     this.monetizationService = monetizationServiceParam;
     this.logger = loggerParam;
   }
@@ -51,8 +50,7 @@ public final class MonetizationController {
   public ResponseEntity<MonetizedApplication> getMonetizationInfo(
       @PathVariable final int applicationId) {
     logger.info(GET_INFO_REQUEST_LOG + applicationId);
-    MonetizedApplication monetizedApp =
-        monetizationService.getMonetizationInfo(applicationId);
+    MonetizedApplication monetizedApp = monetizationService.getMonetizationInfo(applicationId);
 
     if (monetizedApp == null) {
       logger.info(INFO_NOT_FOUND_LOG + applicationId);
@@ -60,20 +58,16 @@ public final class MonetizationController {
     }
 
     logger.info(
-        INFO_FOUND_LOG + applicationId
-            + CURRENT_BALANCE_LOG + monetizedApp.getCurrentBalance());
+        INFO_FOUND_LOG + applicationId + CURRENT_BALANCE_LOG + monetizedApp.getCurrentBalance());
     return ResponseEntity.ok(monetizedApp);
   }
 
   @PreAuthorize("hasAuthority('monetization.payout.request')")
   @PostMapping("/sendForm/{applicationId}")
   public ResponseEntity<PaymentRequest> sendForm(
-      @PathVariable final int applicationId,
-      @RequestParam final double amount) {
-    logger.info(SEND_FORM_REQUEST_LOG + applicationId
-        + AMOUNT_LOG + amount);
-    PaymentRequest paymentRequest =
-        monetizationService.sendForm(applicationId, amount);
+      @PathVariable final int applicationId, @RequestParam final double amount) {
+    logger.info(SEND_FORM_REQUEST_LOG + applicationId + AMOUNT_LOG + amount);
+    PaymentRequest paymentRequest = monetizationService.sendForm(applicationId, amount);
     logger.info(
         FORM_SENT_LOG
             + applicationId

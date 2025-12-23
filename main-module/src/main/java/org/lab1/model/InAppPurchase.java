@@ -12,8 +12,7 @@ public class InAppPurchase {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private int id;
 
-  @ManyToOne
-  private MonetizedApplication monetizedApplication;
+  @ManyToOne private MonetizedApplication monetizedApplication;
 
   private String title;
   private String description;

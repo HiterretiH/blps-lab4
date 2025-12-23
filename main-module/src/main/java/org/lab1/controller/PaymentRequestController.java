@@ -38,8 +38,7 @@ public final class PaymentRequestController {
 
   @Autowired
   public PaymentRequestController(
-      final PaymentRequestService paymentRequestServiceParam,
-      final Logger loggerParam) {
+      final PaymentRequestService paymentRequestServiceParam, final Logger loggerParam) {
     this.paymentRequestService = paymentRequestServiceParam;
     this.logger = loggerParam;
   }
@@ -47,8 +46,7 @@ public final class PaymentRequestController {
   @PreAuthorize("hasAuthority('payment_request.create')")
   @PostMapping
   public ResponseEntity<PaymentRequest> createPaymentRequest(
-      @RequestParam final int applicationId,
-      @RequestParam final double amount) {
+      @RequestParam final int applicationId, @RequestParam final double amount) {
     logger.info(CREATE_REQUEST_LOG + applicationId + AMOUNT_LOG + amount);
     PaymentRequest paymentRequest =
         paymentRequestService.createPaymentRequest(applicationId, amount);
@@ -62,8 +60,7 @@ public final class PaymentRequestController {
 
   @PreAuthorize("hasAuthority('payment_request.read')")
   @GetMapping("/{applicationId}")
-  public ResponseEntity<PaymentRequest> getPaymentRequest(
-      @PathVariable final int applicationId) {
+  public ResponseEntity<PaymentRequest> getPaymentRequest(@PathVariable final int applicationId) {
     logger.info(GET_REQUEST_LOG + applicationId);
     Optional<PaymentRequest> paymentRequest =
         paymentRequestService.getPaymentRequestById(applicationId);
@@ -83,8 +80,7 @@ public final class PaymentRequestController {
     Optional<PaymentRequest> paymentRequest =
         paymentRequestService.getPaymentRequestById(applicationId);
 
-    if (paymentRequest.isPresent()
-        && paymentRequestService.validateCard(paymentRequest.get())) {
+    if (paymentRequest.isPresent() && paymentRequestService.validateCard(paymentRequest.get())) {
       logger.info(CARD_VALID_LOG + applicationId);
       return ResponseEntity.ok(CARD_VALID_MESSAGE);
     }

@@ -42,25 +42,21 @@ public final class ApplicationVerificationController {
   @PostMapping("/verify")
   public ResponseEntity<String> verifyApplicationForm(@RequestBody final ApplicationForm form) {
     logger.info(VERIFICATION_REQUEST_LOG);
-    VerificationLog verificationLog =
-        applicationVerificationService.verifyApplicationForm(form);
+    VerificationLog verificationLog = applicationVerificationService.verifyApplicationForm(form);
 
     if (!verificationLog.isSecurityCheckPassed()) {
       logger.info(SECURITY_CHECK_FAILED_LOG);
-      return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-          .body(SECURITY_CHECK_FAILED_MESSAGE);
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(SECURITY_CHECK_FAILED_MESSAGE);
     }
 
     if (!verificationLog.isPolicyCheckPassed()) {
       logger.info(POLICY_CHECK_FAILED_LOG);
-      return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-          .body(POLICY_CHECK_FAILED_MESSAGE);
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(POLICY_CHECK_FAILED_MESSAGE);
     }
 
     if (!verificationLog.isAdsCheckPassed()) {
       logger.info(ADS_CHECK_FAILED_LOG);
-      return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-          .body(ADS_CHECK_FAILED_MESSAGE);
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ADS_CHECK_FAILED_MESSAGE);
     }
 
     logger.info(VERIFICATION_SUCCESS_LOG);

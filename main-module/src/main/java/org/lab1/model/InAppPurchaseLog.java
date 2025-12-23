@@ -13,8 +13,7 @@ public class InAppPurchaseLog {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private int id;
 
-  @ManyToOne
-  private InAppPurchase inAppPurchase;
+  @ManyToOne private InAppPurchase inAppPurchase;
 
   private int quantity;
   private Date timestamp;

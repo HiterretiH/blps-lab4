@@ -15,12 +15,9 @@ import javax.transaction.xa.XAResource;
     displayName = "Google JCA Adapter",
     vendorName = "Google Inc.",
     version = "1.0",
-    transactionSupport = TransactionSupport
-        .TransactionSupportLevel.NoTransaction
-)
+    transactionSupport = TransactionSupport.TransactionSupportLevel.NoTransaction)
 public final class GoogleResourceAdapter implements ResourceAdapter {
-  private static final Logger LOG =
-      Logger.getLogger(GoogleResourceAdapter.class.getName());
+  private static final Logger LOG = Logger.getLogger(GoogleResourceAdapter.class.getName());
 
   private String googleClientId;
   private String googleClientSecret;
@@ -30,18 +27,15 @@ public final class GoogleResourceAdapter implements ResourceAdapter {
     this.googleClientId = googleClientIdParam;
   }
 
-  @ConfigProperty(type = String.class,
-      description = "Google API Client Secret")
-  public void setGoogleClientSecret(
-      final String googleClientSecretParam) {
+  @ConfigProperty(type = String.class, description = "Google API Client Secret")
+  public void setGoogleClientSecret(final String googleClientSecretParam) {
     this.googleClientSecret = googleClientSecretParam;
   }
 
   @Override
   public void start(final BootstrapContext bootstrapContext)
       throws ResourceAdapterInternalException {
-    LOG.info("Google JCA Adapter started with clientId: "
-        + googleClientId);
+    LOG.info("Google JCA Adapter started with clientId: " + googleClientId);
   }
 
   @Override
@@ -65,8 +59,7 @@ public final class GoogleResourceAdapter implements ResourceAdapter {
   }
 
   @Override
-  public XAResource[] getXAResources(
-      final jakarta.resource.spi.ActivationSpec[] activationSpecs) {
+  public XAResource[] getXAResources(final jakarta.resource.spi.ActivationSpec[] activationSpecs) {
     return new XAResource[0];
   }
 }

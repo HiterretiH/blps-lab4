@@ -13,11 +13,9 @@ public class PayoutLog {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private int id;
 
-  @ManyToOne
-  private Developer developer;
+  @ManyToOne private Developer developer;
 
-  @ManyToOne
-  private MonetizedApplication monetizedApplication;
+  @ManyToOne private MonetizedApplication monetizedApplication;
 
   private double payoutValue;
   private Date timestamp;

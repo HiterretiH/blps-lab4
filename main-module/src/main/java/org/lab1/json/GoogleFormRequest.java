@@ -7,8 +7,7 @@ public final class GoogleFormRequest {
   private Map<String, String> fields;
   private String formTitle;
 
-  public GoogleFormRequest() {
-  }
+  public GoogleFormRequest() {}
 
   public GoogleFormRequest(
       final String googleEmailParam,

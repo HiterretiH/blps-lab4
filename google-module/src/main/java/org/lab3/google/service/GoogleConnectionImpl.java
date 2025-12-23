@@ -29,21 +29,18 @@ import com.google.api.services.sheets.v4.model.SheetProperties;
 import com.google.api.services.sheets.v4.model.Spreadsheet;
 import com.google.api.services.sheets.v4.model.SpreadsheetProperties;
 import com.google.api.services.sheets.v4.model.ValueRange;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
 import org.lab.logger.Logger;
 import org.lab3.google.json.MonetizationEvent;
 import org.lab3.google.resource.GoogleManagedConnection;
 
 /**
- * Implementation of GoogleConnection interface.
- * Provides methods for interacting with Google Drive, Sheets, and Forms APIs.
- * This class is not designed for extension.
+ * Implementation of GoogleConnection interface. Provides methods for interacting with Google Drive,
+ * Sheets, and Forms APIs. This class is not designed for extension.
  */
 @SuppressWarnings("checkstyle:DesignForExtension")
 public final class GoogleConnectionImpl implements GoogleConnection {
@@ -78,20 +75,23 @@ public final class GoogleConnectionImpl implements GoogleConnection {
 
   @Override
   public String uploadFile(final String fileName, final byte[] fileData) throws IOException {
-    com.google.api.services.drive.model.File
-        fileMetadata =
+    com.google.api.services.drive.model.File fileMetadata =
         new com.google.api.services.drive.model.File().setName(fileName);
 
-    return driveService.files()
-        .create(fileMetadata,
-            new com.google.api.client.http.ByteArrayContent("application" + "/octet-stream", fileData))
+    return driveService
+        .files()
+        .create(
+            fileMetadata,
+            new com.google.api.client.http.ByteArrayContent(
+                "application" + "/octet-stream", fileData))
         .execute()
         .getId();
   }
 
   @Override
   public String createGoogleSheet(final String title) throws IOException {
-    Spreadsheet spreadsheet = new Spreadsheet().setProperties(new SpreadsheetProperties().setTitle(title));
+    Spreadsheet spreadsheet =
+        new Spreadsheet().setProperties(new SpreadsheetProperties().setTitle(title));
 
     Spreadsheet created = sheetsService.spreadsheets().create(spreadsheet).execute();
     metrics.recordSheetCreated();
@@ -99,13 +99,20 @@ public final class GoogleConnectionImpl implements GoogleConnection {
   }
 
   @Override
-  public void updateGoogleSheet(final String sheetId, final List<List<Object>> data) throws IOException {
+  public void updateGoogleSheet(final String sheetId, final List<List<Object>> data)
+      throws IOException {
     ValueRange body = new ValueRange().setValues(data);
-    sheetsService.spreadsheets().values().update(sheetId, "A1", body).setValueInputOption("RAW").execute();
+    sheetsService
+        .spreadsheets()
+        .values()
+        .update(sheetId, "A1", body)
+        .setValueInputOption("RAW")
+        .execute();
   }
 
   @Override
-  public String createGoogleForm(final String title, final Map<String, String> fields) throws IOException {
+  public String createGoogleForm(final String title, final Map<String, String> fields)
+      throws IOException {
     Forms formsService = managedConnection.getFormsService();
 
     Form form = new Form().setInfo(new Info().setTitle(title).setDocumentTitle(title));
@@ -114,18 +121,27 @@ public final class GoogleConnectionImpl implements GoogleConnection {
 
     List<com.google.api.services.forms.v1.model.Request> requests = new ArrayList<>();
     for (String entry : fields.keySet()) {
-      com.google.api.services.forms.v1.model.Request
-          request =
-          new com.google.api.services.forms.v1.model.Request().setCreateItem(new CreateItemRequest().setItem(new Item().setTitle(
-                      entry)
-                  .setQuestionItem(new QuestionItem().setQuestion(new Question().setRequired(true)
-                      .setTextQuestion(new TextQuestion().setParagraph(false)))))
-              .setLocation(new Location().setIndex(ZERO)));
+      com.google.api.services.forms.v1.model.Request request =
+          new com.google.api.services.forms.v1.model.Request()
+              .setCreateItem(
+                  new CreateItemRequest()
+                      .setItem(
+                          new Item()
+                              .setTitle(entry)
+                              .setQuestionItem(
+                                  new QuestionItem()
+                                      .setQuestion(
+                                          new Question()
+                                              .setRequired(true)
+                                              .setTextQuestion(
+                                                  new TextQuestion().setParagraph(false)))))
+                      .setLocation(new Location().setIndex(ZERO)));
       requests.add(request);
     }
 
     if (!requests.isEmpty()) {
-      BatchUpdateFormRequest batchUpdateRequest = new BatchUpdateFormRequest().setRequests(requests);
+      BatchUpdateFormRequest batchUpdateRequest =
+          new BatchUpdateFormRequest().setRequests(requests);
       formsService.forms().batchUpdate(formId, batchUpdateRequest).execute();
     }
 
@@ -136,17 +152,20 @@ public final class GoogleConnectionImpl implements GoogleConnection {
   /**
    * Creates a revenue spreadsheet with data.
    *
-   * @param title   the title of the spreadsheet
+   * @param title the title of the spreadsheet
    * @param headers the headers for the spreadsheet
-   * @param data    the data to populate
+   * @param data the data to populate
    * @return the URL of the created spreadsheet
    * @throws IOException if there's an error creating the spreadsheet
    */
-  public String createRevenueSpreadsheetWithData(final String title, final List<String> headers,
-                                                 final List<List<Object>> data) throws IOException {
-    Spreadsheet spreadsheet = new Spreadsheet().setProperties(new SpreadsheetProperties().setTitle(title));
+  public String createRevenueSpreadsheetWithData(
+      final String title, final List<String> headers, final List<List<Object>> data)
+      throws IOException {
+    Spreadsheet spreadsheet =
+        new Spreadsheet().setProperties(new SpreadsheetProperties().setTitle(title));
 
-    SheetProperties sheetProperties = new SheetProperties().setTitle("ApplicationsRevenue").setSheetId(ZERO);
+    SheetProperties sheetProperties =
+        new SheetProperties().setTitle("ApplicationsRevenue").setSheetId(ZERO);
 
     spreadsheet.setSheets(List.of(new Sheet().setProperties(sheetProperties)));
     Spreadsheet created = sheetsService.spreadsheets().create(spreadsheet).execute();
@@ -158,24 +177,37 @@ public final class GoogleConnectionImpl implements GoogleConnection {
 
     ValueRange body = new ValueRange().setValues(allData).setMajorDimension("ROWS");
 
-    sheetsService.spreadsheets()
+    sheetsService
+        .spreadsheets()
         .values()
         .update(spreadsheetId, "A1", body)
         .setValueInputOption("USER_ENTERED")
         .execute();
 
-    driveService.permissions().create(spreadsheetId, new Permission().setType("anyone").setRole("reader")).execute();
+    driveService
+        .permissions()
+        .create(spreadsheetId, new Permission().setType("anyone").setRole("reader"))
+        .execute();
 
     return "https://docs.google.com/spreadsheets/d/" + spreadsheetId + "/edit";
   }
 
   @Override
-  public void addAppSheets(final String googleEmail, final String spreadsheetTitle, final String appName)
+  public void addAppSheets(
+      final String googleEmail, final String spreadsheetTitle, final String appName)
       throws IOException {
-    String
-        query =
-        String.format("name='%s' and mimeType='application/vnd" + ".google-apps.spreadsheet'", spreadsheetTitle);
-    FileList files = driveService.files().list().setQ(query).setSpaces("drive").setFields("files(id, name)").execute();
+    String query =
+        String.format(
+            "name='%s' and mimeType='application/vnd" + ".google-apps.spreadsheet'",
+            spreadsheetTitle);
+    FileList files =
+        driveService
+            .files()
+            .list()
+            .setQ(query)
+            .setSpaces("drive")
+            .setFields("files(id, name)")
+            .execute();
 
     if (files.getFiles().isEmpty()) {
       throw new IOException("Spreadsheet not found: " + spreadsheetTitle);
@@ -186,80 +218,114 @@ public final class GoogleConnectionImpl implements GoogleConnection {
     LOGGER.info("Spreadsheet ID: " + spreadsheetId);
 
     Spreadsheet spreadsheet = sheetsService.spreadsheets().get(spreadsheetId).execute();
-    int
-        nextSheetId =
-        spreadsheet.getSheets().stream().mapToInt(sheet -> sheet.getProperties().getSheetId()).max().orElse(ZERO) + ONE;
+    int nextSheetId =
+        spreadsheet.getSheets().stream()
+                .mapToInt(sheet -> sheet.getProperties().getSheetId())
+                .max()
+                .orElse(ZERO)
+            + ONE;
 
-    String[]
-        sheetNames =
-        {appName + " Revenue", appName + " Watched Adds", appName + " Microtransactions", appName + " Downloads"};
+    String[] sheetNames = {
+      appName + " Revenue",
+      appName + " Watched Adds",
+      appName + " Microtransactions",
+      appName + " Downloads"
+    };
 
     List<com.google.api.services.sheets.v4.model.Request> deleteRequests = new ArrayList<>();
     for (Sheet sheet : spreadsheet.getSheets()) {
       String title = sheet.getProperties().getTitle();
       for (String sheetName : sheetNames) {
         if (title.equals(sheetName)) {
-          deleteRequests.add(new com.google.api.services.sheets.v4.model.Request().setDeleteSheet(new com.google.api.services.sheets.v4.model.DeleteSheetRequest().setSheetId(
-              sheet.getProperties().getSheetId())));
+          deleteRequests.add(
+              new com.google.api.services.sheets.v4.model.Request()
+                  .setDeleteSheet(
+                      new com.google.api.services.sheets.v4.model.DeleteSheetRequest()
+                          .setSheetId(sheet.getProperties().getSheetId())));
           break;
         }
       }
     }
 
     if (!deleteRequests.isEmpty()) {
-      BatchUpdateSpreadsheetRequest
-          deleteBatchRequest =
+      BatchUpdateSpreadsheetRequest deleteBatchRequest =
           new BatchUpdateSpreadsheetRequest().setRequests(deleteRequests);
       sheetsService.spreadsheets().batchUpdate(spreadsheetId, deleteBatchRequest).execute();
     }
 
     List<com.google.api.services.sheets.v4.model.Request> createRequests = new ArrayList<>();
     for (String sheetName : sheetNames) {
-      createRequests.add(new com.google.api.services.sheets.v4.model.Request().setAddSheet(new AddSheetRequest().setProperties(
-          new SheetProperties().setTitle(sheetName).setSheetId(nextSheetId++))));
+      createRequests.add(
+          new com.google.api.services.sheets.v4.model.Request()
+              .setAddSheet(
+                  new AddSheetRequest()
+                      .setProperties(
+                          new SheetProperties().setTitle(sheetName).setSheetId(nextSheetId++))));
     }
 
-    BatchUpdateSpreadsheetRequest createBatchRequest = new BatchUpdateSpreadsheetRequest().setRequests(createRequests);
-    BatchUpdateSpreadsheetResponse
-        response =
+    BatchUpdateSpreadsheetRequest createBatchRequest =
+        new BatchUpdateSpreadsheetRequest().setRequests(createRequests);
+    BatchUpdateSpreadsheetResponse response =
         sheetsService.spreadsheets().batchUpdate(spreadsheetId, createBatchRequest).execute();
 
     metrics.recordTabsCreated(sheetNames.length);
 
     List<ValueRange> dataList = new ArrayList<>();
-    dataList.add(new ValueRange().setRange(appName + " Revenue!A1")
-        .setValues(List.of(List.of("applicationId",
-            "revenueFromAdds",
-            "revenueFromDownloads",
-            "revenueFromMicrotransactions",
-            "totalRevenue"))));
-    dataList.add(new ValueRange().setRange(appName + " Watched Adds!A1")
-        .setValues(List.of(List.of("userId", "addId"))));
-    dataList.add(new ValueRange().setRange(appName + " Microtransactions!A1")
-        .setValues(List.of(List.of("userId", "microtransactionId"))));
-    dataList.add(new ValueRange().setRange(appName + " Downloads!A1").setValues(List.of(List.of("userId", "appId"))));
+    dataList.add(
+        new ValueRange()
+            .setRange(appName + " Revenue!A1")
+            .setValues(
+                List.of(
+                    List.of(
+                        "applicationId",
+                        "revenueFromAdds",
+                        "revenueFromDownloads",
+                        "revenueFromMicrotransactions",
+                        "totalRevenue"))));
+    dataList.add(
+        new ValueRange()
+            .setRange(appName + " Watched Adds!A1")
+            .setValues(List.of(List.of("userId", "addId"))));
+    dataList.add(
+        new ValueRange()
+            .setRange(appName + " Microtransactions!A1")
+            .setValues(List.of(List.of("userId", "microtransactionId"))));
+    dataList.add(
+        new ValueRange()
+            .setRange(appName + " Downloads!A1")
+            .setValues(List.of(List.of("userId", "appId"))));
 
-    BatchUpdateValuesRequest
-        batchDataRequest =
+    BatchUpdateValuesRequest batchDataRequest =
         new BatchUpdateValuesRequest().setValueInputOption("RAW").setData(dataList);
     sheetsService.spreadsheets().values().batchUpdate(spreadsheetId, batchDataRequest).execute();
 
     List<com.google.api.services.sheets.v4.model.Request> formatRequests = new ArrayList<>();
-    for (SheetProperties sheet : response.getReplies()
-        .stream()
-        .map(reply -> reply.getAddSheet().getProperties())
-        .collect(Collectors.toList())) {
+    for (SheetProperties sheet :
+        response.getReplies().stream()
+            .map(reply -> reply.getAddSheet().getProperties())
+            .collect(Collectors.toList())) {
 
-      formatRequests.add(new com.google.api.services.sheets.v4.model.Request().setRepeatCell(new RepeatCellRequest().setRange(
-              new GridRange().setSheetId(sheet.getSheetId()).setStartRowIndex(ZERO).setEndRowIndex(ONE))
-          .setCell(new CellData().setUserEnteredFormat(new CellFormat().setTextFormat(new com.google.api.services.sheets.v4.model.TextFormat().setBold(
-              true))))
-          .setFields("userEnteredFormat.textFormat.bold")));
+      formatRequests.add(
+          new com.google.api.services.sheets.v4.model.Request()
+              .setRepeatCell(
+                  new RepeatCellRequest()
+                      .setRange(
+                          new GridRange()
+                              .setSheetId(sheet.getSheetId())
+                              .setStartRowIndex(ZERO)
+                              .setEndRowIndex(ONE))
+                      .setCell(
+                          new CellData()
+                              .setUserEnteredFormat(
+                                  new CellFormat()
+                                      .setTextFormat(
+                                          new com.google.api.services.sheets.v4.model.TextFormat()
+                                              .setBold(true))))
+                      .setFields("userEnteredFormat.textFormat.bold")));
     }
 
     if (!formatRequests.isEmpty()) {
-      BatchUpdateSpreadsheetRequest
-          formatBatchRequest =
+      BatchUpdateSpreadsheetRequest formatBatchRequest =
           new BatchUpdateSpreadsheetRequest().setRequests(formatRequests);
       sheetsService.spreadsheets().batchUpdate(spreadsheetId, formatBatchRequest).execute();
     }
@@ -297,41 +363,58 @@ public final class GoogleConnectionImpl implements GoogleConnection {
     updateApplicationsRevenue(spreadsheetId, appName, event.getEventType(), event.getAmount());
 
     LOGGER.info(
-        "Monetization updated for app '" + appName + "': " + event.getEventType() + ", amount: " + event.getAmount());
+        "Monetization updated for app '"
+            + appName
+            + "': "
+            + event.getEventType()
+            + ", amount: "
+            + event.getAmount());
   }
 
-  private void handleDownloadEvent(final String spreadsheetId, final String appName, final MonetizationEvent event)
+  private void handleDownloadEvent(
+      final String spreadsheetId, final String appName, final MonetizationEvent event)
       throws IOException {
-    appendToSheet(spreadsheetId, appName + " Downloads", List.of(event.getUserId(), event.getItemId()));
+    appendToSheet(
+        spreadsheetId, appName + " Downloads", List.of(event.getUserId(), event.getItemId()));
 
-    updateRevenueColumn(spreadsheetId, appName + " Revenue", "revenueFromDownloads", event.getAmount());
+    updateRevenueColumn(
+        spreadsheetId, appName + " Revenue", "revenueFromDownloads", event.getAmount());
 
     metrics.recordRevenueUpdate();
   }
 
-  private void handlePurchaseEvent(final String spreadsheetId, final String appName, final MonetizationEvent event)
+  private void handlePurchaseEvent(
+      final String spreadsheetId, final String appName, final MonetizationEvent event)
       throws IOException {
-    appendToSheet(spreadsheetId, appName + " Microtransactions", List.of(event.getUserId(), event.getItemId()));
+    appendToSheet(
+        spreadsheetId,
+        appName + " Microtransactions",
+        List.of(event.getUserId(), event.getItemId()));
 
-    updateRevenueColumn(spreadsheetId, appName + " Revenue", "revenueFromMicrotransactions", event.getAmount());
+    updateRevenueColumn(
+        spreadsheetId, appName + " Revenue", "revenueFromMicrotransactions", event.getAmount());
 
     metrics.recordRevenueUpdate();
   }
 
-  private void handleAdViewEvent(final String spreadsheetId, final String appName, final MonetizationEvent event)
+  private void handleAdViewEvent(
+      final String spreadsheetId, final String appName, final MonetizationEvent event)
       throws IOException {
-    appendToSheet(spreadsheetId, appName + " Watched Adds", List.of(event.getUserId(), event.getItemId()));
+    appendToSheet(
+        spreadsheetId, appName + " Watched Adds", List.of(event.getUserId(), event.getItemId()));
 
     updateRevenueColumn(spreadsheetId, appName + " Revenue", "revenueFromAdds", event.getAmount());
 
     metrics.recordRevenueUpdate();
   }
 
-  private void appendToSheet(final String spreadsheetId, final String sheetName, final List<Object> rowData)
+  private void appendToSheet(
+      final String spreadsheetId, final String sheetName, final List<Object> rowData)
       throws IOException {
     ValueRange body = new ValueRange().setValues(List.of(rowData)).setMajorDimension("ROWS");
 
-    sheetsService.spreadsheets()
+    sheetsService
+        .spreadsheets()
         .values()
         .append(spreadsheetId, sheetName + "!A1", body)
         .setValueInputOption("USER_ENTERED")
@@ -339,8 +422,9 @@ public final class GoogleConnectionImpl implements GoogleConnection {
         .execute();
   }
 
-  private void updateRevenueColumn(final String spreadsheetId, final String sheetName, final String column,
-                                   final double amount) throws IOException {
+  private void updateRevenueColumn(
+      final String spreadsheetId, final String sheetName, final String column, final double amount)
+      throws IOException {
     String range;
     switch (column) {
       case "revenueFromAdds":
@@ -356,8 +440,7 @@ public final class GoogleConnectionImpl implements GoogleConnection {
         throw new IllegalArgumentException("Invalid column: " + column);
     }
 
-    ValueRange
-        currentValue =
+    ValueRange currentValue =
         sheetsService.spreadsheets().values().get(spreadsheetId, sheetName + "!" + range).execute();
 
     double currentAmount = 0;
@@ -365,9 +448,11 @@ public final class GoogleConnectionImpl implements GoogleConnection {
       currentAmount = Double.parseDouble(currentValue.getValues().get(0).get(0).toString());
     }
 
-    ValueRange newValue = new ValueRange().setValues(List.of(List.of(Double.toString(currentAmount + amount))));
+    ValueRange newValue =
+        new ValueRange().setValues(List.of(List.of(Double.toString(currentAmount + amount))));
 
-    sheetsService.spreadsheets()
+    sheetsService
+        .spreadsheets()
         .values()
         .update(spreadsheetId, sheetName + "!" + range, newValue)
         .setValueInputOption("USER_ENTERED")
@@ -376,8 +461,10 @@ public final class GoogleConnectionImpl implements GoogleConnection {
     updateTotalRevenue(spreadsheetId, sheetName);
   }
 
-  private void updateTotalRevenue(final String spreadsheetId, final String sheetName) throws IOException {
-    ValueRange revenues = sheetsService.spreadsheets().values().get(spreadsheetId, sheetName + "!B2:D2").execute();
+  private void updateTotalRevenue(final String spreadsheetId, final String sheetName)
+      throws IOException {
+    ValueRange revenues =
+        sheetsService.spreadsheets().values().get(spreadsheetId, sheetName + "!B2:D2").execute();
 
     double total = 0;
     if (revenues.getValues() != null) {
@@ -391,19 +478,26 @@ public final class GoogleConnectionImpl implements GoogleConnection {
 
     ValueRange totalValue = new ValueRange().setValues(List.of(List.of(total)));
 
-    sheetsService.spreadsheets()
+    sheetsService
+        .spreadsheets()
         .values()
         .update(spreadsheetId, sheetName + "!E2", totalValue)
         .setValueInputOption("USER_ENTERED")
         .execute();
   }
 
-  private void updateApplicationsRevenue(final String spreadsheetId, final String appName,
-                                         final MonetizationEvent.EventType eventType, final double amount)
+  private void updateApplicationsRevenue(
+      final String spreadsheetId,
+      final String appName,
+      final MonetizationEvent.EventType eventType,
+      final double amount)
       throws IOException {
-    ValueRange
-        appRevenue =
-        sheetsService.spreadsheets().values().get(spreadsheetId, appName + " " + "Revenue!B2:E2").execute();
+    ValueRange appRevenue =
+        sheetsService
+            .spreadsheets()
+            .values()
+            .get(spreadsheetId, appName + " " + "Revenue!B2:E2")
+            .execute();
 
     if (appRevenue.getValues() == null || appRevenue.getValues().isEmpty()) {
       return;
@@ -411,23 +505,32 @@ public final class GoogleConnectionImpl implements GoogleConnection {
 
     List<Object> revenueData = appRevenue.getValues().get(0);
 
-    double adsRevenue = revenueData.get(0) == null
-        || revenueData.get(0).toString().trim().isEmpty() ? 0.0
-        : Double.parseDouble(revenueData.get(0).toString());
+    double adsRevenue =
+        revenueData.get(0) == null || revenueData.get(0).toString().trim().isEmpty()
+            ? 0.0
+            : Double.parseDouble(revenueData.get(0).toString());
 
-    double downloadRevenue = revenueData.get(1) == null
-        || revenueData.get(1).toString().trim().isEmpty() ? 0.0
-        : Double.parseDouble(revenueData.get(1).toString());
+    double downloadRevenue =
+        revenueData.get(1) == null || revenueData.get(1).toString().trim().isEmpty()
+            ? 0.0
+            : Double.parseDouble(revenueData.get(1).toString());
 
-    double purchasesRevenue = revenueData.get(TWO) == null
-        || revenueData.get(TWO).toString().trim().isEmpty() ? 0.0
-        : Double.parseDouble(revenueData.get(TWO).toString());
+    double purchasesRevenue =
+        revenueData.get(TWO) == null || revenueData.get(TWO).toString().trim().isEmpty()
+            ? 0.0
+            : Double.parseDouble(revenueData.get(TWO).toString());
 
-    double totalRevenue = revenueData.get(THREE) == null
-        || revenueData.get(THREE).toString().trim().isEmpty() ? 0.0
-        : Double.parseDouble(revenueData.get(THREE).toString());
+    double totalRevenue =
+        revenueData.get(THREE) == null || revenueData.get(THREE).toString().trim().isEmpty()
+            ? 0.0
+            : Double.parseDouble(revenueData.get(THREE).toString());
 
-    ValueRange apps = sheetsService.spreadsheets().values().get(spreadsheetId, "ApplicationsRevenue!A2:B").execute();
+    ValueRange apps =
+        sheetsService
+            .spreadsheets()
+            .values()
+            .get(spreadsheetId, "ApplicationsRevenue!A2:B")
+            .execute();
 
     int rowNumber = -1;
     String appId = null;
@@ -443,11 +546,13 @@ public final class GoogleConnectionImpl implements GoogleConnection {
     }
 
     if (rowNumber > 0 && appId != null) {
-      ValueRange
-          updateData =
-          new ValueRange().setValues(List.of(List.of(adsRevenue, downloadRevenue, purchasesRevenue, totalRevenue)));
+      ValueRange updateData =
+          new ValueRange()
+              .setValues(
+                  List.of(List.of(adsRevenue, downloadRevenue, purchasesRevenue, totalRevenue)));
 
-      sheetsService.spreadsheets()
+      sheetsService
+          .spreadsheets()
           .values()
           .update(spreadsheetId, "ApplicationsRevenue!C" + rowNumber + ":F" + rowNumber, updateData)
           .setValueInputOption("USER_ENTERED")
@@ -458,11 +563,16 @@ public final class GoogleConnectionImpl implements GoogleConnection {
   }
 
   private String findSpreadsheetId(final String title) throws IOException {
-    FileList
-        files =
-        driveService.files()
+    FileList files =
+        driveService
+            .files()
             .list()
-            .setQ("name='" + title + "' " + "and " + "mimeType='application/vnd.google-apps.spreadsheet'")
+            .setQ(
+                "name='"
+                    + title
+                    + "' "
+                    + "and "
+                    + "mimeType='application/vnd.google-apps.spreadsheet'")
             .setSpaces("drive")
             .setFields("files(id, name)")
             .execute();
@@ -478,7 +588,8 @@ public final class GoogleConnectionImpl implements GoogleConnection {
     return "My App";
   }
 
-  private void updateSingleTop(final String spreadsheetId, final List<AppRevenue> allAppsRevenue) throws IOException {
+  private void updateSingleTop(final String spreadsheetId, final List<AppRevenue> allAppsRevenue)
+      throws IOException {
     String topSheetName = "ApplicationsRevenueTop";
     List<List<Object>> values = new ArrayList<>();
     values.add(List.of("Rank", "Application", "Total Revenue"));
@@ -491,7 +602,8 @@ public final class GoogleConnectionImpl implements GoogleConnection {
     ValueRange body = new ValueRange().setValues(values).setMajorDimension("ROWS");
 
     try {
-      sheetsService.spreadsheets()
+      sheetsService
+          .spreadsheets()
           .values()
           .update(spreadsheetId, topSheetName + "!A1", body)
           .setValueInputOption("USER_ENTERED")
@@ -505,12 +617,15 @@ public final class GoogleConnectionImpl implements GoogleConnection {
 
   @Override
   public void updateAppsTop() throws IOException {
-    FileList
-        spreadsheets =
-        driveService.files()
+    FileList spreadsheets =
+        driveService
+            .files()
             .list()
-            .setQ("mimeType" + "='application/vnd.google-apps.spreadsheet'" + " and name "
-                + "contains 'Revenue Statistics'")
+            .setQ(
+                "mimeType"
+                    + "='application/vnd.google-apps.spreadsheet'"
+                    + " and name "
+                    + "contains 'Revenue Statistics'")
             .setFields("files(id, name)")
             .execute();
 
@@ -518,16 +633,20 @@ public final class GoogleConnectionImpl implements GoogleConnection {
 
     for (File file : spreadsheets.getFiles()) {
       String spreadsheetId = file.getId();
-      ValueRange
-          response =
-          sheetsService.spreadsheets().values().get(spreadsheetId, "ApplicationsRevenue!B2:F").execute();
+      ValueRange response =
+          sheetsService
+              .spreadsheets()
+              .values()
+              .get(spreadsheetId, "ApplicationsRevenue!B2:F")
+              .execute();
 
       if (response.getValues() != null) {
         for (List<Object> row : response.getValues()) {
           if (row.size() >= FIVE) {
             String appName = row.get(0).toString();
             double totalRevenue = Double.parseDouble(row.get(TOTAL_REVENUE_COLUMN).toString());
-            allAppsRevenue.add(new AppRevenue(appName, totalRevenue, spreadsheetId, "ApplicationsRevenue"));
+            allAppsRevenue.add(
+                new AppRevenue(appName, totalRevenue, spreadsheetId, "ApplicationsRevenue"));
           }
         }
       }
@@ -541,38 +660,75 @@ public final class GoogleConnectionImpl implements GoogleConnection {
       updateSingleTop(spreadsheetId, allAppsRevenue);
     }
 
-    LOGGER.info("Apps top updated for " + spreadsheets.getFiles().size()
-        + " " + "spreadsheets");
+    LOGGER.info("Apps top updated for " + spreadsheets.getFiles().size() + " " + "spreadsheets");
   }
 
   private void formatTopSheet(final String spreadsheetId) throws IOException {
     List<com.google.api.services.sheets.v4.model.Request> requests = new ArrayList<>();
 
-    requests.add(new com.google.api.services.sheets.v4.model.Request().setRepeatCell(new RepeatCellRequest().setRange(
-            new GridRange().setSheetId(ZERO)
-                .setStartRowIndex(ZERO)
-                .setEndRowIndex(ONE)
-                .setStartColumnIndex(ZERO)
-                .setEndColumnIndex(THREE))
-        .setCell(new CellData().setUserEnteredFormat(new CellFormat().setTextFormat(new com.google.api.services.sheets.v4.model.TextFormat().setBold(
-                true))
-            .setBackgroundColor(new Color().setRed(LIGHT_GRAY_RED)
-                .setGreen(LIGHT_GRAY_GREEN)
-                .setBlue(LIGHT_GRAY_BLUE))))
-        .setFields("userEnteredFormat")));
+    requests.add(
+        new com.google.api.services.sheets.v4.model.Request()
+            .setRepeatCell(
+                new RepeatCellRequest()
+                    .setRange(
+                        new GridRange()
+                            .setSheetId(ZERO)
+                            .setStartRowIndex(ZERO)
+                            .setEndRowIndex(ONE)
+                            .setStartColumnIndex(ZERO)
+                            .setEndColumnIndex(THREE))
+                    .setCell(
+                        new CellData()
+                            .setUserEnteredFormat(
+                                new CellFormat()
+                                    .setTextFormat(
+                                        new com.google.api.services.sheets.v4.model.TextFormat()
+                                            .setBold(true))
+                                    .setBackgroundColor(
+                                        new Color()
+                                            .setRed(LIGHT_GRAY_RED)
+                                            .setGreen(LIGHT_GRAY_GREEN)
+                                            .setBlue(LIGHT_GRAY_BLUE))))
+                    .setFields("userEnteredFormat")));
 
-    requests.add(new com.google.api.services.sheets.v4.model.Request().setAddConditionalFormatRule(new com.google.api.services.sheets.v4.model.AddConditionalFormatRuleRequest().setRule(
-        new com.google.api.services.sheets.v4.model.ConditionalFormatRule().setRanges(List.of(new GridRange().setSheetId(
-                ZERO).setStartRowIndex(ONE).setEndRowIndex(THOUSAND).setStartColumnIndex(ZERO).setEndColumnIndex(THREE)))
-            .setBooleanRule(new com.google.api.services.sheets.v4.model.BooleanRule().setCondition(new com.google.api.services.sheets.v4.model.BooleanCondition().setType(
-                        "MOD")
-                    .setValues(List.of(new com.google.api.services.sheets.v4.model.ConditionValue().setUserEnteredValue("2"),
-                        new com.google.api.services.sheets.v4.model.ConditionValue().setUserEnteredValue("0"))))
-                .setFormat(new CellFormat().setBackgroundColor(new Color().setRed(LIGHTER_GRAY_RED)
-                    .setGreen(LIGHTER_GRAY_GREEN)
-                    .setBlue(LIGHTER_GRAY_BLUE)))))));
+    requests.add(
+        new com.google.api.services.sheets.v4.model.Request()
+            .setAddConditionalFormatRule(
+                new com.google.api.services.sheets.v4.model.AddConditionalFormatRuleRequest()
+                    .setRule(
+                        new com.google.api.services.sheets.v4.model.ConditionalFormatRule()
+                            .setRanges(
+                                List.of(
+                                    new GridRange()
+                                        .setSheetId(ZERO)
+                                        .setStartRowIndex(ONE)
+                                        .setEndRowIndex(THOUSAND)
+                                        .setStartColumnIndex(ZERO)
+                                        .setEndColumnIndex(THREE)))
+                            .setBooleanRule(
+                                new com.google.api.services.sheets.v4.model.BooleanRule()
+                                    .setCondition(
+                                        new com.google.api.services.sheets.v4.model
+                                                .BooleanCondition()
+                                            .setType("MOD")
+                                            .setValues(
+                                                List.of(
+                                                    new com.google.api.services.sheets.v4.model
+                                                            .ConditionValue()
+                                                        .setUserEnteredValue("2"),
+                                                    new com.google.api.services.sheets.v4.model
+                                                            .ConditionValue()
+                                                        .setUserEnteredValue("0"))))
+                                    .setFormat(
+                                        new CellFormat()
+                                            .setBackgroundColor(
+                                                new Color()
+                                                    .setRed(LIGHTER_GRAY_RED)
+                                                    .setGreen(LIGHTER_GRAY_GREEN)
+                                                    .setBlue(LIGHTER_GRAY_BLUE)))))));
 
-    BatchUpdateSpreadsheetRequest batchUpdateRequest = new BatchUpdateSpreadsheetRequest().setRequests(requests);
+    BatchUpdateSpreadsheetRequest batchUpdateRequest =
+        new BatchUpdateSpreadsheetRequest().setRequests(requests);
 
     sheetsService.spreadsheets().batchUpdate(spreadsheetId, batchUpdateRequest).execute();
   }
@@ -583,8 +739,11 @@ public final class GoogleConnectionImpl implements GoogleConnection {
     private final String spreadsheetId;
     private final String revenueSheetName;
 
-    AppRevenue(final String appNameParam, final double totalRevenueParam, final String spreadsheetIdParam,
-               final String revenueSheetNameParam) {
+    AppRevenue(
+        final String appNameParam,
+        final double totalRevenueParam,
+        final String spreadsheetIdParam,
+        final String revenueSheetNameParam) {
       this.appName = appNameParam;
       this.totalRevenue = totalRevenueParam;
       this.spreadsheetId = spreadsheetIdParam;

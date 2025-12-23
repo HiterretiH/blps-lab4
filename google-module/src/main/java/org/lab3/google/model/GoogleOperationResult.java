@@ -11,8 +11,7 @@ public final class GoogleOperationResult {
   private String error;
   private LocalDateTime createdAt;
 
-  public GoogleOperationResult() {
-  }
+  public GoogleOperationResult() {}
 
   public GoogleOperationResult(
       final Integer userIdParam,

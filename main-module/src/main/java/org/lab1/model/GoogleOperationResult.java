@@ -6,8 +6,7 @@ import java.time.LocalDateTime;
 
 @Entity
 public class GoogleOperationResult {
-  @Id
-  private Long id;
+  @Id private Long id;
   private Integer userId;
   private String operation;
   private String targetValue;
@@ -15,8 +14,7 @@ public class GoogleOperationResult {
   private String error;
   private LocalDateTime createdAt;
 
-  public GoogleOperationResult() {
-  }
+  public GoogleOperationResult() {}
 
   public GoogleOperationResult(
       final Long id,

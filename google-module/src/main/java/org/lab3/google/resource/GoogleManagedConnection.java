@@ -32,15 +32,11 @@ public final class GoogleManagedConnection implements ManagedConnection {
   private static final String EIS_PRODUCT_NAME = "Google API";
   private static final String EIS_PRODUCT_VERSION = "1.0";
   private static final String USER_NAME = "google-user";
-  private static final String DRIVE_SCOPE =
-      "https://www.googleapis.com/auth/drive";
-  private static final String SHEETS_SCOPE =
-      "https://www.googleapis.com/auth/spreadsheets";
-  private static final String FORMS_SCOPE =
-      "https://www.googleapis.com/auth/forms";
+  private static final String DRIVE_SCOPE = "https://www.googleapis.com/auth/drive";
+  private static final String SHEETS_SCOPE = "https://www.googleapis.com/auth/spreadsheets";
+  private static final String FORMS_SCOPE = "https://www.googleapis.com/auth/forms";
 
-  private static final Logger LOG =
-      Logger.getLogger(GoogleManagedConnection.class.getName());
+  private static final Logger LOG = Logger.getLogger(GoogleManagedConnection.class.getName());
 
   private final Drive driveService;
   private final Sheets sheetsService;
@@ -54,30 +50,28 @@ public final class GoogleManagedConnection implements ManagedConnection {
 
   public GoogleManagedConnection(final InputStream credentialsStream)
       throws IOException, GeneralSecurityException {
-    NetHttpTransport httpTransport = GoogleNetHttpTransport
-        .newTrustedTransport();
+    NetHttpTransport httpTransport = GoogleNetHttpTransport.newTrustedTransport();
     JsonFactory jsonFactory = JacksonFactory.getDefaultInstance();
 
-    List<String> scopes = Arrays
-        .asList(DRIVE_SCOPE, SHEETS_SCOPE, FORMS_SCOPE);
+    List<String> scopes = Arrays.asList(DRIVE_SCOPE, SHEETS_SCOPE, FORMS_SCOPE);
 
-    GoogleCredential credential = GoogleCredential
-        .fromStream(credentialsStream).createScoped(scopes);
+    GoogleCredential credential =
+        GoogleCredential.fromStream(credentialsStream).createScoped(scopes);
 
-    this.driveService = new Drive
-        .Builder(httpTransport, jsonFactory, credential)
-        .setApplicationName(APPLICATION_NAME)
-        .build();
+    this.driveService =
+        new Drive.Builder(httpTransport, jsonFactory, credential)
+            .setApplicationName(APPLICATION_NAME)
+            .build();
 
-    this.sheetsService = new Sheets
-        .Builder(httpTransport, jsonFactory, credential)
-        .setApplicationName(APPLICATION_NAME)
-        .build();
+    this.sheetsService =
+        new Sheets.Builder(httpTransport, jsonFactory, credential)
+            .setApplicationName(APPLICATION_NAME)
+            .build();
 
-    this.formsService = new Forms
-        .Builder(httpTransport, jsonFactory, credential)
-        .setApplicationName(APPLICATION_NAME)
-        .build();
+    this.formsService =
+        new Forms.Builder(httpTransport, jsonFactory, credential)
+            .setApplicationName(APPLICATION_NAME)
+            .build();
   }
 
   public Drive getDriveService() {
@@ -93,8 +87,7 @@ public final class GoogleManagedConnection implements ManagedConnection {
   }
 
   @Override
-  public Object getConnection(final Subject subject,
-                              final ConnectionRequestInfo info) {
+  public Object getConnection(final Subject subject, final ConnectionRequestInfo info) {
     return new GoogleConnectionImpl(this);
   }
 
@@ -104,22 +97,18 @@ public final class GoogleManagedConnection implements ManagedConnection {
   }
 
   @Override
-  public void cleanup() {
-  }
+  public void cleanup() {}
 
   @Override
-  public void associateConnection(final Object connection) {
-  }
+  public void associateConnection(final Object connection) {}
 
   @Override
-  public void addConnectionEventListener(
-      final ConnectionEventListener connectionEventListener) {
+  public void addConnectionEventListener(final ConnectionEventListener connectionEventListener) {
     this.listener = connectionEventListener;
   }
 
   @Override
-  public void removeConnectionEventListener(
-      final ConnectionEventListener connectionEventListener) {
+  public void removeConnectionEventListener(final ConnectionEventListener connectionEventListener) {
     if (this.listener == connectionEventListener) {
       this.listener = null;
     }
@@ -161,8 +150,7 @@ public final class GoogleManagedConnection implements ManagedConnection {
   }
 
   @Override
-  public void setLogWriter(final PrintWriter out) throws ResourceException {
-  }
+  public void setLogWriter(final PrintWriter out) throws ResourceException {}
 
   @Override
   public PrintWriter getLogWriter() throws ResourceException {

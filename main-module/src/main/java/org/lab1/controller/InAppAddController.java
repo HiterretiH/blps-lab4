@@ -43,9 +43,7 @@ public final class InAppAddController {
   private final Logger logger;
 
   @Autowired
-  public InAppAddController(
-      final InAppAddService inAppAddServiceParam,
-      final Logger loggerParam) {
+  public InAppAddController(final InAppAddService inAppAddServiceParam, final Logger loggerParam) {
     this.inAppAddService = inAppAddServiceParam;
     this.logger = loggerParam;
   }
@@ -71,8 +69,7 @@ public final class InAppAddController {
     logger.info(BULK_CREATE_REQUEST_LOG + count);
 
     try {
-      List<InAppAdd> inAppAdds =
-          inAppAddService.createMultipleInAppAdds(inAppAddJsons);
+      List<InAppAdd> inAppAdds = inAppAddService.createMultipleInAppAdds(inAppAddJsons);
       logger.info(BULK_CREATE_SUCCESS_LOG + inAppAdds.size() + IN_APP_ADDS_LOG);
       return ResponseEntity.status(HttpStatus.CREATED).body(inAppAdds);
     } catch (IllegalArgumentException exception) {
@@ -111,8 +108,7 @@ public final class InAppAddController {
     logger.info(GET_BY_APP_REQUEST_LOG + monetizedApplicationId);
     List<InAppAdd> inAppAdds =
         inAppAddService.getInAppAddByMonetizedApplication(monetizedApplicationId);
-    logger.info(GET_BY_APP_FOUND_LOG + inAppAdds.size()
-        + FOR_APP_ID_LOG + monetizedApplicationId);
+    logger.info(GET_BY_APP_FOUND_LOG + inAppAdds.size() + FOR_APP_ID_LOG + monetizedApplicationId);
     return ResponseEntity.ok(inAppAdds);
   }
 }

@@ -85,8 +85,7 @@ public final class CustomHealthCheck implements HealthIndicator {
 
     Health rabbitHealth = performRabbitMQHealthCheck(stopWatch);
     components.put(
-        RABBITMQ_COMPONENT,
-        buildComponentDetails(rabbitHealth, stopWatch.getLastTaskTimeMillis()));
+        RABBITMQ_COMPONENT, buildComponentDetails(rabbitHealth, stopWatch.getLastTaskTimeMillis()));
     if (rabbitHealth.getStatus().equals(Health.down().build().getStatus())) {
       isHealthy = false;
     }
@@ -115,9 +114,7 @@ public final class CustomHealthCheck implements HealthIndicator {
     return rabbitHealth;
   }
 
-  private Map<String, Object> buildComponentDetails(
-      final Health health,
-      final long duration) {
+  private Map<String, Object> buildComponentDetails(final Health health, final long duration) {
     Map<String, Object> details = new LinkedHashMap<>();
     details.put(STATUS_KEY, health.getStatus().getCode());
     details.put(DETAILS_KEY, health.getDetails());
@@ -181,9 +178,7 @@ public final class CustomHealthCheck implements HealthIndicator {
     }
   }
 
-  private Health withTimeout(
-      final Callable<Health> healthCheck,
-      final long timeoutMs) {
+  private Health withTimeout(final Callable<Health> healthCheck, final long timeoutMs) {
     try {
       return healthCheck.call();
     } catch (Exception exception) {

@@ -24,11 +24,9 @@ public final class DeveloperController {
   private static final String CREATE_SUCCESS_LOG = "Developer created with ID: ";
   private static final String GET_REQUEST_LOG = "Received request to get developer with ID: ";
   private static final String NOT_FOUND_LOG = "Developer not found with ID: ";
-  private static final String UPDATE_REQUEST_LOG =
-      "Received request to update developer with ID: ";
+  private static final String UPDATE_REQUEST_LOG = "Received request to update developer with ID: ";
   private static final String UPDATE_SUCCESS_LOG = "Developer updated with ID: ";
-  private static final String DELETE_REQUEST_LOG =
-      "Received request to delete developer with ID: ";
+  private static final String DELETE_REQUEST_LOG = "Received request to delete developer with ID: ";
   private static final String DELETE_SUCCESS_LOG = "Developer deleted with ID: ";
 
   private final DeveloperService developerService;
@@ -36,8 +34,7 @@ public final class DeveloperController {
 
   @Autowired
   public DeveloperController(
-      final DeveloperService developerServiceParam,
-      final Logger loggerParam) {
+      final DeveloperService developerServiceParam, final Logger loggerParam) {
     this.developerService = developerServiceParam;
     this.logger = loggerParam;
   }
@@ -46,8 +43,7 @@ public final class DeveloperController {
   @PostMapping
   public ResponseEntity<Developer> createDeveloper(@RequestBody final Developer param) {
     logger.info(CREATE_REQUEST_LOG);
-    Developer developer =
-        developerService.createDeveloper(param.getName(), param.getDescription());
+    Developer developer = developerService.createDeveloper(param.getName(), param.getDescription());
     logger.info(CREATE_SUCCESS_LOG + developer.getId());
     return ResponseEntity.ok(developer);
   }

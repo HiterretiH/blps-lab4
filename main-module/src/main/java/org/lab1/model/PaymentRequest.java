@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 @Entity
 public class PaymentRequest {
   private static final double CARD_VALID_PROBABILITY = 0.7;
+
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private int id;

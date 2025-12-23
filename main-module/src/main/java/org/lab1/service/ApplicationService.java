@@ -26,7 +26,8 @@ public class ApplicationService {
   private static final String SUBMIT_ERROR_LOG = "Failed to submit application: ";
   private static final String CHECK_STATUS_LOG = "Checking status for application ID: ";
   private static final String FOUND_STATUS_LOG = "Found status for application ID: ";
-  private static final String STATUS_NOT_FOUND_LOG = "Application not found for status check with ID: ";
+  private static final String STATUS_NOT_FOUND_LOG =
+      "Application not found for status check with ID: ";
   private static final String FETCH_APP_LOG = "Fetching application with ID: ";
   private static final String FOUND_APP_LOG = "Found application with ID: ";
   private static final String APP_NOT_FOUND_LOG = "Application not found with ID: ";

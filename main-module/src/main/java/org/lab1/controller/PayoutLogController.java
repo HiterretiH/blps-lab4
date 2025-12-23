@@ -30,8 +30,7 @@ public final class PayoutLogController {
 
   @Autowired
   public PayoutLogController(
-      final PayoutLogService payoutLogServiceParam,
-      final Logger loggerParam) {
+      final PayoutLogService payoutLogServiceParam, final Logger loggerParam) {
     this.payoutLogService = payoutLogServiceParam;
     this.logger = loggerParam;
   }
@@ -44,9 +43,7 @@ public final class PayoutLogController {
 
   @PreAuthorize("hasAuthority('payout_log.manage')")
   @PutMapping("/{id}")
-  public PayoutLog update(
-      @PathVariable final int id,
-      @RequestBody final PayoutLog payoutLog) {
+  public PayoutLog update(@PathVariable final int id, @RequestBody final PayoutLog payoutLog) {
     logger.info(UPDATE_LOG + id);
     payoutLog.setId(id);
     return payoutLogService.save(payoutLog);

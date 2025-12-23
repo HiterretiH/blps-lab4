@@ -103,8 +103,7 @@ public final class FormController {
       logger.info(GENERATE_FORM_SUCCESS_LOG + userId + RESULT_LOG + result);
       return ResponseEntity.ok(result);
     } catch (Exception exception) {
-      logger.error(GENERATE_FORM_ERROR_LOG + userId
-          + REASON_LOG + exception.getMessage());
+      logger.error(GENERATE_FORM_ERROR_LOG + userId + REASON_LOG + exception.getMessage());
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
           .body("Error generating form: " + exception.getMessage());
     }
@@ -138,7 +137,8 @@ public final class FormController {
 
   @PreAuthorize("hasAuthority('form.manage')")
   @PostMapping("/addFields")
-  public ResponseEntity<String> addFields(@RequestBody final List<Map<String, String>> fieldsRequest) {
+  public ResponseEntity<String> addFields(
+      @RequestBody final List<Map<String, String>> fieldsRequest) {
     logger.info(ADD_FIELDS_REQUEST_LOG);
 
     if (fieldsRequest == null || fieldsRequest.isEmpty()) {
@@ -159,8 +159,7 @@ public final class FormController {
 
     formGenerationService.addFields(fieldNames);
     fieldsAddedCounter.increment(fieldNames.size());
-    logger.info(FIELDS_ADDED_SUCCESS_LOG + fieldNames.size()
-        + FIELDS_SUCCESSFULLY_LOG);
+    logger.info(FIELDS_ADDED_SUCCESS_LOG + fieldNames.size() + FIELDS_SUCCESSFULLY_LOG);
     return ResponseEntity.status(HttpStatus.CREATED).body(FIELDS_ADDED_MESSAGE);
   }
 }

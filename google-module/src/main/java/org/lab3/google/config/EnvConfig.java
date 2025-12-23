@@ -4,8 +4,7 @@ import io.github.cdimascio.dotenv.Dotenv;
 
 public final class EnvConfig {
   private static final String DEFAULT_APP_DIRECTORY = "/app";
-  private static final Dotenv DOTENV =
-      Dotenv.configure().directory(DEFAULT_APP_DIRECTORY).load();
+  private static final Dotenv DOTENV = Dotenv.configure().directory(DEFAULT_APP_DIRECTORY).load();
 
   private EnvConfig() {
     throw new UnsupportedOperationException("Utility class");

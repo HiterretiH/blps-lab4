@@ -49,8 +49,7 @@ public final class ApplicationController {
 
   @Autowired
   public ApplicationController(
-      final ApplicationService applicationServiceParam,
-      final Logger loggerParam) {
+      final ApplicationService applicationServiceParam, final Logger loggerParam) {
     this.applicationService = applicationServiceParam;
     this.logger = loggerParam;
   }
@@ -69,10 +68,8 @@ public final class ApplicationController {
   public ResponseEntity<List<Application>> getApplicationsByDeveloperId(
       @PathVariable final int developerId) {
     logger.info("Fetching applications for developer ID: " + developerId);
-    List<Application> applications =
-        applicationService.getApplicationsByDeveloperId(developerId);
-    logger.info("Found " + applications.size()
-        + " applications for developer ID: " + developerId);
+    List<Application> applications = applicationService.getApplicationsByDeveloperId(developerId);
+    logger.info("Found " + applications.size() + " applications for developer ID: " + developerId);
     return ResponseEntity.ok(applications);
   }
 
@@ -124,8 +121,7 @@ public final class ApplicationController {
       logger.info(APPLICATION_UPDATE_SUCCESS_LOG + id);
       return ResponseEntity.ok(application);
     } catch (Exception exception) {
-      logger.error(APPLICATION_UPDATE_ERROR_LOG + id
-          + ". Error: " + exception.getMessage());
+      logger.error(APPLICATION_UPDATE_ERROR_LOG + id + ". Error: " + exception.getMessage());
       throw exception;
     }
   }
@@ -139,8 +135,7 @@ public final class ApplicationController {
       logger.info(APPLICATION_DELETE_SUCCESS_LOG + id);
       return ResponseEntity.noContent().build();
     } catch (Exception exception) {
-      logger.error(APPLICATION_DELETE_ERROR_LOG + id
-          + ". Error: " + exception.getMessage());
+      logger.error(APPLICATION_DELETE_ERROR_LOG + id + ". Error: " + exception.getMessage());
       throw exception;
     }
   }

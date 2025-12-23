@@ -7,8 +7,7 @@ public final class MonetizationEvent {
     AD_VIEW
   }
 
-  public MonetizationEvent() {
-  }
+  public MonetizationEvent() {}
 
   public MonetizationEvent(
       final EventType eventTypeParam,

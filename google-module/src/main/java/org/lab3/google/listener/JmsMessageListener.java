@@ -15,11 +15,8 @@ import java.io.IOException;
 import org.lab3.google.json.GoogleFormRequest;
 import org.lab3.google.service.GoogleConnection;
 
-/**
- * JMS Message Listener for Google operations.
- */
-public final class JmsMessageListener
-    implements MessageEndpoint, MessageListener {
+/** JMS Message Listener for Google operations. */
+public final class JmsMessageListener implements MessageEndpoint, MessageListener {
   private static final String UPLOAD_OPERATION = "upload";
   private static final String CREATE_SHEET_OPERATION = "createSheet";
   private static final String CREATE_FORM_OPERATION = "createForm";
@@ -80,50 +77,39 @@ public final class JmsMessageListener
     }
   }
 
-  private String processMessage(
-      final String operation,
-      final String content,
-      final Message message) throws JMSException, IOException {
+  private String processMessage(final String operation, final String content, final Message message)
+      throws JMSException, IOException {
     return switch (operation) {
       case UPLOAD_OPERATION -> processUploadOperation(content);
       case CREATE_SHEET_OPERATION -> processCreateSheetOperation(content);
-      case CREATE_FORM_OPERATION -> processCreateFormOperation(content,
-          message);
+      case CREATE_FORM_OPERATION -> processCreateFormOperation(content, message);
       default -> "Unknown operation: " + operation;
     };
   }
 
-  private String processUploadOperation(final String content)
-      throws IOException {
+  private String processUploadOperation(final String content) throws IOException {
     String fileId = googleConnection.uploadFile(FILE_NAME, content.getBytes());
     return "File uploaded with ID: " + fileId;
   }
 
-  private String processCreateSheetOperation(final String content)
-      throws IOException {
+  private String processCreateSheetOperation(final String content) throws IOException {
     String sheetId = googleConnection.createGoogleSheet(content);
     return "Sheet created with ID: " + sheetId;
   }
 
-  private String processCreateFormOperation(
-      final String content,
-      final Message message) throws IOException, JMSException {
-    GoogleFormRequest request = objectMapper.readValue(content,
-        GoogleFormRequest.class);
+  private String processCreateFormOperation(final String content, final Message message)
+      throws IOException, JMSException {
+    GoogleFormRequest request = objectMapper.readValue(content, GoogleFormRequest.class);
     int userId = message.getIntProperty(USER_ID_PROPERTY);
-    String formUrl = googleConnection.createGoogleForm(
-        request.getFormTitle(), request.getFields());
+    String formUrl = googleConnection.createGoogleForm(request.getFormTitle(), request.getFields());
     System.out.println("Created form: " + formUrl);
     return "Form created: " + formUrl;
   }
 
-  private void sendResponse(
-      final Destination replyTo,
-      final String response) throws JMSException {
+  private void sendResponse(final Destination replyTo, final String response) throws JMSException {
     try (Connection connection = connectionFactory.createConnection();
-         Session session = connection.createSession(false,
-             Session.AUTO_ACKNOWLEDGE);
-         MessageProducer producer = session.createProducer(replyTo)) {
+        Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+        MessageProducer producer = session.createProducer(replyTo)) {
 
       TextMessage replyMessage = session.createTextMessage(response);
       producer.send(replyMessage);

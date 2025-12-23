@@ -31,9 +31,7 @@ public class DeveloperService {
   private final Logger logger;
 
   @Autowired
-  public DeveloperService(
-      final DeveloperRepository developerRepository,
-      final Logger logger) {
+  public DeveloperService(final DeveloperRepository developerRepository, final Logger logger) {
     this.developerRepository = developerRepository;
     this.logger = logger;
   }
@@ -55,7 +53,8 @@ public class DeveloperService {
     developer.setDescription(user.getEmail());
     developer.setUser(user);
     Developer savedDeveloper = developerRepository.save(developer);
-    logger.info(CREATED_FROM_USER_LOG + savedDeveloper.getId() + FROM_USER_LOG + user.getUsername());
+    logger.info(
+        CREATED_FROM_USER_LOG + savedDeveloper.getId() + FROM_USER_LOG + user.getUsername());
     return savedDeveloper;
   }
 

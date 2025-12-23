@@ -69,8 +69,7 @@ public final class GoogleOperationResultsController {
     }
 
     User user = userOptional.get();
-    List<GoogleOperationResult> results =
-        googleResultService.getResultsByUserId(user.getId());
+    List<GoogleOperationResult> results = googleResultService.getResultsByUserId(user.getId());
     return ResponseEntity.ok(results);
   }
 
@@ -88,8 +87,7 @@ public final class GoogleOperationResultsController {
       return ResponseEntity.status(UNAUTHORIZED_STATUS_CODE).build();
     }
 
-    List<GoogleOperationResult> results =
-        googleResultService.getResultsByUserId(userId);
+    List<GoogleOperationResult> results = googleResultService.getResultsByUserId(userId);
     return ResponseEntity.ok(results);
   }
 
@@ -98,8 +96,7 @@ public final class GoogleOperationResultsController {
   public ResponseEntity<List<GoogleOperationResult>> getResultsByOperation(
       @PathVariable final String operation) {
     logger.info(GET_RESULTS_BY_OPERATION_LOG + operation);
-    List<GoogleOperationResult> results =
-        googleResultService.getResultsByOperation(operation);
+    List<GoogleOperationResult> results = googleResultService.getResultsByOperation(operation);
     return ResponseEntity.ok(results);
   }
 
@@ -128,8 +125,7 @@ public final class GoogleOperationResultsController {
   @GetMapping("/errors")
   public ResponseEntity<List<GoogleOperationResult>> getOperationsWithErrors() {
     logger.info(GET_ERRORS_LOG);
-    List<GoogleOperationResult> results =
-        googleResultService.getOperationsWithErrors();
+    List<GoogleOperationResult> results = googleResultService.getOperationsWithErrors();
     return ResponseEntity.ok(results);
   }
 
@@ -137,8 +133,7 @@ public final class GoogleOperationResultsController {
   @GetMapping("/successful")
   public ResponseEntity<List<GoogleOperationResult>> getSuccessfulOperations() {
     logger.info(GET_SUCCESSFUL_LOG);
-    List<GoogleOperationResult> results =
-        googleResultService.getSuccessfulOperations();
+    List<GoogleOperationResult> results = googleResultService.getSuccessfulOperations();
     return ResponseEntity.ok(results);
   }
 

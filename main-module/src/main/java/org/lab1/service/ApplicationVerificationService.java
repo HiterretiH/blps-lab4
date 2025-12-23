@@ -21,8 +21,10 @@ public class ApplicationVerificationService {
   private static final String POLICY_CHECK_FAILED_MSG = "Policy check failed. ";
   private static final String ADS_CHECK_PASSED_MSG = "Ads check passed.";
   private static final String ADS_CHECK_FAILED_MSG = "Ads check failed.";
-  private static final String VERIFICATION_LOG_SAVED_LOG = "Verification log saved (security failed) with ID: ";
-  private static final String VERIFICATION_POLICY_SAVED_LOG = "Verification log saved (policy failed) with ID: ";
+  private static final String VERIFICATION_LOG_SAVED_LOG =
+      "Verification log saved (security failed) with ID: ";
+  private static final String VERIFICATION_POLICY_SAVED_LOG =
+      "Verification log saved (policy failed) with ID: ";
   private static final String VERIFICATION_FINAL_SAVED_LOG = "Verification log saved with ID: ";
   private static final String SAVE_VERIFICATION_LOG = "Saving verification log.";
   private static final String VERIFICATION_SAVED_LOG = "Verification log saved with ID: ";
@@ -44,8 +46,10 @@ public class ApplicationVerificationService {
 
     final int hundredPercent = 100;
     boolean securityCheckPassed = random.nextInt(hundredPercent) < SECURITY_CHECK_THRESHOLD;
-    boolean policyCheckPassed = securityCheckPassed && random.nextInt(hundredPercent) < POLICY_CHECK_THRESHOLD;
-    boolean adsCheckPassed = policyCheckPassed && random.nextInt(hundredPercent) < ADS_CHECK_THRESHOLD;
+    boolean policyCheckPassed =
+        securityCheckPassed && random.nextInt(hundredPercent) < POLICY_CHECK_THRESHOLD;
+    boolean adsCheckPassed =
+        policyCheckPassed && random.nextInt(hundredPercent) < ADS_CHECK_THRESHOLD;
 
     StringBuilder logMessage = new StringBuilder();
 

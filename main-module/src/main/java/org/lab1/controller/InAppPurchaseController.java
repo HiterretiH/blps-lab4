@@ -43,8 +43,7 @@ public final class InAppPurchaseController {
 
   @Autowired
   public InAppPurchaseController(
-      final InAppPurchaseService inAppPurchaseServiceParam,
-      final Logger loggerParam) {
+      final InAppPurchaseService inAppPurchaseServiceParam, final Logger loggerParam) {
     this.inAppPurchaseService = inAppPurchaseServiceParam;
     this.logger = loggerParam;
   }
@@ -53,13 +52,10 @@ public final class InAppPurchaseController {
   @PostMapping("/create")
   public ResponseEntity<List<InAppPurchase>> createInAppPurchases(
       @RequestBody final InAppPurchasesJson inAppPurchases) {
-    int titlesCount = inAppPurchases.getTitles() != null
-        ? inAppPurchases.getTitles().size() : 0;
+    int titlesCount = inAppPurchases.getTitles() != null ? inAppPurchases.getTitles().size() : 0;
     int descriptionsCount =
-        inAppPurchases.getDescriptions() != null
-            ? inAppPurchases.getDescriptions().size() : 0;
-    int pricesCount = inAppPurchases.getPrices() != null
-        ? inAppPurchases.getPrices().size() : 0;
+        inAppPurchases.getDescriptions() != null ? inAppPurchases.getDescriptions().size() : 0;
+    int pricesCount = inAppPurchases.getPrices() != null ? inAppPurchases.getPrices().size() : 0;
 
     logger.info(
         CREATE_REQUEST_LOG
@@ -116,12 +112,10 @@ public final class InAppPurchaseController {
       List<InAppPurchase> linkedPurchases =
           inAppPurchaseService.linkMonetizedAppToPurchases(monetizedApplicationId);
       logger.info(
-          LINK_SUCCESS_LOG + linkedPurchases.size()
-              + TO_APP_ID_LOG + monetizedApplicationId);
+          LINK_SUCCESS_LOG + linkedPurchases.size() + TO_APP_ID_LOG + monetizedApplicationId);
       return ResponseEntity.ok(linkedPurchases);
     } catch (RuntimeException exception) {
-      logger.error(LINK_ERROR_LOG + monetizedApplicationId
-          + REASON_LOG + exception.getMessage());
+      logger.error(LINK_ERROR_LOG + monetizedApplicationId + REASON_LOG + exception.getMessage());
       return ResponseEntity.badRequest().body(null);
     }
   }

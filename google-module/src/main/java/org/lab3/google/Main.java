@@ -33,16 +33,14 @@ import org.quartz.TriggerBuilder;
 import org.quartz.impl.StdSchedulerFactory;
 
 /**
- * Main class for Google Module application.
- * Handles RabbitMQ message processing and Quartz scheduling.
+ * Main class for Google Module application. Handles RabbitMQ message processing and Quartz
+ * scheduling.
  */
 public final class Main {
   private static final String CREATE_FORM_OPERATION = "createForm";
-  private static final String CREATE_SHEET_WITH_DATA_OPERATION =
-      "createSheetWithData";
+  private static final String CREATE_SHEET_WITH_DATA_OPERATION = "createSheetWithData";
   private static final String ADD_APP_SHEETS_OPERATION = "addAppSheets";
-  private static final String UPDATE_MONETIZATION_OPERATION =
-      "updateMonetization";
+  private static final String UPDATE_MONETIZATION_OPERATION = "updateMonetization";
   private static final String UPDATE_APPS_TOP_OPERATION = "updateAppsTop";
   private static final String HEALTHCHECK_OPERATION = "healthcheck";
   private static final String UNKNOWN_OPERATION = "unknown";
@@ -74,8 +72,7 @@ public final class Main {
       repository = new OperationResultRepository();
       LOGGER.info("Database repository initialized");
     } catch (Exception e) {
-      LOGGER.error("Failed to initialize database repository: "
-          + e.getMessage());
+      LOGGER.error("Failed to initialize database repository: " + e.getMessage());
     }
 
     METRICS.start();
@@ -91,18 +88,17 @@ public final class Main {
     factory.setPort(rabbitPort);
     factory.setUsername(rabbitUsername);
     factory.setPassword(rabbitPassword);
-    LOGGER.info("RabbitMQ connection factory configured for host: "
-        + rabbitHost + ", port: " + rabbitPort);
+    LOGGER.info(
+        "RabbitMQ connection factory configured for host: " + rabbitHost + ", port: " + rabbitPort);
 
     try (Connection connection = factory.newConnection();
-         Channel channel = connection.createChannel()) {
+        Channel channel = connection.createChannel()) {
       LOGGER.info("Successfully established connection to RabbitMQ.");
 
       channel.queueDeclare(GOOGLE_REQUESTS_QUEUE, false, false, false, null);
       LOGGER.info("Declared queue: " + GOOGLE_REQUESTS_QUEUE + ".");
 
-      GoogleConnection googleConnection = new GoogleConnectionImpl(
-          GoogleConfig.createConnection());
+      GoogleConnection googleConnection = new GoogleConnectionImpl(GoogleConfig.createConnection());
       LOGGER.info("Google API connection established.");
 
       SchedulerFactory schedulerFactory = new StdSchedulerFactory();
@@ -121,23 +117,18 @@ public final class Main {
       Trigger trigger =
           TriggerBuilder.newTrigger()
               .withIdentity("updateAppsTopTrigger", "group1")
-              .withSchedule(CronScheduleBuilder
-                  .cronSchedule("0 0/1 * * * ?"))
+              .withSchedule(CronScheduleBuilder.cronSchedule("0 0/1 * * * ?"))
               .build();
-      LOGGER.info("UpdateAppsTopTrigger created with cron schedule: "
-          + "0 0/1 * * * ?");
+      LOGGER.info("UpdateAppsTopTrigger created with cron schedule: " + "0 0/1 * * * ?");
 
       scheduler.start();
       scheduler.scheduleJob(job, trigger);
-      LOGGER.info("Scheduled job: updateAppsTopJob with trigger: "
-          + "updateAppsTopTrigger.");
+      LOGGER.info("Scheduled job: updateAppsTopJob with trigger: " + "updateAppsTopTrigger.");
 
-      DeliverCallback callback = (tag, delivery) ->
-          processMessage(delivery, googleConnection);
+      DeliverCallback callback = (tag, delivery) -> processMessage(delivery, googleConnection);
 
-      channel.basicConsume(GOOGLE_REQUESTS_QUEUE, true, callback, tag -> { });
-      LOGGER.info("Started consuming from queue: "
-          + GOOGLE_REQUESTS_QUEUE + ".");
+      channel.basicConsume(GOOGLE_REQUESTS_QUEUE, true, callback, tag -> {});
+      LOGGER.info("Started consuming from queue: " + GOOGLE_REQUESTS_QUEUE + ".");
 
       Thread.sleep(Long.MAX_VALUE);
     } finally {
@@ -151,8 +142,7 @@ public final class Main {
   }
 
   private static void processMessage(
-      final Delivery delivery,
-      final GoogleConnection googleConnection) {
+      final Delivery delivery, final GoogleConnection googleConnection) {
     String operation = UNKNOWN_OPERATION;
     boolean success = false;
     int userId = 0;
@@ -162,15 +152,11 @@ public final class Main {
 
     Histogram.Timer timer = METRICS.startRequestTimer();
     try {
-      operation = delivery.getProperties().getHeaders()
-          .get(OPERATION_HEADER).toString();
-      userId = (int) delivery.getProperties().getHeaders()
-          .get(USER_ID_HEADER);
-      String messageBody = new String(delivery.getBody(),
-          StandardCharsets.UTF_8);
+      operation = delivery.getProperties().getHeaders().get(OPERATION_HEADER).toString();
+      userId = (int) delivery.getProperties().getHeaders().get(USER_ID_HEADER);
+      String messageBody = new String(delivery.getBody(), StandardCharsets.UTF_8);
 
-      LOGGER.info("Processing operation '" + operation
-          + "' for user ID: " + userId);
+      LOGGER.info("Processing operation '" + operation + "' for user ID: " + userId);
 
       switch (operation) {
         case CREATE_FORM_OPERATION:
@@ -181,22 +167,19 @@ public final class Main {
 
         case CREATE_SHEET_WITH_DATA_OPERATION:
           targetValue = extractSheetTitle(messageBody);
-          result = processSheetCreationWithData(messageBody,
-              googleConnection, userId);
+          result = processSheetCreationWithData(messageBody, googleConnection, userId);
           success = true;
           break;
 
         case ADD_APP_SHEETS_OPERATION:
           targetValue = extractAppNameAndSpreadsheet(delivery, messageBody);
-          result = processAppSheetsAddition(delivery, messageBody,
-              googleConnection, userId);
+          result = processAppSheetsAddition(delivery, messageBody, googleConnection, userId);
           success = true;
           break;
 
         case UPDATE_MONETIZATION_OPERATION:
           targetValue = extractMonetizationEventInfo(messageBody);
-          result = processMonetizationUpdate(messageBody, googleConnection,
-              userId);
+          result = processMonetizationUpdate(messageBody, googleConnection, userId);
           success = true;
           break;
 
@@ -229,62 +212,48 @@ public final class Main {
         try {
           GoogleOperationResult dbResult =
               new GoogleOperationResult(
-                  userId, operation, targetValue, success ? result : null,
-                  success ? null : error);
+                  userId, operation, targetValue, success ? result : null, success ? null : error);
           repository.save(dbResult);
           LOGGER.info("Operation result saved to database");
         } catch (Exception e) {
-          LOGGER.error("Failed to save operation result to database: "
-              + e.getMessage());
+          LOGGER.error("Failed to save operation result to database: " + e.getMessage());
         }
       }
     }
   }
 
-  private static String extractFormTitle(final String messageBody)
-      throws IOException {
-    GoogleFormRequest formRequest = OBJECT_MAPPER.readValue(messageBody,
-        GoogleFormRequest.class);
+  private static String extractFormTitle(final String messageBody) throws IOException {
+    GoogleFormRequest formRequest = OBJECT_MAPPER.readValue(messageBody, GoogleFormRequest.class);
     return formRequest.getFormTitle() + " - " + formRequest.getGoogleEmail();
   }
 
-  private static String extractSheetTitle(final String messageBody)
-      throws IOException {
+  private static String extractSheetTitle(final String messageBody) throws IOException {
     GoogleSheetRequestWithData sheetRequest =
-        OBJECT_MAPPER.readValue(messageBody,
-            GoogleSheetRequestWithData.class);
+        OBJECT_MAPPER.readValue(messageBody, GoogleSheetRequestWithData.class);
     return sheetRequest.getSheetTitle();
   }
 
   private static String extractAppNameAndSpreadsheet(
-      final Delivery delivery,
-      final String messageBody) throws IOException {
+      final Delivery delivery, final String messageBody) throws IOException {
     GoogleSheetIdentifier sheetIdentifier =
         OBJECT_MAPPER.readValue(messageBody, GoogleSheetIdentifier.class);
-    String appName = delivery.getProperties().getHeaders()
-        .get(APP_NAME_HEADER).toString();
+    String appName = delivery.getProperties().getHeaders().get(APP_NAME_HEADER).toString();
     return appName + " - " + sheetIdentifier.getSpreadsheetTitle();
   }
 
-  private static String extractMonetizationEventInfo(final String messageBody)
-      throws IOException {
-    MonetizationEvent event = OBJECT_MAPPER
-        .readValue(messageBody, MonetizationEvent.class);
+  private static String extractMonetizationEventInfo(final String messageBody) throws IOException {
+    MonetizationEvent event = OBJECT_MAPPER.readValue(messageBody, MonetizationEvent.class);
     return "App: " + event.getApplicationId() + " - " + event.getEventType();
   }
 
   private static String processFormCreation(
-      final String messageBody,
-      final GoogleConnection googleConnection,
-      final int userId) throws IOException {
-    GoogleFormRequest formRequest =
-        OBJECT_MAPPER.readValue(messageBody, GoogleFormRequest.class);
-    LOGGER.info("Processing form creation for: "
-        + formRequest.getGoogleEmail());
+      final String messageBody, final GoogleConnection googleConnection, final int userId)
+      throws IOException {
+    GoogleFormRequest formRequest = OBJECT_MAPPER.readValue(messageBody, GoogleFormRequest.class);
+    LOGGER.info("Processing form creation for: " + formRequest.getGoogleEmail());
 
     String formId =
-        googleConnection.createGoogleForm(formRequest.getFormTitle(),
-            formRequest.getFields());
+        googleConnection.createGoogleForm(formRequest.getFormTitle(), formRequest.getFields());
 
     String result = formId;
     LOGGER.info("Form created: " + result);
@@ -292,12 +261,10 @@ public final class Main {
   }
 
   private static String processSheetCreationWithData(
-      final String messageBody,
-      final GoogleConnection googleConnection,
-      final int userId) throws IOException {
+      final String messageBody, final GoogleConnection googleConnection, final int userId)
+      throws IOException {
     GoogleSheetRequestWithData sheetRequestWithData =
-        OBJECT_MAPPER.readValue(messageBody,
-            GoogleSheetRequestWithData.class);
+        OBJECT_MAPPER.readValue(messageBody, GoogleSheetRequestWithData.class);
 
     String sheetUrl =
         googleConnection.createRevenueSpreadsheetWithData(
@@ -314,20 +281,20 @@ public final class Main {
       final Delivery delivery,
       final String messageBody,
       final GoogleConnection googleConnection,
-      final int userId) throws IOException {
+      final int userId)
+      throws IOException {
     GoogleSheetIdentifier sheetIdentifier =
         OBJECT_MAPPER.readValue(messageBody, GoogleSheetIdentifier.class);
-    String appName = delivery.getProperties().getHeaders()
-        .get(APP_NAME_HEADER).toString();
+    String appName = delivery.getProperties().getHeaders().get(APP_NAME_HEADER).toString();
 
-    LOGGER.info("Adding sheets for app '"
-        + appName
-        + "' to spreadsheet: "
-        + sheetIdentifier.getSpreadsheetTitle());
+    LOGGER.info(
+        "Adding sheets for app '"
+            + appName
+            + "' to spreadsheet: "
+            + sheetIdentifier.getSpreadsheetTitle());
 
     googleConnection.addAppSheets(
-        sheetIdentifier.getGoogleEmail(),
-        sheetIdentifier.getSpreadsheetTitle(), appName);
+        sheetIdentifier.getGoogleEmail(), sheetIdentifier.getSpreadsheetTitle(), appName);
 
     String result = sheetIdentifier.getSpreadsheetTitle();
     LOGGER.info("Sheets added to: " + result);
@@ -335,23 +302,19 @@ public final class Main {
   }
 
   private static String processMonetizationUpdate(
-      final String messageBody,
-      final GoogleConnection googleConnection,
-      final int userId) throws IOException {
-    MonetizationEvent event = OBJECT_MAPPER.readValue(messageBody,
-        MonetizationEvent.class);
+      final String messageBody, final GoogleConnection googleConnection, final int userId)
+      throws IOException {
+    MonetizationEvent event = OBJECT_MAPPER.readValue(messageBody, MonetizationEvent.class);
 
     googleConnection.updateMonetizationSheets(event);
 
-    String result = "Updated: " + event.getEventType()
-        + " for app: " + event.getApplicationId();
+    String result = "Updated: " + event.getEventType() + " for app: " + event.getApplicationId();
     LOGGER.info("Monetization updated: " + result);
     return result;
   }
 
   private static String processAppsTopUpdate(
-      final GoogleConnection googleConnection,
-      final int userId) throws IOException {
+      final GoogleConnection googleConnection, final int userId) throws IOException {
     googleConnection.updateAppsTop();
 
     String result = "Apps top updated";

@@ -5,13 +5,10 @@ public final class GoogleAuthResponse {
   private String state;
   private String message;
 
-  public GoogleAuthResponse() {
-  }
+  public GoogleAuthResponse() {}
 
   public GoogleAuthResponse(
-      final String authUrlParam,
-      final String stateParam,
-      final String messageParam) {
+      final String authUrlParam, final String stateParam, final String messageParam) {
     this.authUrl = authUrlParam;
     this.state = stateParam;
     this.message = messageParam;

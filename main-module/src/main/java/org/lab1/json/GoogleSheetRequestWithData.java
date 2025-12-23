@@ -8,8 +8,7 @@ public final class GoogleSheetRequestWithData {
   private List<String> headers;
   private List<List<Object>> data;
 
-  public GoogleSheetRequestWithData() {
-  }
+  public GoogleSheetRequestWithData() {}
 
   public GoogleSheetRequestWithData(
       final String googleEmailParam,

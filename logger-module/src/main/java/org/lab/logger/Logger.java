@@ -48,9 +48,7 @@ public final class Logger implements AutoCloseable {
   }
 
   private Logger(
-      final int bufferSizeParam,
-      final String logDirectoryParam,
-      final String baseFileNameParam) {
+      final int bufferSizeParam, final String logDirectoryParam, final String baseFileNameParam) {
     this.bufferSize = bufferSizeParam;
     this.logDirectory = logDirectoryParam;
     this.baseFileName = baseFileNameParam;
@@ -92,13 +90,10 @@ public final class Logger implements AutoCloseable {
     logInternal(Severity.ERR, message);
   }
 
-  private synchronized void logInternal(
-      final Severity severity,
-      final String message) {
+  private synchronized void logInternal(final Severity severity, final String message) {
     LocalTime currentLocalTime = LocalTime.now();
     String formattedTime = currentLocalTime.format(TIME_FORMATTER);
-    String logMessage = String.format(
-        LOG_MESSAGE_FORMAT, formattedTime, severity.name(), message);
+    String logMessage = String.format(LOG_MESSAGE_FORMAT, formattedTime, severity.name(), message);
 
     if (logFile == null) {
       logFile = createLogFile();
@@ -115,17 +110,14 @@ public final class Logger implements AutoCloseable {
 
   private File createLogFile() {
     String timestamp = LocalDateTime.now().format(DATE_TIME_FORMATTER);
-    String uuid = UUID.randomUUID().toString()
-        .substring(0, UUID_SUBSTRING_LENGTH);
+    String uuid = UUID.randomUUID().toString().substring(0, UUID_SUBSTRING_LENGTH);
 
-    String fileName = String.format(
-        LOG_FILE_NAME_FORMAT, baseFileName, timestamp, uuid);
+    String fileName = String.format(LOG_FILE_NAME_FORMAT, baseFileName, timestamp, uuid);
     File file = new File(logDirectory, fileName);
     try {
       file.createNewFile();
     } catch (IOException ioException) {
-      System.err.println("Failed to create log file: "
-          + ioException.getMessage());
+      System.err.println("Failed to create log file: " + ioException.getMessage());
     }
     return file;
   }
@@ -133,15 +125,11 @@ public final class Logger implements AutoCloseable {
   private synchronized void saveToFile() {
     try {
       if (logFile != null && !buffer.isEmpty()) {
-        Files.write(
-            logFile.toPath(),
-            buffer.toString().getBytes(),
-            StandardOpenOption.APPEND);
+        Files.write(logFile.toPath(), buffer.toString().getBytes(), StandardOpenOption.APPEND);
         clearBuffer();
       }
     } catch (Exception exception) {
-      System.err.println("Failed to write logs to file: "
-          + exception.getMessage());
+      System.err.println("Failed to write logs to file: " + exception.getMessage());
     }
   }
 

@@ -50,8 +50,7 @@ public class TokenManager {
   private final PasswordEncoder passwordEncoder;
   private AtomicInteger activeSessionsGauge;
 
-  private final Map<String, List<GrantedAuthority>> roleAuthorities =
-      initializeRoleAuthorities();
+  private final Map<String, List<GrantedAuthority>> roleAuthorities = initializeRoleAuthorities();
 
   @Autowired
   public TokenManager(final MeterRegistry meterRegistry, final PasswordEncoder passwordEncoder) {

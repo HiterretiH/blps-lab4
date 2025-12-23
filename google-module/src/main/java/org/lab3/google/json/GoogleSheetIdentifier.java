@@ -4,11 +4,9 @@ public final class GoogleSheetIdentifier {
   private String googleEmail;
   private String spreadsheetTitle;
 
-  public GoogleSheetIdentifier() {
-  }
+  public GoogleSheetIdentifier() {}
 
-  public GoogleSheetIdentifier(final String googleEmailParam,
-                               final String spreadsheetTitleParam) {
+  public GoogleSheetIdentifier(final String googleEmailParam, final String spreadsheetTitleParam) {
     this.googleEmail = googleEmailParam;
     this.spreadsheetTitle = spreadsheetTitleParam;
   }

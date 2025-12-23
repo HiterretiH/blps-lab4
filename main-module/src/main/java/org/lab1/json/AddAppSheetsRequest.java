@@ -4,8 +4,7 @@ public final class AddAppSheetsRequest {
   private String spreadsheetId;
   private int appId;
 
-  public AddAppSheetsRequest() {
-  }
+  public AddAppSheetsRequest() {}
 
   public AddAppSheetsRequest(final String spreadsheetIdParam, final int appIdParam) {
     this.spreadsheetId = spreadsheetIdParam;

@@ -25,8 +25,7 @@ public final class VerificationLogController {
 
   @Autowired
   public VerificationLogController(
-      final VerificationLogService verificationLogServiceParam,
-      final Logger loggerParam) {
+      final VerificationLogService verificationLogServiceParam, final Logger loggerParam) {
     this.verificationLogService = verificationLogServiceParam;
     this.logger = loggerParam;
   }
@@ -49,8 +48,7 @@ public final class VerificationLogController {
   @GetMapping("/{id}")
   public ResponseEntity<VerificationLog> getVerificationLog(@PathVariable final int id) {
     logger.info(GET_LOG + id);
-    Optional<VerificationLog> verificationLog =
-        verificationLogService.getVerificationLogById(id);
+    Optional<VerificationLog> verificationLog = verificationLogService.getVerificationLogById(id);
     return verificationLog
         .map(ResponseEntity::ok)
         .orElseGet(() -> ResponseEntity.notFound().build());

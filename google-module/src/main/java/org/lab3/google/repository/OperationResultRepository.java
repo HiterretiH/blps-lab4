@@ -18,8 +18,7 @@ public final class OperationResultRepository {
   private static final String DB_URL_KEY = "DB_URL";
   private static final String DB_USERNAME_KEY = "DB_USERNAME";
   private static final String DB_PASSWORD_KEY = "DB_PASSWORD";
-  private static final String DEFAULT_DB_URL =
-      "jdbc:postgresql://localhost:5432/google_module";
+  private static final String DEFAULT_DB_URL = "jdbc:postgresql://localhost:5432/google_module";
   private static final String DEFAULT_DB_USERNAME = "postgres";
   private static final String DEFAULT_DB_PASSWORD = "postgres";
   private static final String TABLE_NAME = "google_operation_results";
@@ -45,7 +44,8 @@ public final class OperationResultRepository {
   }
 
   private void createTableIfNotExists() throws SQLException {
-    String sql = """
+    String sql =
+        """
             CREATE TABLE IF NOT EXISTS %1$s (
                 id BIGSERIAL PRIMARY KEY,
                 user_id INTEGER,
@@ -60,7 +60,7 @@ public final class OperationResultRepository {
             CREATE INDEX IF NOT EXISTS idx_%1$s_operation ON %1$s(operation);
             CREATE INDEX IF NOT EXISTS idx_%1$s_created_at ON %1$s(created_at);
             """
-        .formatted(TABLE_NAME);
+            .formatted(TABLE_NAME);
 
     try (Statement statement = connection.createStatement()) {
       statement.execute(sql);
@@ -69,51 +69,46 @@ public final class OperationResultRepository {
   }
 
   public void save(final GoogleOperationResult operationResult) {
-    String sql = "INSERT INTO " + TABLE_NAME
-        + " (user_id, operation, target_value, result, error, created_at) "
-        + "VALUES (?, ?, ?, ?, ?, ?)";
+    String sql =
+        "INSERT INTO "
+            + TABLE_NAME
+            + " (user_id, operation, target_value, result, error, created_at) "
+            + "VALUES (?, ?, ?, ?, ?, ?)";
 
-    try (PreparedStatement preparedStatement =
-             connection.prepareStatement(sql)) {
-      preparedStatement
-          .setObject(1, operationResult.getUserId(), Types.INTEGER);
+    try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+      preparedStatement.setObject(1, operationResult.getUserId(), Types.INTEGER);
       preparedStatement.setString(2, operationResult.getOperation());
       preparedStatement.setString(THREE, operationResult.getTargetValue());
       preparedStatement.setString(FOUR, operationResult.getResult());
       preparedStatement.setString(FIVE, operationResult.getError());
-      preparedStatement.setTimestamp(SIX,
-          Timestamp.valueOf(operationResult.getCreatedAt()));
+      preparedStatement.setTimestamp(SIX, Timestamp.valueOf(operationResult.getCreatedAt()));
 
       preparedStatement.executeUpdate();
-      LOGGER.info("Saved operation result: " + operationResult.getOperation()
-          + " for user " + operationResult.getUserId());
+      LOGGER.info(
+          "Saved operation result: "
+              + operationResult.getOperation()
+              + " for user "
+              + operationResult.getUserId());
     } catch (SQLException sqlException) {
-      LOGGER.error("Failed to save operation result: "
-          + sqlException.getMessage());
+      LOGGER.error("Failed to save operation result: " + sqlException.getMessage());
     }
   }
 
-  public List<GoogleOperationResult> findByUserId(final int userId)
-      throws SQLException {
-    String sql = "SELECT * FROM " + TABLE_NAME
-        + " WHERE user_id = ? ORDER BY created_at DESC";
+  public List<GoogleOperationResult> findByUserId(final int userId) throws SQLException {
+    String sql = "SELECT * FROM " + TABLE_NAME + " WHERE user_id = ? ORDER BY created_at DESC";
     return executeQueryWithParameter(sql, userId);
   }
 
-  public List<GoogleOperationResult> findByOperation(final String operation)
-      throws SQLException {
-    String sql = "SELECT * FROM " + TABLE_NAME
-        + " WHERE operation = ? ORDER BY created_at DESC";
+  public List<GoogleOperationResult> findByOperation(final String operation) throws SQLException {
+    String sql = "SELECT * FROM " + TABLE_NAME + " WHERE operation = ? ORDER BY created_at DESC";
     return executeQueryWithParameter(sql, operation);
   }
 
   private List<GoogleOperationResult> executeQueryWithParameter(
-      final String sql,
-      final Object parameter) throws SQLException {
+      final String sql, final Object parameter) throws SQLException {
     List<GoogleOperationResult> results = new ArrayList<>();
 
-    try (PreparedStatement preparedStatement = connection
-        .prepareStatement(sql)) {
+    try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
       if (parameter instanceof Integer) {
         preparedStatement.setInt(1, (Integer) parameter);
       } else {
@@ -136,12 +131,10 @@ public final class OperationResultRepository {
     operationResult.setId(resultSet.getLong("id"));
     operationResult.setUserId(resultSet.getInt(USER_ID_COLUMN));
     operationResult.setOperation(resultSet.getString(OPERATION_COLUMN));
-    operationResult
-        .setTargetValue(resultSet.getString("target_value"));
+    operationResult.setTargetValue(resultSet.getString("target_value"));
     operationResult.setResult(resultSet.getString("result"));
     operationResult.setError(resultSet.getString("error"));
-    operationResult.setCreatedAt(
-        resultSet.getTimestamp(CREATED_AT_COLUMN).toLocalDateTime());
+    operationResult.setCreatedAt(resultSet.getTimestamp(CREATED_AT_COLUMN).toLocalDateTime());
     return operationResult;
   }
 
@@ -152,8 +145,7 @@ public final class OperationResultRepository {
         LOGGER.info("Database connection closed");
       }
     } catch (SQLException sqlException) {
-      LOGGER.error("Error closing database connection: "
-          + sqlException.getMessage());
+      LOGGER.error("Error closing database connection: " + sqlException.getMessage());
     }
   }
 }

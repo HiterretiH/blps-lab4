@@ -16,8 +16,7 @@ public final class WebConfig implements WebMvcConfigurer {
   private static final String ALL_PATHS = "/**";
   private static final String LOCAL_FRONTEND_URL = "http://localhost:4200";
   private static final String ALL_HEADERS = "*";
-  private static final String[] ALLOWED_METHODS =
-      {"GET", "POST", "PUT", "DELETE", "OPTIONS"};
+  private static final String[] ALLOWED_METHODS = {"GET", "POST", "PUT", "DELETE", "OPTIONS"};
   private static final String PASSWORD_ENCODER_BEAN = "passwordEncoder";
   private static final String REST_TEMPLATE_BEAN = "restTemplate";
   private static final String LOGGER_BEAN = "logger";

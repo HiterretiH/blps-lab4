@@ -73,8 +73,10 @@ public class GoogleTaskSender {
   }
 
   public final void sendFormCreationRequest(
-      final int userId, final Map<String, String> fields,
-      final String formTitle, final String googleEmail) {
+      final int userId,
+      final Map<String, String> fields,
+      final String formTitle,
+      final String googleEmail) {
     try {
       GoogleFormRequest request = new GoogleFormRequest(googleEmail, fields, formTitle);
 

@@ -20,20 +20,16 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/application-stats")
 public final class ApplicationStatsController {
-  private static final String CREATE_REQUEST_LOG =
-      "Received request to create ApplicationStats";
-  private static final String CREATE_SUCCESS_LOG =
-      "ApplicationStats created with ID: ";
+  private static final String CREATE_REQUEST_LOG = "Received request to create ApplicationStats";
+  private static final String CREATE_SUCCESS_LOG = "ApplicationStats created with ID: ";
   private static final String UPDATE_REQUEST_LOG =
       "Received request to update ApplicationStats with ID: ";
-  private static final String UPDATE_SUCCESS_LOG =
-      "ApplicationStats updated with ID: ";
+  private static final String UPDATE_SUCCESS_LOG = "ApplicationStats updated with ID: ";
   private static final String GET_REQUEST_LOG =
       "Received request to get ApplicationStats with ID: ";
   private static final String GET_FOUND_LOG = "ApplicationStats found with ID: ";
   private static final String GET_NOT_FOUND_LOG = "ApplicationStats not found with ID: ";
-  private static final String GET_ALL_REQUEST_LOG =
-      "Received request to get all ApplicationStats";
+  private static final String GET_ALL_REQUEST_LOG = "Received request to get all ApplicationStats";
   private static final String GET_ALL_FOUND_LOG = "Found ";
   private static final String APPLICATION_STATS_COUNT_LOG = " ApplicationStats";
   private static final String DELETE_REQUEST_LOG =
@@ -45,8 +41,7 @@ public final class ApplicationStatsController {
 
   @Autowired
   public ApplicationStatsController(
-      final ApplicationStatsService applicationStatsServiceParam,
-      final Logger loggerParam) {
+      final ApplicationStatsService applicationStatsServiceParam, final Logger loggerParam) {
     this.applicationStatsService = applicationStatsServiceParam;
     this.logger = loggerParam;
   }
@@ -63,8 +58,7 @@ public final class ApplicationStatsController {
   @PreAuthorize("hasAuthority('application_stats.manage')")
   @PutMapping("/{id}")
   public ApplicationStats update(
-      @PathVariable final int id,
-      @RequestBody final ApplicationStatsJson applicationStats) {
+      @PathVariable final int id, @RequestBody final ApplicationStatsJson applicationStats) {
     logger.info(UPDATE_REQUEST_LOG + id);
     applicationStats.setId(id);
     ApplicationStats updatedStats = applicationStatsService.save(applicationStats);
@@ -92,8 +86,7 @@ public final class ApplicationStatsController {
   public List<ApplicationStats> getAll() {
     logger.info(GET_ALL_REQUEST_LOG);
     List<ApplicationStats> allStats = applicationStatsService.findAll();
-    logger.info(GET_ALL_FOUND_LOG + allStats.size()
-        + APPLICATION_STATS_COUNT_LOG);
+    logger.info(GET_ALL_FOUND_LOG + allStats.size() + APPLICATION_STATS_COUNT_LOG);
     return allStats;
   }
 

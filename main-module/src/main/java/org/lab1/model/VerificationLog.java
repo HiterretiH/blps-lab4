@@ -16,8 +16,7 @@ public class VerificationLog {
   private boolean policyCheckPassed;
   private boolean adsCheckPassed;
 
-  @ManyToOne
-  private Application application;
+  @ManyToOne private Application application;
 
   private String logMessage;
 

@@ -87,10 +87,7 @@ public class UserService {
   }
 
   public final User registerUser(
-      final String username,
-      final String email,
-      final String password,
-      final Role role) {
+      final String username, final String email, final String password, final Role role) {
     try {
       if (userRepository.existsByUsername(username)) {
         throw new ResponseStatusException(HttpStatus.CONFLICT, USERNAME_EXISTS_MSG);
@@ -127,10 +124,7 @@ public class UserService {
   }
 
   public final Token registerUserAndGetToken(
-      final String username,
-      final String email,
-      final String password,
-      final Role role) {
+      final String username, final String email, final String password, final Role role) {
     User savedUser = registerUser(username, email, password, role);
     return generateToken(savedUser);
   }
