@@ -17,7 +17,8 @@ public class VerificationLogService {
 
   @Autowired
   public VerificationLogService(
-      final VerificationLogRepository verificationLogRepositoryConstructor, final Logger loggerConstructor) {
+      final VerificationLogRepository verificationLogRepositoryConstructor,
+      final Logger loggerConstructor) {
     this.verificationLogRepository = verificationLogRepositoryConstructor;
     this.logger = loggerConstructor;
   }

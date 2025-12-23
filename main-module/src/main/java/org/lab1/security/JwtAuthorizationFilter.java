@@ -18,8 +18,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 /**
- * Фильтр авторизации JWT, обрабатывающий токены в заголовках запросов.
- * Проверяет наличие и валидность JWT токена, устанавливает контекст безопасности.
+ * Фильтр авторизации JWT, обрабатывающий токены в заголовках запросов. Проверяет наличие и
+ * валидность JWT токена, устанавливает контекст безопасности.
  */
 @Component
 public final class JwtAuthorizationFilter extends OncePerRequestFilter {
@@ -36,8 +36,8 @@ public final class JwtAuthorizationFilter extends OncePerRequestFilter {
   }
 
   /**
-   * Основной метод фильтрации запросов.
-   * Извлекает токен из заголовка, проверяет его валидность и устанавливает аутентификацию.
+   * Основной метод фильтрации запросов. Извлекает токен из заголовка, проверяет его валидность и
+   * устанавливает аутентификацию.
    *
    * @param request HTTP запрос
    * @param response HTTP ответ

@@ -71,7 +71,8 @@ public class ApplicationService {
     return applications;
   }
 
-  public final ResponseEntity<Application> submitApplicationForCheck(final Application application) {
+  public final ResponseEntity<Application> submitApplicationForCheck(
+      final Application application) {
     logger.info(SUBMIT_APP_LOG + application.getName());
     try {
       Application savedApplication = applicationRepository.save(application);
@@ -83,7 +84,8 @@ public class ApplicationService {
     }
   }
 
-  public final ResponseEntity<ApplicationStatus> getApplicationCheckStatus(final int applicationId) {
+  public final ResponseEntity<ApplicationStatus> getApplicationCheckStatus(
+      final int applicationId) {
     logger.info(CHECK_STATUS_LOG + applicationId);
     Optional<Application> application = applicationRepository.findById(applicationId);
 

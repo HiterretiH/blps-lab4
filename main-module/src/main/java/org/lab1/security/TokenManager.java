@@ -24,9 +24,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 /**
- * Сервис управления JWT токенами.
- * Предоставляет функционал генерации, валидации и управления токенами авторизации.
- * Также управляет метриками активных сессий.
+ * Сервис управления JWT токенами. Предоставляет функционал генерации, валидации и управления
+ * токенами авторизации. Также управляет метриками активных сессий.
  */
 @Service
 public class TokenManager {
@@ -58,14 +57,13 @@ public class TokenManager {
   private final Map<String, List<GrantedAuthority>> roleAuthorities = initializeRoleAuthorities();
 
   @Autowired
-  public TokenManager(final MeterRegistry meterRegistryParam, final PasswordEncoder passwordEncoderParam) {
+  public TokenManager(
+      final MeterRegistry meterRegistryParam, final PasswordEncoder passwordEncoderParam) {
     this.meterRegistry = meterRegistryParam;
     this.passwordEncoder = passwordEncoderParam;
   }
 
-  /**
-   * Инициализация метрик для отслеживания активных сессий.
-   */
+  /** Инициализация метрик для отслеживания активных сессий. */
   @PostConstruct
   public final void initMetrics() {
     this.activeSessionsGauge = new AtomicInteger(0);
