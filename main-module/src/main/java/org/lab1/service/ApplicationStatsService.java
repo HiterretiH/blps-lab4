@@ -35,15 +35,15 @@ public class ApplicationStatsService {
 
   @Autowired
   public ApplicationStatsService(
-      final ApplicationStatsRepository applicationStatsRepository,
-      final ApplicationRepository applicationRepository,
-      final Logger logger) {
-    this.applicationStatsRepository = applicationStatsRepository;
-    this.applicationRepository = applicationRepository;
-    this.logger = logger;
+      final ApplicationStatsRepository applicationStatsRepositoryParam,
+      final ApplicationRepository applicationRepositoryParam,
+      final Logger loggerParam) {
+    this.applicationStatsRepository = applicationStatsRepositoryParam;
+    this.applicationRepository = applicationRepositoryParam;
+    this.logger = loggerParam;
   }
 
-  public ApplicationStats save(final ApplicationStatsJson applicationStatsJson) {
+  public final ApplicationStats save(final ApplicationStatsJson applicationStatsJson) {
     logger.info(SAVE_REQUEST_LOG + applicationStatsJson.getApplicationId());
     Application application =
         applicationRepository
@@ -65,7 +65,7 @@ public class ApplicationStatsService {
     return savedStats;
   }
 
-  public Optional<ApplicationStats> findById(final int id) {
+  public final Optional<ApplicationStats> findById(final int id) {
     logger.info(FIND_BY_ID_LOG + id);
     Optional<ApplicationStats> stats = applicationStatsRepository.findById(id);
 
@@ -78,14 +78,14 @@ public class ApplicationStatsService {
     return stats;
   }
 
-  public List<ApplicationStats> findAll() {
+  public final List<ApplicationStats> findAll() {
     logger.info(FIND_ALL_LOG);
     List<ApplicationStats> allStats = applicationStatsRepository.findAll();
     logger.info(FOUND_ALL_LOG + allStats.size() + STATS_COUNT_LOG);
     return allStats;
   }
 
-  public void delete(final int id) {
+  public final void delete(final int id) {
     logger.info(DELETE_LOG + id);
     applicationStatsRepository.deleteById(id);
     logger.info(DELETED_LOG + id);

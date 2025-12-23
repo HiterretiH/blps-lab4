@@ -18,17 +18,17 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
-public class SecurityConfig {
+public final class SecurityConfig {
   private static final String[] PUBLIC_ENDPOINTS = {
-    "/api/auth/**", "/actuator/health", "/actuator/info", "/actuator/prometheus"
+      "/api/auth/**", "/actuator/health", "/actuator/info", "/actuator/prometheus"
   };
 
   private static final String[] ALLOWED_ORIGINS = {"*"};
   private static final String[] ALLOWED_METHODS = {
-    "GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"
+      "GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"
   };
   private static final String[] ALLOWED_HEADERS = {
-    "Authorization", "Cache-Control", "Content-Type"
+      "Authorization", "Cache-Control", "Content-Type"
   };
   private static final String[] EXPOSED_HEADERS = {"Authorization"};
   private static final String ALL_PATHS = "/**";
@@ -36,10 +36,18 @@ public class SecurityConfig {
   private final JwtAuthorizationFilter jwtAuthorizationFilter;
 
   @Autowired
-  public SecurityConfig(final JwtAuthorizationFilter jwtAuthorizationFilter) {
-    this.jwtAuthorizationFilter = jwtAuthorizationFilter;
+  public SecurityConfig(final JwtAuthorizationFilter jwtAuthorizationFilterParam) {
+    this.jwtAuthorizationFilter = jwtAuthorizationFilterParam;
   }
 
+  /**
+   * Конфигурация цепочки фильтров безопасности.
+   * Настраивает CORS, CSRF, авторизацию и JWT аутентификацию.
+   *
+   * @param http объект HttpSecurity для конфигурации
+   * @return сконфигурированная цепочка фильтров безопасности
+   * @throws Exception если возникает ошибка при конфигурации
+   */
   @Bean
   public SecurityFilterChain securityFilterChain(final HttpSecurity http) throws Exception {
     http.csrf(csrf -> csrf.disable())
@@ -57,6 +65,11 @@ public class SecurityConfig {
     return http.build();
   }
 
+  /**
+   * Конфигурация CORS для разрешения кросс-доменных запросов.
+   *
+   * @return источник конфигурации CORS
+   */
   @Bean
   public CorsConfigurationSource corsConfigurationSource() {
     CorsConfiguration configuration = createCorsConfiguration();

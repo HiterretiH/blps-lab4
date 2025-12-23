@@ -24,7 +24,6 @@ public class GoogleSheetService {
   private static final String NOT_CONNECTED_LOG = "User ID ";
   private static final String NOT_CONNECTED_GOOGLE_LOG = " has not connected Google account.";
   private static final String NOT_CONNECTED_MSG = "User has not connected Google account";
-  private static final String UNAUTHORIZED_STATUS = "Unauthorized";
   private static final String REVENUE_SHEET_TITLE_PREFIX = "Revenue Statistics - ";
   private static final String REVENUE_SHEET_TITLE_SUFFIX = " - 52";
   private static final String ID_COLUMN = "ID";
@@ -66,18 +65,18 @@ public class GoogleSheetService {
 
   @Autowired
   public GoogleSheetService(
-      final GoogleTaskSender googleTaskSender,
-      final GoogleOAuthService googleOAuthService,
-      final UserService userService,
-      final MonetizedApplicationRepository monetizedApplicationRepository,
-      final ApplicationRepository applicationRepository,
-      final Logger logger) {
-    this.googleTaskSender = googleTaskSender;
-    this.googleOAuthService = googleOAuthService;
-    this.userService = userService;
-    this.monetizedApplicationRepository = monetizedApplicationRepository;
-    this.applicationRepository = applicationRepository;
-    this.logger = logger;
+      final GoogleTaskSender googleTaskSenderParam,
+      final GoogleOAuthService googleOAuthServiceParam,
+      final UserService userServiceParam,
+      final MonetizedApplicationRepository monetizedApplicationRepositoryParam,
+      final ApplicationRepository applicationRepositoryParam,
+      final Logger loggerParam) {
+    this.googleTaskSender = googleTaskSenderParam;
+    this.googleOAuthService = googleOAuthServiceParam;
+    this.userService = userServiceParam;
+    this.monetizedApplicationRepository = monetizedApplicationRepositoryParam;
+    this.applicationRepository = applicationRepositoryParam;
+    this.logger = loggerParam;
   }
 
   public final String createRevenueSheet(final int userId) throws OAuthException {

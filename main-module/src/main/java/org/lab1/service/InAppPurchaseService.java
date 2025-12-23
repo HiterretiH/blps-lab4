@@ -55,14 +55,14 @@ public class InAppPurchaseService {
 
   @Autowired
   public InAppPurchaseService(
-      final InAppPurchaseRepository inAppPurchaseRepository,
-      final MonetizedApplicationRepository monetizedApplicationRepository,
-      final JtaTransactionManager transactionManager,
-      final Logger logger) {
-    this.inAppPurchaseRepository = inAppPurchaseRepository;
-    this.monetizedApplicationRepository = monetizedApplicationRepository;
-    this.transactionManager = transactionManager;
-    this.logger = logger;
+      final InAppPurchaseRepository inAppPurchaseRepositoryParam,
+      final MonetizedApplicationRepository monetizedApplicationRepositoryParam,
+      final JtaTransactionManager transactionManagerParam,
+      final Logger loggerParam) {
+    this.inAppPurchaseRepository = inAppPurchaseRepositoryParam;
+    this.monetizedApplicationRepository = monetizedApplicationRepositoryParam;
+    this.transactionManager = transactionManagerParam;
+    this.logger = loggerParam;
   }
 
   public final List<InAppPurchase> createInAppPurchases(

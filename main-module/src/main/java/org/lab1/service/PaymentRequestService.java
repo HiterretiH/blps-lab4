@@ -26,9 +26,9 @@ public class PaymentRequestService {
 
   @Autowired
   public PaymentRequestService(
-      final PaymentRequestRepository paymentRequestRepository, final Logger logger) {
-    this.paymentRequestRepository = paymentRequestRepository;
-    this.logger = logger;
+      final PaymentRequestRepository paymentRequestRepositoryParam, final Logger loggerParam) {
+    this.paymentRequestRepository = paymentRequestRepositoryParam;
+    this.logger = loggerParam;
   }
 
   public final PaymentRequest createPaymentRequest(final int applicationId, final double amount) {

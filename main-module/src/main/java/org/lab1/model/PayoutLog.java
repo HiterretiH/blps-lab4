@@ -24,39 +24,39 @@ public class PayoutLog {
     return id;
   }
 
-  public final void setId(final int id) {
-    this.id = id;
+  public final void setId(final int idParam) {
+    this.id = idParam;
   }
 
   public final Developer getDeveloper() {
     return developer;
   }
 
-  public final void setDeveloper(final Developer developer) {
-    this.developer = developer;
+  public final void setDeveloper(final Developer developerParam) {
+    this.developer = developerParam;
   }
 
   public final MonetizedApplication getMonetizedApplication() {
     return monetizedApplication;
   }
 
-  public final void setMonetizedApplication(final MonetizedApplication monetizedApplication) {
-    this.monetizedApplication = monetizedApplication;
+  public final void setMonetizedApplication(final MonetizedApplication monetizedApplicationParam) {
+    this.monetizedApplication = monetizedApplicationParam;
   }
 
   public final double getPayoutValue() {
     return payoutValue;
   }
 
-  public final void setPayoutValue(final double payoutValue) {
-    this.payoutValue = payoutValue;
+  public final void setPayoutValue(final double payoutValueParam) {
+    this.payoutValue = payoutValueParam;
   }
 
   public final Date getTimestamp() {
     return timestamp;
   }
 
-  public final void setTimestamp(final Date timestamp) {
-    this.timestamp = timestamp;
+  public final void setTimestamp(final Date timestampParam) {
+    this.timestamp = timestampParam;
   }
 }

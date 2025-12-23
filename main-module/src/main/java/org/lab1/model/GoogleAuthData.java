@@ -47,55 +47,55 @@ public class GoogleAuthData {
     return userId;
   }
 
-  public final void setUserId(final Integer userId) {
-    this.userId = userId;
+  public final void setUserId(final Integer userIdParam) {
+    this.userId = userIdParam;
   }
 
   public final String getUserEmail() {
     return userEmail;
   }
 
-  public final void setUserEmail(final String userEmail) {
-    this.userEmail = userEmail;
+  public final void setUserEmail(final String userEmailParam) {
+    this.userEmail = userEmailParam;
   }
 
   public final String getAccessToken() {
     return accessToken;
   }
 
-  public final void setAccessToken(final String accessToken) {
-    this.accessToken = accessToken;
+  public final void setAccessToken(final String accessTokenParam) {
+    this.accessToken = accessTokenParam;
   }
 
   public final String getRefreshToken() {
     return refreshToken;
   }
 
-  public final void setRefreshToken(final String refreshToken) {
-    this.refreshToken = refreshToken;
+  public final void setRefreshToken(final String refreshTokenParam) {
+    this.refreshToken = refreshTokenParam;
   }
 
   public final Instant getExpiryDate() {
     return expiryDate;
   }
 
-  public final void setExpiryDate(final Instant expiryDate) {
-    this.expiryDate = expiryDate;
+  public final void setExpiryDate(final Instant expiryDateParam) {
+    this.expiryDate = expiryDateParam;
   }
 
   public final String getTokenType() {
     return tokenType;
   }
 
-  public final void setTokenType(final String tokenType) {
-    this.tokenType = tokenType;
+  public final void setTokenType(final String tokenTypeParam) {
+    this.tokenType = tokenTypeParam;
   }
 
   public final String getScope() {
     return scope;
   }
 
-  public final void setScope(final String scope) {
-    this.scope = scope;
+  public final void setScope(final String scopeParam) {
+    this.scope = scopeParam;
   }
 }

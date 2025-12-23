@@ -22,39 +22,39 @@ public class InAppPurchase {
     return id;
   }
 
-  public final void setId(final int id) {
-    this.id = id;
+  public final void setId(final int idParam) {
+    this.id = idParam;
   }
 
   public final MonetizedApplication getMonetizedApplication() {
     return monetizedApplication;
   }
 
-  public final void setMonetizedApplication(final MonetizedApplication monetizedApplication) {
-    this.monetizedApplication = monetizedApplication;
+  public final void setMonetizedApplication(final MonetizedApplication monetizedApplicationParam) {
+    this.monetizedApplication = monetizedApplicationParam;
   }
 
   public final String getTitle() {
     return title;
   }
 
-  public final void setTitle(final String title) {
-    this.title = title;
+  public final void setTitle(final String titleParam) {
+    this.title = titleParam;
   }
 
   public final String getDescription() {
     return description;
   }
 
-  public final void setDescription(final String description) {
-    this.description = description;
+  public final void setDescription(final String descriptionParam) {
+    this.description = descriptionParam;
   }
 
   public final double getPrice() {
     return price;
   }
 
-  public final void setPrice(final double price) {
-    this.price = price;
+  public final void setPrice(final double priceParam) {
+    this.price = priceParam;
   }
 }

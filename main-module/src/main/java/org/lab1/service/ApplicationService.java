@@ -56,22 +56,22 @@ public class ApplicationService {
 
   @Autowired
   public ApplicationService(
-      final ApplicationRepository applicationRepository,
-      final DeveloperRepository developerRepository,
-      final Logger logger) {
-    this.applicationRepository = applicationRepository;
-    this.developerRepository = developerRepository;
-    this.logger = logger;
+      final ApplicationRepository applicationRepositoryParam,
+      final DeveloperRepository developerRepositoryParam,
+      final Logger loggerParam) {
+    this.applicationRepository = applicationRepositoryParam;
+    this.developerRepository = developerRepositoryParam;
+    this.logger = loggerParam;
   }
 
-  public List<Application> getAllApplications() {
+  public final List<Application> getAllApplications() {
     logger.info(FETCH_ALL_APPS_LOG);
     List<Application> applications = applicationRepository.findAll();
     logger.info(FOUND_APPS_LOG + applications.size() + APPLICATIONS_LOG);
     return applications;
   }
 
-  public ResponseEntity<Application> submitApplicationForCheck(final Application application) {
+  public final ResponseEntity<Application> submitApplicationForCheck(final Application application) {
     logger.info(SUBMIT_APP_LOG + application.getName());
     try {
       Application savedApplication = applicationRepository.save(application);
@@ -83,7 +83,7 @@ public class ApplicationService {
     }
   }
 
-  public ResponseEntity<ApplicationStatus> getApplicationCheckStatus(final int applicationId) {
+  public final ResponseEntity<ApplicationStatus> getApplicationCheckStatus(final int applicationId) {
     logger.info(CHECK_STATUS_LOG + applicationId);
     Optional<Application> application = applicationRepository.findById(applicationId);
 
@@ -96,7 +96,7 @@ public class ApplicationService {
     return ResponseEntity.notFound().build();
   }
 
-  public ResponseEntity<Application> getApplication(final int applicationId) {
+  public final ResponseEntity<Application> getApplication(final int applicationId) {
     logger.info(FETCH_APP_LOG + applicationId);
     Optional<Application> application = applicationRepository.findById(applicationId);
 
@@ -109,14 +109,14 @@ public class ApplicationService {
     return ResponseEntity.notFound().build();
   }
 
-  public List<Application> getApplicationsByDeveloperId(final int developerId) {
+  public final List<Application> getApplicationsByDeveloperId(final int developerId) {
     logger.info(FETCH_BY_DEV_LOG + developerId);
     List<Application> applications = applicationRepository.findByDeveloperId(developerId);
     logger.info(FOUND_FOR_DEV_LOG + applications.size() + APPS_FOR_DEV_LOG + developerId);
     return applications;
   }
 
-  public Application createApplication(final ApplicationJson applicationJson) {
+  public final Application createApplication(final ApplicationJson applicationJson) {
     logger.info(CREATE_APP_LOG + applicationJson.getDeveloperId());
     Developer developer =
         developerRepository
@@ -145,7 +145,7 @@ public class ApplicationService {
     }
   }
 
-  public Optional<Application> getApplicationById(final int id) {
+  public final Optional<Application> getApplicationById(final int id) {
     logger.info(LOOKUP_APP_LOG + id);
     Optional<Application> application = applicationRepository.findById(id);
 
@@ -158,7 +158,7 @@ public class ApplicationService {
     return application;
   }
 
-  public Application updateApplication(
+  public final Application updateApplication(
       final int id,
       final Developer developer,
       final String name,
@@ -193,7 +193,7 @@ public class ApplicationService {
     }
   }
 
-  public void deleteApplication(final int id) {
+  public final void deleteApplication(final int id) {
     logger.info(DELETE_APP_LOG + id);
     try {
       if (applicationRepository.existsById(id)) {

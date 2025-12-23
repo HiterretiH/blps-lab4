@@ -163,7 +163,7 @@
       <property name="option" value="eol"/>
       <property name="tokens" value="CLASS_DEF, INTERFACE_DEF, ENUM_DEF, METHOD_DEF,
                                     CTOR_DEF, LITERAL_FOR, LITERAL_WHILE, LITERAL_DO,
-                                    STATIC_INIT, INSTANCE_INIT"/>
+                                    STATIC_INIT"/>
       <message key="line.new"
                value="➡️ {{ на той же строке! Не разрывай объятие кода! 🤗"/>
     </module>
@@ -283,7 +283,13 @@
                value="🔢 Магическое число {0}? Создай константу! Или хоть комментарий! ✏️"/>
     </module>
 
+    <module name="HiddenField">
+      <property name="ignoreConstructorParameter" value="true"/>
+      <property name="ignoreSetter" value="true"/>
+    </module>
+
   </module>
+
 
   <!-- ============ ФИНАЛЬНЫЕ ШТРИХИ KILLA ============ -->
 

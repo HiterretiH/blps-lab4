@@ -15,6 +15,14 @@
   <suppress checks="NonEmptyAtclauseDescription" files=".*"/>
   <suppress checks="LineLength" files=".*"/>
 
+  <suppress checks="WhitespaceAround"
+            files=".*"
+            message="\Q'{' is not followed by whitespace\E"/>
+
+  <suppress checks="WhitespaceAround"
+            files=".*"
+            message="\Q'}' is not preceded with whitespace\E"/>
+
   <suppress checks=".*" files=".*package-info\.java"/>
 
   <suppress checks=".*" files=".*Test\.java"/>

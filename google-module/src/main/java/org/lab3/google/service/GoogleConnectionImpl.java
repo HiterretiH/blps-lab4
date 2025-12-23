@@ -300,8 +300,8 @@ public final class GoogleConnectionImpl implements GoogleConnection {
     sheetsService.spreadsheets().values().batchUpdate(spreadsheetId, batchDataRequest).execute();
 
     List<com.google.api.services.sheets.v4.model.Request> formatRequests = new ArrayList<>();
-    for (SheetProperties sheet :
-        response.getReplies().stream()
+    for (SheetProperties sheet
+        : response.getReplies().stream()
             .map(reply -> reply.getAddSheet().getProperties())
             .collect(Collectors.toList())) {
 

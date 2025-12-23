@@ -14,7 +14,7 @@ public class InAppPurchaseLogService {
   @Autowired private InAppPurchaseLogRepository inAppPurchaseLogRepository;
   @Autowired private Logger logger;
 
-  public List<InAppPurchaseLog> getAllPlayers() {
+  public final List<InAppPurchaseLog> getAllPlayers() {
     logger.info(FETCH_ALL_LOGS_LOG);
     return inAppPurchaseLogRepository.findAll();
   }

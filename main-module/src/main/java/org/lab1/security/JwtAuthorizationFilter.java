@@ -17,8 +17,12 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+/**
+ * Фильтр авторизации JWT, обрабатывающий токены в заголовках запросов.
+ * Проверяет наличие и валидность JWT токена, устанавливает контекст безопасности.
+ */
 @Component
-public class JwtAuthorizationFilter extends OncePerRequestFilter {
+public final class JwtAuthorizationFilter extends OncePerRequestFilter {
   private static final String AUTHORIZATION_HEADER = "Authorization";
   private static final String BEARER_PREFIX = "Bearer ";
   private static final int BEARER_PREFIX_LENGTH = 7;
@@ -27,10 +31,20 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
   private final TokenManager tokenManager;
 
   @Autowired
-  public JwtAuthorizationFilter(final TokenManager tokenManager) {
-    this.tokenManager = tokenManager;
+  public JwtAuthorizationFilter(final TokenManager tokenManagerParam) {
+    this.tokenManager = tokenManagerParam;
   }
 
+  /**
+   * Основной метод фильтрации запросов.
+   * Извлекает токен из заголовка, проверяет его валидность и устанавливает аутентификацию.
+   *
+   * @param request HTTP запрос
+   * @param response HTTP ответ
+   * @param filterChain цепочка фильтров
+   * @throws ServletException если возникает ошибка сервлета
+   * @throws IOException если возникает ошибка ввода/вывода
+   */
   @Override
   protected void doFilterInternal(
       final HttpServletRequest request,

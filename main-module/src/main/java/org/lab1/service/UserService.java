@@ -1,3 +1,4 @@
+
 package org.lab1.service;
 
 import io.micrometer.core.instrument.Counter;
@@ -37,13 +38,13 @@ public class UserService {
 
   @Autowired
   public UserService(
-      final UserRepository userRepository,
-      final PasswordEncoder passwordEncoder,
-      final TokenManager tokenManager,
+      final UserRepository userRepositoryParam,
+      final PasswordEncoder passwordEncoderParam,
+      final TokenManager tokenManagerParam,
       final MeterRegistry meterRegistry) {
-    this.userRepository = userRepository;
-    this.passwordEncoder = passwordEncoder;
-    this.tokenManager = tokenManager;
+    this.userRepository = userRepositoryParam;
+    this.passwordEncoder = passwordEncoderParam;
+    this.tokenManager = tokenManagerParam;
     this.loginSuccessCounter =
         Counter.builder(AUTH_LOGIN_METRIC).tag(STATUS_TAG, SUCCESS_TAG).register(meterRegistry);
 

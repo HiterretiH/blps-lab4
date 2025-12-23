@@ -9,7 +9,7 @@ public class ApplicationForm {
     return formFields;
   }
 
-  public final void setFormFields(final Map<String, String> formFields) {
-    this.formFields = formFields;
+  public final void setFormFields(final Map<String, String> formFieldsParam) {
+    this.formFields = formFieldsParam;
   }
 }

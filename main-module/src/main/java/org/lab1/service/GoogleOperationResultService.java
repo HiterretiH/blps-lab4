@@ -28,12 +28,12 @@ public class GoogleOperationResultService {
 
   @Autowired
   public GoogleOperationResultService(
-      final GoogleOperationResultRepository repository, final Logger logger) {
-    this.repository = repository;
-    this.logger = logger;
+      final GoogleOperationResultRepository repositoryParam, final Logger loggerParam) {
+    this.repository = repositoryParam;
+    this.logger = loggerParam;
   }
 
-  public final List<GoogleOperationResult> getResultsByUserId(Integer userId) {
+  public final List<GoogleOperationResult> getResultsByUserId(final Integer userId) {
     logger.info(GET_RESULTS_BY_USER_LOG + userId);
     List<GoogleOperationResult> results = repository.findByUserId(userId);
 
@@ -46,7 +46,7 @@ public class GoogleOperationResultService {
     return results;
   }
 
-  public final List<GoogleOperationResult> getResultsByOperation(String operation) {
+  public final List<GoogleOperationResult> getResultsByOperation(final String operation) {
     logger.info(GET_RESULTS_BY_OPERATION_LOG + operation);
     List<GoogleOperationResult> results = repository.findByOperation(operation);
 
@@ -87,7 +87,7 @@ public class GoogleOperationResultService {
     return results;
   }
 
-  public List<GoogleOperationResult> getOperationsWithErrors() {
+  public final List<GoogleOperationResult> getOperationsWithErrors() {
     logger.info(GET_ERRORS_LOG);
     List<GoogleOperationResult> results = repository.findWithErrors();
 
@@ -100,7 +100,7 @@ public class GoogleOperationResultService {
     return results;
   }
 
-  public List<GoogleOperationResult> getSuccessfulOperations() {
+  public final List<GoogleOperationResult> getSuccessfulOperations() {
     logger.info(GET_SUCCESSFUL_LOG);
     List<GoogleOperationResult> results = repository.findSuccessfulOperations();
 

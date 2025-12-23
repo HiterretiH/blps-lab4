@@ -17,15 +17,15 @@ public class FormField {
     return id;
   }
 
-  public final void setId(final int id) {
-    this.id = id;
+  public final void setId(final int idParam) {
+    this.id = idParam;
   }
 
   public final String getFieldName() {
     return fieldName;
   }
 
-  public final void setFieldName(final String fieldName) {
-    this.fieldName = fieldName;
+  public final void setFieldName(final String fieldNameParam) {
+    this.fieldName = fieldNameParam;
   }
 }

@@ -23,31 +23,31 @@ public class Developer {
     return id;
   }
 
-  public final void setId(final int id) {
-    this.id = id;
+  public final void setId(final int idParam) {
+    this.id = idParam;
   }
 
   public final String getName() {
     return name;
   }
 
-  public final void setName(final String name) {
-    this.name = name;
+  public final void setName(final String nameParam) {
+    this.name = nameParam;
   }
 
   public final String getDescription() {
     return description;
   }
 
-  public final void setDescription(final String description) {
-    this.description = description;
+  public final void setDescription(final String descriptionParam) {
+    this.description = descriptionParam;
   }
 
   public final User getUser() {
     return user;
   }
 
-  public final void setUser(final User user) {
-    this.user = user;
+  public final void setUser(final User userParam) {
+    this.user = userParam;
   }
 }

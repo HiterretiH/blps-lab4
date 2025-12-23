@@ -27,63 +27,63 @@ public class MonetizedApplication {
     return id;
   }
 
-  public final void setId(final int id) {
-    this.id = id;
+  public final void setId(final int idParam) {
+    this.id = idParam;
   }
 
   public final Developer getDeveloper() {
     return developer;
   }
 
-  public final void setDeveloper(final Developer developer) {
-    this.developer = developer;
+  public final void setDeveloper(final Developer developerParam) {
+    this.developer = developerParam;
   }
 
   public final Application getApplication() {
     return application;
   }
 
-  public final void setApplication(final Application application) {
-    this.application = application;
+  public final void setApplication(final Application applicationParam) {
+    this.application = applicationParam;
   }
 
   public final double getCurrentBalance() {
     return currentBalance;
   }
 
-  public final void setCurrentBalance(final double currentBalance) {
-    this.currentBalance = currentBalance;
+  public final void setCurrentBalance(final double currentBalanceParam) {
+    this.currentBalance = currentBalanceParam;
   }
 
   public final double getRevenue() {
     return revenue;
   }
 
-  public final void setRevenue(final double revenue) {
-    this.revenue = revenue;
+  public final void setRevenue(final double revenueParam) {
+    this.revenue = revenueParam;
   }
 
   public final double getDownloadRevenue() {
     return downloadRevenue;
   }
 
-  public final void setDownloadRevenue(final double downloadRevenue) {
-    this.downloadRevenue = downloadRevenue;
+  public final void setDownloadRevenue(final double downloadRevenueParam) {
+    this.downloadRevenue = downloadRevenueParam;
   }
 
   public final double getAdsRevenue() {
     return adsRevenue;
   }
 
-  public final void setAdsRevenue(final double adsRevenue) {
-    this.adsRevenue = adsRevenue;
+  public final void setAdsRevenue(final double adsRevenueParam) {
+    this.adsRevenue = adsRevenueParam;
   }
 
   public final double getPurchasesRevenue() {
     return purchasesRevenue;
   }
 
-  public final void setPurchasesRevenue(final double purchasesRevenue) {
-    this.purchasesRevenue = purchasesRevenue;
+  public final void setPurchasesRevenue(final double purchasesRevenueParam) {
+    this.purchasesRevenue = purchasesRevenueParam;
   }
 }

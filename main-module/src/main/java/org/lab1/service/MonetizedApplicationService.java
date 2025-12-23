@@ -36,14 +36,14 @@ public class MonetizedApplicationService {
 
   @Autowired
   public MonetizedApplicationService(
-      final MonetizedApplicationRepository monetizedApplicationRepository,
-      final DeveloperRepository developerRepository,
-      final ApplicationRepository applicationRepository,
-      final Logger logger) {
-    this.monetizedApplicationRepository = monetizedApplicationRepository;
-    this.developerRepository = developerRepository;
-    this.applicationRepository = applicationRepository;
-    this.logger = logger;
+      final MonetizedApplicationRepository monetizedApplicationRepositoryParam,
+      final DeveloperRepository developerRepositoryParam,
+      final ApplicationRepository applicationRepositoryParam,
+      final Logger loggerParam) {
+    this.monetizedApplicationRepository = monetizedApplicationRepositoryParam;
+    this.developerRepository = developerRepositoryParam;
+    this.applicationRepository = applicationRepositoryParam;
+    this.logger = loggerParam;
   }
 
   public final MonetizedApplication createMonetizedApplication(

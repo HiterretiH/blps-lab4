@@ -31,39 +31,39 @@ public class User {
     return id;
   }
 
-  public final void setId(final int id) {
-    this.id = id;
+  public final void setId(final int idParam) {
+    this.id = idParam;
   }
 
   public final String getUsername() {
     return username;
   }
 
-  public final void setUsername(final String username) {
-    this.username = username;
+  public final void setUsername(final String usernameParam) {
+    this.username = usernameParam;
   }
 
   public final String getEmail() {
     return email;
   }
 
-  public final void setEmail(final String email) {
-    this.email = email;
+  public final void setEmail(final String emailParam) {
+    this.email = emailParam;
   }
 
   public final Role getRole() {
     return role;
   }
 
-  public final void setRole(final Role role) {
-    this.role = role;
+  public final void setRole(final Role roleParam) {
+    this.role = roleParam;
   }
 
   public final String getPasswordHash() {
     return passwordHash;
   }
 
-  public final void setPasswordHash(final String passwordHash) {
-    this.passwordHash = passwordHash;
+  public final void setPasswordHash(final String passwordHashParam) {
+    this.passwordHash = passwordHashParam;
   }
 }

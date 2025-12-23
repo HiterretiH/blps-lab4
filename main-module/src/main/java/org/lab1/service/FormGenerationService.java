@@ -48,19 +48,19 @@ public class FormGenerationService {
 
   @Autowired
   public FormGenerationService(
-      final FormFieldRepository formFieldRepository,
-      final JtaTransactionManager transactionManager,
-      final GoogleTaskSender googleTaskSender,
-      final GoogleOAuthService googleOAuthService,
-      final Logger logger) {
-    this.formFieldRepository = formFieldRepository;
-    this.transactionManager = transactionManager;
-    this.googleTaskSender = googleTaskSender;
-    this.googleOAuthService = googleOAuthService;
-    this.logger = logger;
+      final FormFieldRepository formFieldRepositoryParam,
+      final JtaTransactionManager transactionManagerParam,
+      final GoogleTaskSender googleTaskSenderParam,
+      final GoogleOAuthService googleOAuthServiceParam,
+      final Logger loggerParam) {
+    this.formFieldRepository = formFieldRepositoryParam;
+    this.transactionManager = transactionManagerParam;
+    this.googleTaskSender = googleTaskSenderParam;
+    this.googleOAuthService = googleOAuthServiceParam;
+    this.logger = loggerParam;
   }
 
-  public String generateAndSendGoogleForm(final int userId) throws OAuthException {
+  public final String generateAndSendGoogleForm(final int userId) throws OAuthException {
     logger.info(GENERATE_FORM_LOG + userId);
 
     if (!googleOAuthService.isGoogleConnected(userId)) {
@@ -81,7 +81,7 @@ public class FormGenerationService {
     return "Form creation request sent for user: " + userId;
   }
 
-  public Map<String, String> generateFormFields() {
+  public final Map<String, String> generateFormFields() {
     logger.info(GENERATE_FIELDS_LOG);
     List<FormField> formFields = formFieldRepository.findAll();
     Map<String, String> fieldsMap =
@@ -90,7 +90,7 @@ public class FormGenerationService {
     return fieldsMap;
   }
 
-  public void addFields(final List<String> fieldNames) {
+  public final void addFields(final List<String> fieldNames) {
     logger.info(ADD_MULTIPLE_FIELDS_LOG + fieldNames);
     TransactionDefinition definition = new DefaultTransactionDefinition();
     TransactionStatus status = transactionManager.getTransaction(definition);
@@ -111,7 +111,7 @@ public class FormGenerationService {
     }
   }
 
-  public void addField(final String fieldName) {
+  public final void addField(final String fieldName) {
     logger.info(ADD_FIELD_LOG + fieldName);
     FormField newField = new FormField();
     newField.setFieldName(fieldName);

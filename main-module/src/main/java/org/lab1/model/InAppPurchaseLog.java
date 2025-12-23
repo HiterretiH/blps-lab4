@@ -22,31 +22,31 @@ public class InAppPurchaseLog {
     return id;
   }
 
-  public final void setId(final int id) {
-    this.id = id;
+  public final void setId(final int idParam) {
+    this.id = idParam;
   }
 
   public final InAppPurchase getInAppPurchase() {
     return inAppPurchase;
   }
 
-  public final void setInAppPurchase(final InAppPurchase inAppPurchase) {
-    this.inAppPurchase = inAppPurchase;
+  public final void setInAppPurchase(final InAppPurchase inAppPurchaseParam) {
+    this.inAppPurchase = inAppPurchaseParam;
   }
 
   public final int getQuantity() {
     return quantity;
   }
 
-  public final void setQuantity(final int quantity) {
-    this.quantity = quantity;
+  public final void setQuantity(final int quantityParam) {
+    this.quantity = quantityParam;
   }
 
   public final Date getTimestamp() {
     return timestamp;
   }
 
-  public final void setTimestamp(final Date timestamp) {
-    this.timestamp = timestamp;
+  public final void setTimestamp(final Date timestampParam) {
+    this.timestamp = timestampParam;
   }
 }

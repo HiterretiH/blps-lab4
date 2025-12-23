@@ -19,9 +19,9 @@ public class PaymentRequest {
   private LocalDateTime requestTime;
   private boolean isCardValid;
 
-  public PaymentRequest(final int applicationId, final double amount) {
-    this.applicationId = applicationId;
-    this.amount = amount;
+  public PaymentRequest(final int applicationIdParam, final double amountParam) {
+    this.applicationId = applicationIdParam;
+    this.amount = amountParam;
     this.requestTime = LocalDateTime.now();
     this.isCardValid = Math.random() < CARD_VALID_PROBABILITY;
   }
@@ -35,39 +35,39 @@ public class PaymentRequest {
     return id;
   }
 
-  public final void setId(final int id) {
-    this.id = id;
+  public final void setId(final int idParam) {
+    this.id = idParam;
   }
 
   public final int getApplicationId() {
     return applicationId;
   }
 
-  public final void setApplicationId(final int applicationId) {
-    this.applicationId = applicationId;
+  public final void setApplicationId(final int applicationIdParam) {
+    this.applicationId = applicationIdParam;
   }
 
   public final double getAmount() {
     return amount;
   }
 
-  public final void setAmount(final double amount) {
-    this.amount = amount;
+  public final void setAmount(final double amountParam) {
+    this.amount = amountParam;
   }
 
   public final LocalDateTime getRequestTime() {
     return requestTime;
   }
 
-  public final void setRequestTime(final LocalDateTime requestTime) {
-    this.requestTime = requestTime;
+  public final void setRequestTime(final LocalDateTime requestTimeParam) {
+    this.requestTime = requestTimeParam;
   }
 
   public final boolean isCardValid() {
     return isCardValid;
   }
 
-  public final void setCardValid(final boolean cardValid) {
-    this.isCardValid = cardValid;
+  public final void setCardValid(final boolean cardValidParam) {
+    this.isCardValid = cardValidParam;
   }
 }

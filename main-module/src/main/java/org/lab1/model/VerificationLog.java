@@ -24,47 +24,47 @@ public class VerificationLog {
     return id;
   }
 
-  public final void setId(final int id) {
-    this.id = id;
+  public final void setId(final int idParam) {
+    this.id = idParam;
   }
 
   public final boolean isSecurityCheckPassed() {
     return securityCheckPassed;
   }
 
-  public final void setSecurityCheckPassed(final boolean securityCheckPassed) {
-    this.securityCheckPassed = securityCheckPassed;
+  public final void setSecurityCheckPassed(final boolean securityCheckPassedParam) {
+    this.securityCheckPassed = securityCheckPassedParam;
   }
 
   public final boolean isPolicyCheckPassed() {
     return policyCheckPassed;
   }
 
-  public final void setPolicyCheckPassed(final boolean policyCheckPassed) {
-    this.policyCheckPassed = policyCheckPassed;
+  public final void setPolicyCheckPassed(final boolean policyCheckPassedParam) {
+    this.policyCheckPassed = policyCheckPassedParam;
   }
 
   public final boolean isAdsCheckPassed() {
     return adsCheckPassed;
   }
 
-  public final void setAdsCheckPassed(final boolean adsCheckPassed) {
-    this.adsCheckPassed = adsCheckPassed;
+  public final void setAdsCheckPassed(final boolean adsCheckPassedParam) {
+    this.adsCheckPassed = adsCheckPassedParam;
   }
 
   public final Application getApplication() {
     return application;
   }
 
-  public final void setApplication(final Application application) {
-    this.application = application;
+  public final void setApplication(final Application applicationParam) {
+    this.application = applicationParam;
   }
 
   public final String getLogMessage() {
     return logMessage;
   }
 
-  public final void setLogMessage(final String logMessage) {
-    this.logMessage = logMessage;
+  public final void setLogMessage(final String logMessageParam) {
+    this.logMessage = logMessageParam;
   }
 }

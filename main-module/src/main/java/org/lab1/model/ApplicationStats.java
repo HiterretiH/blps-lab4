@@ -21,31 +21,31 @@ public class ApplicationStats {
     return id;
   }
 
-  public final void setId(final int id) {
-    this.id = id;
+  public final void setId(final int idParam) {
+    this.id = idParam;
   }
 
   public final Application getApplication() {
     return application;
   }
 
-  public final void setApplication(final Application application) {
-    this.application = application;
+  public final void setApplication(final Application applicationParam) {
+    this.application = applicationParam;
   }
 
   public final long getDownloads() {
     return downloads;
   }
 
-  public final void setDownloads(final long downloads) {
-    this.downloads = downloads;
+  public final void setDownloads(final long downloadsParam) {
+    this.downloads = downloadsParam;
   }
 
   public final float getRating() {
     return rating;
   }
 
-  public final void setRating(final float rating) {
-    this.rating = rating;
+  public final void setRating(final float ratingParam) {
+    this.rating = ratingParam;
   }
 }

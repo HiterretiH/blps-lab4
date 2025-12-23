@@ -55,17 +55,17 @@ public class UserMonetizationService {
 
   @Autowired
   public UserMonetizationService(
-      final MonetizedApplicationRepository monetizedApplicationRepository,
-      final InAppPurchaseRepository inAppPurchaseRepository,
-      final InAppAddRepository inAppAddRepository,
-      final UserRepository userRepository,
-      final PlatformTransactionManager transactionManager,
+      final MonetizedApplicationRepository monetizedApplicationRepositoryParam,
+      final InAppPurchaseRepository inAppPurchaseRepositoryParam,
+      final InAppAddRepository inAppAddRepositoryParam,
+      final UserRepository userRepositoryParam,
+      final PlatformTransactionManager transactionManagerParam,
       final MeterRegistry meterRegistry) {
-    this.monetizedApplicationRepository = monetizedApplicationRepository;
-    this.inAppPurchaseRepository = inAppPurchaseRepository;
-    this.inAppAddRepository = inAppAddRepository;
-    this.userRepository = userRepository;
-    this.transactionManager = transactionManager;
+    this.monetizedApplicationRepository = monetizedApplicationRepositoryParam;
+    this.inAppPurchaseRepository = inAppPurchaseRepositoryParam;
+    this.inAppAddRepository = inAppAddRepositoryParam;
+    this.userRepository = userRepositoryParam;
+    this.transactionManager = transactionManagerParam;
 
     this.downloadRevenueCounter =
         Counter.builder(REVENUE_SOURCE_METRIC).tag(TYPE_TAG, DOWNLOAD_TYPE).register(meterRegistry);

@@ -23,6 +23,11 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+/**
+ * Сервис управления JWT токенами.
+ * Предоставляет функционал генерации, валидации и управления токенами авторизации.
+ * Также управляет метриками активных сессий.
+ */
 @Service
 public class TokenManager {
   private static final long TOKEN_VALIDITY_MILLISECONDS = 3600000;
@@ -53,13 +58,16 @@ public class TokenManager {
   private final Map<String, List<GrantedAuthority>> roleAuthorities = initializeRoleAuthorities();
 
   @Autowired
-  public TokenManager(final MeterRegistry meterRegistry, final PasswordEncoder passwordEncoder) {
-    this.meterRegistry = meterRegistry;
-    this.passwordEncoder = passwordEncoder;
+  public TokenManager(final MeterRegistry meterRegistryParam, final PasswordEncoder passwordEncoderParam) {
+    this.meterRegistry = meterRegistryParam;
+    this.passwordEncoder = passwordEncoderParam;
   }
 
+  /**
+   * Инициализация метрик для отслеживания активных сессий.
+   */
   @PostConstruct
-  public void initMetrics() {
+  public final void initMetrics() {
     this.activeSessionsGauge = new AtomicInteger(0);
 
     Gauge.builder(ACTIVE_SESSIONS_METRIC, activeSessionsGauge, AtomicInteger::get)
@@ -139,7 +147,15 @@ public class TokenManager {
         new SimpleGrantedAuthority("stats.update"));
   }
 
-  public String generateToken(final String username, final String role, final int userId) {
+  /**
+   * Генерирует JWT токен для пользователя.
+   *
+   * @param username имя пользователя
+   * @param role роль пользователя
+   * @param userId идентификатор пользователя
+   * @return сгенерированный JWT токен
+   */
+  public final String generateToken(final String username, final String role, final int userId) {
     Claims claims = createClaims(username, role, userId);
     String token = buildToken(claims);
     storeActiveToken(token);
@@ -171,11 +187,23 @@ public class TokenManager {
     updateActiveSessionsMetric();
   }
 
-  public Claims getClaimsFromToken(final String token) {
+  /**
+   * Извлекает claims из JWT токена.
+   *
+   * @param token JWT токен
+   * @return claims из токена
+   */
+  public final Claims getClaimsFromToken(final String token) {
     return Jwts.parser().setSigningKey(SECRET_KEY).parseClaimsJws(token).getBody();
   }
 
-  public boolean isTokenValid(final String token) {
+  /**
+   * Проверяет валидность JWT токена.
+   *
+   * @param token JWT токен для проверки
+   * @return true если токен валиден, false в противном случае
+   */
+  public final boolean isTokenValid(final String token) {
     try {
       Claims claims = validateTokenAndGetClaims(token);
       Date expiration = claims.getExpiration();
@@ -222,7 +250,13 @@ public class TokenManager {
     activeSessionsGauge.set(activeTokens.size());
   }
 
-  public List<GrantedAuthority> getAuthoritiesByRole(final String role) {
+  /**
+   * Возвращает список authorities для указанной роли.
+   *
+   * @param role роль пользователя
+   * @return список authorities для роли
+   */
+  public final List<GrantedAuthority> getAuthoritiesByRole(final String role) {
     return roleAuthorities.get(role.toUpperCase());
   }
 }

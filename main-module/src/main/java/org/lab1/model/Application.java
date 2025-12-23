@@ -29,55 +29,55 @@ public class Application {
     return id;
   }
 
-  public final void setId(final int id) {
-    this.id = id;
+  public final void setId(final int idParam) {
+    this.id = idParam;
   }
 
   public final Developer getDeveloper() {
     return developer;
   }
 
-  public final void setDeveloper(final Developer developer) {
-    this.developer = developer;
+  public final void setDeveloper(final Developer developerParam) {
+    this.developer = developerParam;
   }
 
   public final String getName() {
     return name;
   }
 
-  public final void setName(final String name) {
-    this.name = name;
+  public final void setName(final String nameParam) {
+    this.name = nameParam;
   }
 
   public final ApplicationType getType() {
     return type;
   }
 
-  public final void setType(final ApplicationType type) {
-    this.type = type;
+  public final void setType(final ApplicationType typeParam) {
+    this.type = typeParam;
   }
 
   public final double getPrice() {
     return price;
   }
 
-  public final void setPrice(final double price) {
-    this.price = price;
+  public final void setPrice(final double priceParam) {
+    this.price = priceParam;
   }
 
   public final String getDescription() {
     return description;
   }
 
-  public final void setDescription(final String description) {
-    this.description = description;
+  public final void setDescription(final String descriptionParam) {
+    this.description = descriptionParam;
   }
 
   public final ApplicationStatus getStatus() {
     return status;
   }
 
-  public final void setStatus(final ApplicationStatus status) {
-    this.status = status;
+  public final void setStatus(final ApplicationStatus statusParam) {
+    this.status = statusParam;
   }
 }

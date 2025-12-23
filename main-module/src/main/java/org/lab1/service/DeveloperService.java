@@ -31,12 +31,12 @@ public class DeveloperService {
   private final Logger logger;
 
   @Autowired
-  public DeveloperService(final DeveloperRepository developerRepository, final Logger logger) {
-    this.developerRepository = developerRepository;
-    this.logger = logger;
+  public DeveloperService(final DeveloperRepository developerRepositoryParam, final Logger loggerParam) {
+    this.developerRepository = developerRepositoryParam;
+    this.logger = loggerParam;
   }
 
-  public Developer createDeveloper(final String name, final String description) {
+  public final Developer createDeveloper(final String name, final String description) {
     logger.info(CREATE_DEV_LOG + name);
     Developer developer = new Developer();
     developer.setName(name);
@@ -46,7 +46,7 @@ public class DeveloperService {
     return savedDeveloper;
   }
 
-  public Developer createDeveloper(final User user) {
+  public final Developer createDeveloper(final User user) {
     logger.info(CREATE_FROM_USER_LOG + user.getUsername());
     Developer developer = new Developer();
     developer.setName(user.getUsername());
@@ -58,7 +58,7 @@ public class DeveloperService {
     return savedDeveloper;
   }
 
-  public Optional<Developer> getDeveloperById(final int id) {
+  public final Optional<Developer> getDeveloperById(final int id) {
     logger.info(FETCH_DEV_LOG + id);
     Optional<Developer> developer = developerRepository.findById(id);
 
@@ -71,7 +71,7 @@ public class DeveloperService {
     return developer;
   }
 
-  public Developer updateDeveloper(final int id, final String name, final String description) {
+  public final Developer updateDeveloper(final int id, final String name, final String description) {
     logger.info(UPDATE_DEV_LOG + id + NAME_LOG + name);
     Developer developer =
         developerRepository
@@ -88,7 +88,7 @@ public class DeveloperService {
     return updatedDeveloper;
   }
 
-  public void deleteDeveloper(final int id) {
+  public final void deleteDeveloper(final int id) {
     logger.info(DELETE_DEV_LOG + id);
     developerRepository.deleteById(id);
     logger.info(DELETED_DEV_LOG + id);

@@ -41,14 +41,6 @@ public class InAppAddService {
   private static final String IN_APP_ADDS_LOG = " InAppAdds for MonetizedApplication ID: ";
   private static final String BULK_CREATE_ERROR_LOG =
       "Error during bulk creation of InAppAdds. Reason: ";
-  private static final String FETCH_ALL_LOG = "Fetching all InAppAdds.";
-  private static final String FOUND_ALL_LOG = "Found ";
-  private static final String FETCH_BY_ID_LOG = "Fetching InAppAdd by ID: ";
-  private static final String FOUND_BY_ID_LOG = "InAppAdd found with ID: ";
-  private static final String NOT_FOUND_BY_ID_LOG = "InAppAdd not found with ID: ";
-  private static final String FETCH_BY_APP_LOG = "Fetching InAppAdds by MonetizedApplication ID: ";
-  private static final String FOUND_BY_APP_LOG = "Found ";
-  private static final String FOR_APP_ID_LOG = " InAppAdds for MonetizedApplication ID: ";
 
   private final InAppAddRepository inAppAddRepository;
   private final MonetizedApplicationRepository monetizedApplicationRepository;
@@ -57,14 +49,14 @@ public class InAppAddService {
 
   @Autowired
   public InAppAddService(
-      final InAppAddRepository inAppAddRepository,
-      final MonetizedApplicationRepository monetizedApplicationRepository,
-      final JtaTransactionManager transactionManager,
-      final Logger logger) {
-    this.inAppAddRepository = inAppAddRepository;
-    this.monetizedApplicationRepository = monetizedApplicationRepository;
-    this.transactionManager = transactionManager;
-    this.logger = logger;
+      final InAppAddRepository inAppAddRepositoryParam,
+      final MonetizedApplicationRepository monetizedApplicationRepositoryParam,
+      final JtaTransactionManager transactionManagerParam,
+      final Logger loggerParam) {
+    this.inAppAddRepository = inAppAddRepositoryParam;
+    this.monetizedApplicationRepository = monetizedApplicationRepositoryParam;
+    this.transactionManager = transactionManagerParam;
+    this.logger = loggerParam;
   }
 
   public final InAppAdd createInAppAdd(final InAppAddJson inAppAddJson) {
@@ -157,30 +149,31 @@ public class InAppAddService {
   }
 
   public final List<InAppAdd> getAllInAppAds() {
-    logger.info(FETCH_ALL_LOG);
+    logger.info("Fetching all InAppAdds.");
     List<InAppAdd> inAppAdds = inAppAddRepository.findAll();
-    logger.info(FOUND_ALL_LOG + inAppAdds.size() + IN_APP_ADDS_LOG);
+    logger.info("Found " + inAppAdds.size() + " InAppAdds.");
     return inAppAdds;
   }
 
   public final Optional<InAppAdd> getInAppAddById(final int id) {
-    logger.info(FETCH_BY_ID_LOG + id);
+    logger.info("Fetching InAppAdd by ID: " + id);
     Optional<InAppAdd> inAppAdd = inAppAddRepository.findById(id);
 
     if (inAppAdd.isPresent()) {
-      logger.info(FOUND_BY_ID_LOG + id);
+      logger.info("InAppAdd found with ID: " + id);
     } else {
-      logger.info(NOT_FOUND_BY_ID_LOG + id);
+      logger.info("InAppAdd not found with ID: " + id);
     }
 
     return inAppAdd;
   }
 
   public final List<InAppAdd> getInAppAddByMonetizedApplication(final int monetizedApplicationId) {
-    logger.info(FETCH_BY_APP_LOG + monetizedApplicationId);
+    logger.info("Fetching InAppAdds by MonetizedApplication ID: " + monetizedApplicationId);
     List<InAppAdd> inAppAdds =
         inAppAddRepository.findByMonetizedApplicationId(monetizedApplicationId);
-    logger.info(FOUND_BY_APP_LOG + inAppAdds.size() + FOR_APP_ID_LOG + monetizedApplicationId);
+    logger.info(
+        "Found " + inAppAdds.size() + " InAppAdds for MonetizedApplication ID: " + monetizedApplicationId);
     return inAppAdds;
   }
 }

@@ -17,75 +17,75 @@ public class GoogleOperationResult {
   public GoogleOperationResult() {}
 
   public GoogleOperationResult(
-      final Long id,
-      final Integer userId,
-      final String operation,
-      final String targetValue,
-      final String result,
-      final String error,
-      final LocalDateTime createdAt) {
-    this.id = id;
-    this.userId = userId;
-    this.operation = operation;
-    this.targetValue = targetValue;
-    this.result = result;
-    this.error = error;
-    this.createdAt = createdAt;
+      final Long idConstructor,
+      final Integer userIdConstructor,
+      final String operationConstructor,
+      final String targetValueConstructor,
+      final String resultConstructor,
+      final String errorConstructor,
+      final LocalDateTime createdAtConstructor) {
+    this.id = idConstructor;
+    this.userId = userIdConstructor;
+    this.operation = operationConstructor;
+    this.targetValue = targetValueConstructor;
+    this.result = resultConstructor;
+    this.error = errorConstructor;
+    this.createdAt = createdAtConstructor;
   }
 
   public final Long getId() {
     return id;
   }
 
-  public final void setId(final Long id) {
-    this.id = id;
+  public final void setId(final Long idParam) {
+    this.id = idParam;
   }
 
   public final Integer getUserId() {
     return userId;
   }
 
-  public final void setUserId(final Integer userId) {
-    this.userId = userId;
+  public final void setUserId(final Integer userIdParam) {
+    this.userId = userIdParam;
   }
 
   public final String getOperation() {
     return operation;
   }
 
-  public final void setOperation(final String operation) {
-    this.operation = operation;
+  public final void setOperation(final String operationParam) {
+    this.operation = operationParam;
   }
 
   public final String getTargetValue() {
     return targetValue;
   }
 
-  public final void setTargetValue(final String targetValue) {
-    this.targetValue = targetValue;
+  public final void setTargetValue(final String targetValueParam) {
+    this.targetValue = targetValueParam;
   }
 
   public final String getResult() {
     return result;
   }
 
-  public final void setResult(final String result) {
-    this.result = result;
+  public final void setResult(final String resultParam) {
+    this.result = resultParam;
   }
 
   public final String getError() {
     return error;
   }
 
-  public final void setError(final String error) {
-    this.error = error;
+  public final void setError(final String errorParam) {
+    this.error = errorParam;
   }
 
   public final LocalDateTime getCreatedAt() {
     return createdAt;
   }
 
-  public final void setCreatedAt(final LocalDateTime createdAt) {
-    this.createdAt = createdAt;
+  public final void setCreatedAt(final LocalDateTime createdAtParam) {
+    this.createdAt = createdAtParam;
   }
 }

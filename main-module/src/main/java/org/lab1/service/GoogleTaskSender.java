@@ -62,14 +62,14 @@ public class GoogleTaskSender {
 
   @Autowired
   public GoogleTaskSender(
-      final RabbitTemplate rabbitTemplate,
-      final GoogleOAuthService googleOAuthService,
-      final ObjectMapper objectMapper,
-      final Logger logger) {
-    this.rabbitTemplate = rabbitTemplate;
-    this.googleOAuthService = googleOAuthService;
-    this.objectMapper = objectMapper;
-    this.logger = logger;
+      final RabbitTemplate rabbitTemplateParam,
+      final GoogleOAuthService googleOAuthServiceParam,
+      final ObjectMapper objectMapperParam,
+      final Logger loggerParam) {
+    this.rabbitTemplate = rabbitTemplateParam;
+    this.googleOAuthService = googleOAuthServiceParam;
+    this.objectMapper = objectMapperParam;
+    this.logger = loggerParam;
   }
 
   public final void sendFormCreationRequest(

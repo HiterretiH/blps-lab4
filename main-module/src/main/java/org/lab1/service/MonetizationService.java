@@ -66,11 +66,11 @@ public class MonetizationService {
 
   @Autowired
   public MonetizationService(
-      final MonetizedApplicationRepository monetizedApplicationRepository,
+      final MonetizedApplicationRepository monetizedApplicationRepositoryParam,
       final MeterRegistry meterRegistry,
-      final Logger logger) {
-    this.monetizedApplicationRepository = monetizedApplicationRepository;
-    this.logger = logger;
+      final Logger loggerParam) {
+    this.monetizedApplicationRepository = monetizedApplicationRepositoryParam;
+    this.logger = loggerParam;
     this.payoutSuccessCounter =
         Counter.builder(MONETIZATION_RESULT_METRIC)
             .tag(STATUS_TAG, SUCCESS_TAG)

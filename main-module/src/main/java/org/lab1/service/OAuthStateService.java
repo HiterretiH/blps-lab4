@@ -24,13 +24,13 @@ public class OAuthStateService {
 
   @Autowired private Logger logger;
 
-  public final void storeGoogleAuthState(final int userId, final String state) {
-    stateStorage.put(userId, new StateInfo(state, System.currentTimeMillis()));
+  public final void storeGoogleAuthState(final int userId, final String stateParam) {
+    stateStorage.put(userId, new StateInfo(stateParam, System.currentTimeMillis()));
     logger.info(STORE_STATE_LOG + userId);
     cleanupExpiredStates();
   }
 
-  public final boolean validateGoogleAuthState(final int userId, final String state) {
+  public final boolean validateGoogleAuthState(final int userId, final String stateParam) {
     StateInfo storedState = stateStorage.get(userId);
     if (storedState == null) {
       logger.error(NO_STATE_LOG + userId);
@@ -39,7 +39,7 @@ public class OAuthStateService {
 
     stateStorage.remove(userId);
     boolean isValid =
-        storedState.getState().equals(state) && !isStateExpired(storedState.getCreationTime());
+        storedState.getState().equals(stateParam) && !isStateExpired(storedState.getCreationTime());
     logger.info(VALIDATE_STATE_LOG + userId + RESULT_LOG + isValid);
     return isValid;
   }
@@ -66,9 +66,9 @@ public class OAuthStateService {
     private final String state;
     private final long creationTime;
 
-    StateInfo(final String state, final long creationTime) {
-      this.state = state;
-      this.creationTime = creationTime;
+    StateInfo(final String stateParam, final long creationTimeParam) {
+      this.state = stateParam;
+      this.creationTime = creationTimeParam;
     }
 
     public String getState() {

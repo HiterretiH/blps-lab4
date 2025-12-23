@@ -35,12 +35,12 @@ public class ApplicationVerificationService {
 
   @Autowired
   public ApplicationVerificationService(
-      final VerificationLogRepository verificationLogRepository, final Logger logger) {
-    this.verificationLogRepository = verificationLogRepository;
-    this.logger = logger;
+      final VerificationLogRepository verificationLogRepositoryParam, final Logger loggerParam) {
+    this.verificationLogRepository = verificationLogRepositoryParam;
+    this.logger = loggerParam;
   }
 
-  public VerificationLog verifyApplicationForm(final ApplicationForm form) {
+  public final VerificationLog verifyApplicationForm(final ApplicationForm form) {
     logger.info(VERIFY_FORM_LOG);
     Map<String, String> formFields = form.getFormFields();
 

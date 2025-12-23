@@ -88,24 +88,24 @@ public class GoogleOAuthService {
 
   @Autowired
   public GoogleOAuthService(
-      final RestTemplate restTemplate,
-      final OAuthStateService googleStateService,
-      final GoogleAuthDataRepository googleAuthDataRepository,
-      final MeterRegistry meterRegistry) {
-    this.restTemplate = restTemplate;
-    this.googleStateService = googleStateService;
-    this.googleAuthDataRepository = googleAuthDataRepository;
-    this.meterRegistry = meterRegistry;
+      final RestTemplate restTemplateParam,
+      final OAuthStateService googleStateServiceParam,
+      final GoogleAuthDataRepository googleAuthDataRepositoryParam,
+      final MeterRegistry meterRegistryParam) {
+    this.restTemplate = restTemplateParam;
+    this.googleStateService = googleStateServiceParam;
+    this.googleAuthDataRepository = googleAuthDataRepositoryParam;
+    this.meterRegistry = meterRegistryParam;
     this.googleAuthSuccessCounter =
-        Counter.builder(GOOGLE_AUTH_METRIC).tag(STATUS_TAG, SUCCESS_TAG).register(meterRegistry);
+        Counter.builder(GOOGLE_AUTH_METRIC).tag(STATUS_TAG, SUCCESS_TAG).register(meterRegistryParam);
 
     this.googleAuthFailCounter =
-        Counter.builder(GOOGLE_AUTH_METRIC).tag(STATUS_TAG, FAIL_TAG).register(meterRegistry);
+        Counter.builder(GOOGLE_AUTH_METRIC).tag(STATUS_TAG, FAIL_TAG).register(meterRegistryParam);
 
-    this.googleAuthTimer = Timer.builder(GOOGLE_TIME_METRIC).register(meterRegistry);
+    this.googleAuthTimer = Timer.builder(GOOGLE_TIME_METRIC).register(meterRegistryParam);
   }
 
-  public String getAuthorizationUrl(final int userId, final String state) {
+  public final String getAuthorizationUrl(final int userId, final String state) {
     googleStateService.storeGoogleAuthState(userId, state);
 
     return UriComponentsBuilder.fromHttpUrl(GOOGLE_AUTH_URI)
@@ -120,7 +120,7 @@ public class GoogleOAuthService {
         .toUriString();
   }
 
-  public void processGoogleCallback(final int userId, final String code, final String state) {
+  public final void processGoogleCallback(final int userId, final String code, final String state) {
     Timer.Sample timer = Timer.start(meterRegistry);
 
     try {
@@ -251,7 +251,7 @@ public class GoogleOAuthService {
     }
   }
 
-  public boolean isGoogleConnected(final int userId) throws OAuthException {
+  public final boolean isGoogleConnected(final int userId) throws OAuthException {
     try {
       GoogleAuthData authData =
           googleAuthDataRepository
@@ -280,7 +280,7 @@ public class GoogleOAuthService {
     }
   }
 
-  public void refreshAccessToken(final int userId) throws OAuthException {
+  public final void refreshAccessToken(final int userId) throws OAuthException {
     try {
       GoogleAuthData authData =
           googleAuthDataRepository
@@ -336,7 +336,7 @@ public class GoogleOAuthService {
     }
   }
 
-  public String getUserGoogleEmail(final int userId) throws OAuthException {
+  public final String getUserGoogleEmail(final int userId) throws OAuthException {
     GoogleAuthData authData =
         googleAuthDataRepository
             .findByUserId(userId)
