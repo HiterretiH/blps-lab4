@@ -13,6 +13,7 @@
   <suppress checks="SummaryJavadoc" files=".*"/>
   <suppress checks="SingleLineJavadoc" files=".*"/>
   <suppress checks="NonEmptyAtclauseDescription" files=".*"/>
+  <suppress checks="LineLength" files=".*"/>
 
   <suppress checks=".*" files=".*package-info\.java"/>
 
