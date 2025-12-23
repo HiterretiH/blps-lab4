@@ -1,10 +1,14 @@
 package org.lab1.model;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 import java.time.LocalDateTime;
 
 @Entity
 public class PaymentRequest {
+  private static final double CARD_VALID_PROBABILITY = 0.7;
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private int id;
@@ -14,55 +18,55 @@ public class PaymentRequest {
   private LocalDateTime requestTime;
   private boolean isCardValid;
 
-  public PaymentRequest(int applicationId, double amount) {
+  public PaymentRequest(final int applicationId, final double amount) {
     this.applicationId = applicationId;
     this.amount = amount;
     this.requestTime = LocalDateTime.now();
-    this.isCardValid = Math.random() < 0.7;
+    this.isCardValid = Math.random() < CARD_VALID_PROBABILITY;
   }
 
   public PaymentRequest() {
     this.requestTime = LocalDateTime.now();
-    this.isCardValid = Math.random() < 0.7;
+    this.isCardValid = Math.random() < CARD_VALID_PROBABILITY;
   }
 
-  public int getId() {
+  public final int getId() {
     return id;
   }
 
-  public void setId(int id) {
+  public final void setId(final int id) {
     this.id = id;
   }
 
-  public int getApplicationId() {
+  public final int getApplicationId() {
     return applicationId;
   }
 
-  public void setApplicationId(int applicationId) {
+  public final void setApplicationId(final int applicationId) {
     this.applicationId = applicationId;
   }
 
-  public double getAmount() {
+  public final double getAmount() {
     return amount;
   }
 
-  public void setAmount(double amount) {
+  public final void setAmount(final double amount) {
     this.amount = amount;
   }
 
-  public LocalDateTime getRequestTime() {
+  public final LocalDateTime getRequestTime() {
     return requestTime;
   }
 
-  public void setRequestTime(LocalDateTime requestTime) {
+  public final void setRequestTime(final LocalDateTime requestTime) {
     this.requestTime = requestTime;
   }
 
-  public boolean isCardValid() {
+  public final boolean isCardValid() {
     return isCardValid;
   }
 
-  public void setCardValid(boolean cardValid) {
-    isCardValid = cardValid;
+  public final void setCardValid(final boolean cardValid) {
+    this.isCardValid = cardValid;
   }
 }

@@ -1,6 +1,10 @@
 package org.lab1.model;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
 import java.util.Date;
 
 @Entity
@@ -9,50 +13,52 @@ public class PayoutLog {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private int id;
 
-  @ManyToOne private Developer developer;
+  @ManyToOne
+  private Developer developer;
 
-  @ManyToOne private MonetizedApplication monetizedApplication;
+  @ManyToOne
+  private MonetizedApplication monetizedApplication;
 
   private double payoutValue;
   private Date timestamp;
 
-  public int getId() {
+  public final int getId() {
     return id;
   }
 
-  public void setId(int id) {
+  public final void setId(final int id) {
     this.id = id;
   }
 
-  public Developer getDeveloper() {
+  public final Developer getDeveloper() {
     return developer;
   }
 
-  public void setDeveloper(Developer developer) {
+  public final void setDeveloper(final Developer developer) {
     this.developer = developer;
   }
 
-  public MonetizedApplication getMonetizedApplication() {
+  public final MonetizedApplication getMonetizedApplication() {
     return monetizedApplication;
   }
 
-  public void setMonetizedApplication(MonetizedApplication monetizedApplication) {
+  public final void setMonetizedApplication(final MonetizedApplication monetizedApplication) {
     this.monetizedApplication = monetizedApplication;
   }
 
-  public double getPayoutValue() {
+  public final double getPayoutValue() {
     return payoutValue;
   }
 
-  public void setPayoutValue(double payoutValue) {
+  public final void setPayoutValue(final double payoutValue) {
     this.payoutValue = payoutValue;
   }
 
-  public Date getTimestamp() {
+  public final Date getTimestamp() {
     return timestamp;
   }
 
-  public void setTimestamp(Date timestamp) {
+  public final void setTimestamp(final Date timestamp) {
     this.timestamp = timestamp;
   }
 }

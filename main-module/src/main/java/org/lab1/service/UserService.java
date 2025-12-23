@@ -37,10 +37,10 @@ public class UserService {
 
   @Autowired
   public UserService(
-      UserRepository userRepository,
-      PasswordEncoder passwordEncoder,
-      TokenManager tokenManager,
-      MeterRegistry meterRegistry) {
+      final UserRepository userRepository,
+      final PasswordEncoder passwordEncoder,
+      final TokenManager tokenManager,
+      final MeterRegistry meterRegistry) {
     this.userRepository = userRepository;
     this.passwordEncoder = passwordEncoder;
     this.tokenManager = tokenManager;
@@ -56,7 +56,7 @@ public class UserService {
     this.tokenGeneratedCounter = Counter.builder(AUTH_TOKENS_METRIC).register(meterRegistry);
   }
 
-  public Token authenticateUser(String username, String password) {
+  public final Token authenticateUser(final String username, final String password) {
     try {
       Optional<User> userOptional = userRepository.findByUsername(username);
       if (userOptional.isEmpty()) {
@@ -86,7 +86,11 @@ public class UserService {
     }
   }
 
-  public User registerUser(String username, String email, String password, Role role) {
+  public final User registerUser(
+      final String username,
+      final String email,
+      final String password,
+      final Role role) {
     try {
       if (userRepository.existsByUsername(username)) {
         throw new ResponseStatusException(HttpStatus.CONFLICT, USERNAME_EXISTS_MSG);
@@ -110,7 +114,7 @@ public class UserService {
     }
   }
 
-  public Token generateToken(User user) {
+  public final Token generateToken(final User user) {
     String tokenString =
         tokenManager.generateToken(user.getUsername(), user.getRole().toString(), user.getId());
 
@@ -122,12 +126,16 @@ public class UserService {
     return token;
   }
 
-  public Token registerUserAndGetToken(String username, String email, String password, Role role) {
+  public final Token registerUserAndGetToken(
+      final String username,
+      final String email,
+      final String password,
+      final Role role) {
     User savedUser = registerUser(username, email, password, role);
     return generateToken(savedUser);
   }
 
-  public User getUserById(int userId) {
+  public final User getUserById(final int userId) {
     return userRepository
         .findById(userId)
         .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, USER_NOT_FOUND_MSG));

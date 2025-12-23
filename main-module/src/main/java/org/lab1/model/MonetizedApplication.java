@@ -1,6 +1,11 @@
 package org.lab1.model;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
 
 @Entity
 public class MonetizedApplication {
@@ -8,9 +13,11 @@ public class MonetizedApplication {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private int id;
 
-  @ManyToOne private Developer developer;
+  @ManyToOne
+  private Developer developer;
 
-  @OneToOne private Application application;
+  @OneToOne
+  private Application application;
 
   private double currentBalance;
   private double revenue;
@@ -18,67 +25,67 @@ public class MonetizedApplication {
   private double adsRevenue;
   private double purchasesRevenue;
 
-  public int getId() {
+  public final int getId() {
     return id;
   }
 
-  public void setId(int id) {
+  public final void setId(final int id) {
     this.id = id;
   }
 
-  public Developer getDeveloper() {
+  public final Developer getDeveloper() {
     return developer;
   }
 
-  public void setDeveloper(Developer developer) {
+  public final void setDeveloper(final Developer developer) {
     this.developer = developer;
   }
 
-  public Application getApplication() {
+  public final Application getApplication() {
     return application;
   }
 
-  public void setApplication(Application application) {
+  public final void setApplication(final Application application) {
     this.application = application;
   }
 
-  public double getCurrentBalance() {
+  public final double getCurrentBalance() {
     return currentBalance;
   }
 
-  public void setCurrentBalance(double currentBalance) {
+  public final void setCurrentBalance(final double currentBalance) {
     this.currentBalance = currentBalance;
   }
 
-  public double getRevenue() {
+  public final double getRevenue() {
     return revenue;
   }
 
-  public void setRevenue(double revenue) {
+  public final void setRevenue(final double revenue) {
     this.revenue = revenue;
   }
 
-  public double getDownloadRevenue() {
+  public final double getDownloadRevenue() {
     return downloadRevenue;
   }
 
-  public void setDownloadRevenue(double downloadRevenue) {
+  public final void setDownloadRevenue(final double downloadRevenue) {
     this.downloadRevenue = downloadRevenue;
   }
 
-  public double getAdsRevenue() {
+  public final double getAdsRevenue() {
     return adsRevenue;
   }
 
-  public void setAdsRevenue(double adsRevenue) {
+  public final void setAdsRevenue(final double adsRevenue) {
     this.adsRevenue = adsRevenue;
   }
 
-  public double getPurchasesRevenue() {
+  public final double getPurchasesRevenue() {
     return purchasesRevenue;
   }
 
-  public void setPurchasesRevenue(double purchasesRevenue) {
+  public final void setPurchasesRevenue(final double purchasesRevenue) {
     this.purchasesRevenue = purchasesRevenue;
   }
 }

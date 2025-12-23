@@ -13,7 +13,12 @@ import org.lab1.repository.GoogleAuthDataRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.dao.DataAccessException;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
@@ -40,8 +45,7 @@ public class GoogleOAuthService {
   private static final String EMAIL_NOT_VERIFIED_ERROR = "Google email not verified";
   private static final String GOOGLE_API_STATUS_ERROR = "Google API returned non-success status: ";
   private static final String GOOGLE_API_CONNECT_ERROR = "Failed to connect to Google API: ";
-  private static final String UNEXPECTED_EMAIL_ERROR =
-      "Unexpected error while fetching user email: ";
+  private static final String UNEXPECTED_EMAIL_ERROR = "Unexpected error while fetching user email: ";
   private static final String EMAIL_NULL_ERROR = "Email cannot be null or empty";
   private static final String ACCESS_TOKEN_NULL_ERROR = "Access token cannot be null";
   private static final String DB_SAVE_ERROR = "Failed to save auth data to database: ";
@@ -83,10 +87,10 @@ public class GoogleOAuthService {
 
   @Autowired
   public GoogleOAuthService(
-      RestTemplate restTemplate,
-      OAuthStateService googleStateService,
-      GoogleAuthDataRepository googleAuthDataRepository,
-      MeterRegistry meterRegistry) {
+      final RestTemplate restTemplate,
+      final OAuthStateService googleStateService,
+      final GoogleAuthDataRepository googleAuthDataRepository,
+      final MeterRegistry meterRegistry) {
     this.restTemplate = restTemplate;
     this.googleStateService = googleStateService;
     this.googleAuthDataRepository = googleAuthDataRepository;
@@ -100,7 +104,7 @@ public class GoogleOAuthService {
     this.googleAuthTimer = Timer.builder(GOOGLE_TIME_METRIC).register(meterRegistry);
   }
 
-  public String getAuthorizationUrl(int userId, String state) {
+  public String getAuthorizationUrl(final int userId, final String state) {
     googleStateService.storeGoogleAuthState(userId, state);
 
     return UriComponentsBuilder.fromHttpUrl(GOOGLE_AUTH_URI)
@@ -115,7 +119,7 @@ public class GoogleOAuthService {
         .toUriString();
   }
 
-  public void processGoogleCallback(int userId, String code, String state) {
+  public void processGoogleCallback(final int userId, final String code, final String state) {
     Timer.Sample timer = Timer.start(meterRegistry);
 
     try {
@@ -133,7 +137,7 @@ public class GoogleOAuthService {
     }
   }
 
-  private GoogleTokenResponse exchangeCodeForTokens(String code) throws OAuthException {
+  private GoogleTokenResponse exchangeCodeForTokens(final String code) throws OAuthException {
     try {
       HttpHeaders headers = new HttpHeaders();
       headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
@@ -172,7 +176,7 @@ public class GoogleOAuthService {
     }
   }
 
-  private String getUserEmail(String accessToken) throws OAuthException {
+  private String getUserEmail(final String accessToken) throws OAuthException {
     try {
       HttpHeaders headers = new HttpHeaders();
       headers.setBearerAuth(accessToken);
@@ -213,7 +217,7 @@ public class GoogleOAuthService {
     }
   }
 
-  private void saveAuthData(int userId, String email, GoogleTokenResponse tokenResponse)
+  private void saveAuthData(final int userId, final String email, final GoogleTokenResponse tokenResponse)
       throws OAuthException {
     try {
       GoogleAuthData authData =
@@ -245,7 +249,7 @@ public class GoogleOAuthService {
     }
   }
 
-  public boolean isGoogleConnected(int userId) throws OAuthException {
+  public boolean isGoogleConnected(final int userId) throws OAuthException {
     try {
       GoogleAuthData authData =
           googleAuthDataRepository
@@ -274,7 +278,7 @@ public class GoogleOAuthService {
     }
   }
 
-  public void refreshAccessToken(int userId) throws OAuthException {
+  public void refreshAccessToken(final int userId) throws OAuthException {
     try {
       GoogleAuthData authData =
           googleAuthDataRepository
@@ -330,7 +334,7 @@ public class GoogleOAuthService {
     }
   }
 
-  public String getUserGoogleEmail(int userId) throws OAuthException {
+  public String getUserGoogleEmail(final int userId) throws OAuthException {
     GoogleAuthData authData =
         googleAuthDataRepository
             .findByUserId(userId)

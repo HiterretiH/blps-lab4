@@ -17,16 +17,16 @@ public class VerificationLogService {
 
   @Autowired
   public VerificationLogService(
-      VerificationLogRepository verificationLogRepository, Logger logger) {
+      final VerificationLogRepository verificationLogRepository, final Logger logger) {
     this.verificationLogRepository = verificationLogRepository;
     this.logger = logger;
   }
 
-  public VerificationLog createVerificationLog(
-      boolean securityCheckPassed,
-      boolean policyCheckPassed,
-      boolean adsCheckPassed,
-      String logMessage) {
+  public final VerificationLog createVerificationLog(
+      final boolean securityCheckPassed,
+      final boolean policyCheckPassed,
+      final boolean adsCheckPassed,
+      final String logMessage) {
     logger.info(CREATE_LOG);
     VerificationLog verificationLog = new VerificationLog();
     verificationLog.setSecurityCheckPassed(securityCheckPassed);
@@ -36,7 +36,7 @@ public class VerificationLogService {
     return verificationLogRepository.save(verificationLog);
   }
 
-  public Optional<VerificationLog> getVerificationLogById(int id) {
+  public final Optional<VerificationLog> getVerificationLogById(final int id) {
     logger.info(GET_LOG + id);
     return verificationLogRepository.findById(id);
   }

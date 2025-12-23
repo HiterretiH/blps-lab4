@@ -18,12 +18,16 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequestMapping("/api/user")
-public class UserMonetizationController {
+public final class UserMonetizationController {
   private static final String APPLICATION_NOT_FOUND_MESSAGE = "Application not found";
   private static final String DOWNLOAD_SUCCESS_MESSAGE = "Application downloaded successfully.";
   private static final String DOWNLOAD_FAILED_MESSAGE = "Application not found or download failed.";
@@ -53,29 +57,32 @@ public class UserMonetizationController {
 
   @Autowired
   public UserMonetizationController(
-      UserMonetizationService userMonetizationService,
-      GoogleTaskSender googleTaskSender,
-      InAppPurchaseRepository purchaseRepository,
-      InAppAddRepository addRepository,
-      ApplicationRepository applicationRepository,
-      UserRepository userRepository,
-      MeterRegistry meterRegistry) {
-    this.userMonetizationService = userMonetizationService;
-    this.googleTaskSender = googleTaskSender;
-    this.purchaseRepository = purchaseRepository;
-    this.addRepository = addRepository;
-    this.applicationRepository = applicationRepository;
-    this.userRepository = userRepository;
-    this.meterRegistry = meterRegistry;
-    this.purchaseProcessingTime = meterRegistry.timer(PURCHASE_PROCESSING_TIME_METRIC);
-    this.adViewProcessingTime = meterRegistry.timer(AD_VIEW_PROCESSING_TIME_METRIC);
+      final UserMonetizationService userMonetizationServiceParam,
+      final GoogleTaskSender googleTaskSenderParam,
+      final InAppPurchaseRepository purchaseRepositoryParam,
+      final InAppAddRepository addRepositoryParam,
+      final ApplicationRepository applicationRepositoryParam,
+      final UserRepository userRepositoryParam,
+      final MeterRegistry meterRegistryParam) {
+    this.userMonetizationService = userMonetizationServiceParam;
+    this.googleTaskSender = googleTaskSenderParam;
+    this.purchaseRepository = purchaseRepositoryParam;
+    this.addRepository = addRepositoryParam;
+    this.applicationRepository = applicationRepositoryParam;
+    this.userRepository = userRepositoryParam;
+    this.meterRegistry = meterRegistryParam;
+    this.purchaseProcessingTime =
+        meterRegistry.timer(PURCHASE_PROCESSING_TIME_METRIC);
+    this.adViewProcessingTime =
+        meterRegistry.timer(AD_VIEW_PROCESSING_TIME_METRIC);
   }
 
   @PreAuthorize("hasAuthority('user.download_application')")
   @PostMapping("/download/{applicationId}")
   public ResponseEntity<String> downloadApplication(
-      @PathVariable int applicationId, @RequestBody Card card, Authentication authentication) {
-
+      @PathVariable final int applicationId,
+      @RequestBody final Card card,
+      final Authentication authentication) {
     Optional<User> userOptional =
         userRepository.findByUsername(authentication.getPrincipal().toString());
     if (userOptional.isEmpty()) {
@@ -120,7 +127,9 @@ public class UserMonetizationController {
   @PreAuthorize("hasAuthority('user.purchase_in_app_item')")
   @PostMapping("/purchase/{purchaseId}")
   public ResponseEntity<String> purchaseInAppItem(
-      @PathVariable int purchaseId, @RequestBody Card card, Authentication authentication) {
+      @PathVariable final int purchaseId,
+      @RequestBody final Card card,
+      final Authentication authentication) {
     Timer.Sample sample = Timer.start(meterRegistry);
 
     Optional<User> userOptional =
@@ -147,7 +156,8 @@ public class UserMonetizationController {
               .findById(purchaseId)
               .orElseThrow(
                   () ->
-                      new ResponseStatusException(HttpStatus.NOT_FOUND, PURCHASE_NOT_FOUND_MESSAGE))
+                      new ResponseStatusException(HttpStatus.NOT_FOUND,
+                          PURCHASE_NOT_FOUND_MESSAGE))
               .getPrice();
 
       MonetizationEvent event =
@@ -168,7 +178,8 @@ public class UserMonetizationController {
   @PreAuthorize("hasAuthority('user.view_advertisement')")
   @PostMapping("/view-ad/{adId}")
   public ResponseEntity<String> viewAdvertisement(
-      @PathVariable int adId, Authentication authentication) {
+      @PathVariable final int adId,
+      final Authentication authentication) {
     Timer.Sample sample = Timer.start(meterRegistry);
 
     Optional<User> userOptional =
@@ -187,7 +198,8 @@ public class UserMonetizationController {
           addRepository
               .findById(adId)
               .orElseThrow(
-                  () -> new ResponseStatusException(HttpStatus.NOT_FOUND, AD_NOT_FOUND_MESSAGE))
+                  () -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                      AD_NOT_FOUND_MESSAGE))
               .getPrice();
 
       MonetizationEvent event =
@@ -205,7 +217,7 @@ public class UserMonetizationController {
     return ResponseEntity.badRequest().body(AD_VIEW_FAILED_MESSAGE);
   }
 
-  private int getApplicationIdForPurchase(int purchaseId) {
+  private int getApplicationIdForPurchase(final int purchaseId) {
     return purchaseRepository
         .findById(purchaseId)
         .orElseThrow(() -> new IllegalArgumentException(PURCHASE_NOT_FOUND_EXCEPTION))
@@ -214,7 +226,7 @@ public class UserMonetizationController {
         .getId();
   }
 
-  private int getApplicationIdForAd(int adId) {
+  private int getApplicationIdForAd(final int adId) {
     return addRepository
         .findById(adId)
         .orElseThrow(() -> new IllegalArgumentException(AD_NOT_FOUND_EXCEPTION))

@@ -1,6 +1,6 @@
 package org.lab1.json;
 
-public class Credentials {
+public final class Credentials {
   private String username;
   private String email;
   private String password;
@@ -9,23 +9,23 @@ public class Credentials {
     return username;
   }
 
-  public void setUsername(String username) {
-    this.username = username;
+  public void setUsername(final String usernameParam) {
+    this.username = usernameParam;
   }
 
   public String getEmail() {
     return email;
   }
 
-  public void setEmail(String email) {
-    this.email = email;
+  public void setEmail(final String emailParam) {
+    this.email = emailParam;
   }
 
   public String getPassword() {
     return password;
   }
 
-  public void setPassword(String password) {
-    this.password = password;
+  public void setPassword(final String passwordParam) {
+    this.password = passwordParam;
   }
 }

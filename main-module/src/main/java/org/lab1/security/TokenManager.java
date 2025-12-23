@@ -1,10 +1,19 @@
 package org.lab1.security;
 
-import io.jsonwebtoken.*;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.SignatureException;
 import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.annotation.PostConstruct;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.lab1.config.EnvConfig;
@@ -41,10 +50,11 @@ public class TokenManager {
   private final PasswordEncoder passwordEncoder;
   private AtomicInteger activeSessionsGauge;
 
-  private final Map<String, List<GrantedAuthority>> roleAuthorities = initializeRoleAuthorities();
+  private final Map<String, List<GrantedAuthority>> roleAuthorities =
+      initializeRoleAuthorities();
 
   @Autowired
-  public TokenManager(MeterRegistry meterRegistry, PasswordEncoder passwordEncoder) {
+  public TokenManager(final MeterRegistry meterRegistry, final PasswordEncoder passwordEncoder) {
     this.meterRegistry = meterRegistry;
     this.passwordEncoder = passwordEncoder;
   }
@@ -130,21 +140,21 @@ public class TokenManager {
         new SimpleGrantedAuthority("stats.update"));
   }
 
-  public String generateToken(String username, String role, int userId) {
+  public String generateToken(final String username, final String role, final int userId) {
     Claims claims = createClaims(username, role, userId);
     String token = buildToken(claims);
     storeActiveToken(token);
     return token;
   }
 
-  private Claims createClaims(String username, String role, int userId) {
+  private Claims createClaims(final String username, final String role, final int userId) {
     Claims claims = Jwts.claims().setSubject(username);
     claims.put(ROLE_CLAIM, role);
     claims.put(USER_ID_CLAIM, userId);
     return claims;
   }
 
-  private String buildToken(Claims claims) {
+  private String buildToken(final Claims claims) {
     Date now = new Date();
     Date validity = new Date(now.getTime() + TOKEN_VALIDITY_MILLISECONDS);
 
@@ -156,17 +166,17 @@ public class TokenManager {
         .compact();
   }
 
-  private void storeActiveToken(String token) {
+  private void storeActiveToken(final String token) {
     String hashedToken = passwordEncoder.encode(token);
     activeTokens.put(hashedToken, true);
     updateActiveSessionsMetric();
   }
 
-  public Claims getClaimsFromToken(String token) {
+  public Claims getClaimsFromToken(final String token) {
     return Jwts.parser().setSigningKey(SECRET_KEY).parseClaimsJws(token).getBody();
   }
 
-  public boolean isTokenValid(String token) {
+  public boolean isTokenValid(final String token) {
     try {
       Claims claims = validateTokenAndGetClaims(token);
       Date expiration = claims.getExpiration();
@@ -195,15 +205,15 @@ public class TokenManager {
     return false;
   }
 
-  private Claims validateTokenAndGetClaims(String token) {
+  private Claims validateTokenAndGetClaims(final String token) {
     return Jwts.parser().setSigningKey(SECRET_KEY).parseClaimsJws(token).getBody();
   }
 
-  private boolean isTokenNotExpired(Date expiration) {
+  private boolean isTokenNotExpired(final Date expiration) {
     return expiration != null && expiration.after(new Date());
   }
 
-  private void removeExpiredToken(String token) {
+  private void removeExpiredToken(final String token) {
     String hashedToken = passwordEncoder.encode(token);
     activeTokens.remove(hashedToken);
     updateActiveSessionsMetric();
@@ -213,7 +223,7 @@ public class TokenManager {
     activeSessionsGauge.set(activeTokens.size());
   }
 
-  public List<GrantedAuthority> getAuthoritiesByRole(String role) {
+  public List<GrantedAuthority> getAuthoritiesByRole(final String role) {
     return roleAuthorities.get(role.toUpperCase());
   }
 }

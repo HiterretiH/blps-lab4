@@ -1,6 +1,13 @@
 package org.lab1.model;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "app_user")
@@ -20,43 +27,43 @@ public class User {
 
   private String passwordHash;
 
-  public int getId() {
+  public final int getId() {
     return id;
   }
 
-  public void setId(int id) {
+  public final void setId(final int id) {
     this.id = id;
   }
 
-  public String getUsername() {
+  public final String getUsername() {
     return username;
   }
 
-  public void setUsername(String username) {
+  public final void setUsername(final String username) {
     this.username = username;
   }
 
-  public String getEmail() {
+  public final String getEmail() {
     return email;
   }
 
-  public void setEmail(String email) {
+  public final void setEmail(final String email) {
     this.email = email;
   }
 
-  public Role getRole() {
+  public final Role getRole() {
     return role;
   }
 
-  public void setRole(Role role) {
+  public final void setRole(final Role role) {
     this.role = role;
   }
 
-  public String getPasswordHash() {
+  public final String getPasswordHash() {
     return passwordHash;
   }
 
-  public void setPasswordHash(String passwordHash) {
+  public final void setPasswordHash(final String passwordHash) {
     this.passwordHash = passwordHash;
   }
 }

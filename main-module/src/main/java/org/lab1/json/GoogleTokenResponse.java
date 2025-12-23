@@ -2,7 +2,7 @@ package org.lab1.json;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class GoogleTokenResponse {
+public final class GoogleTokenResponse {
   @JsonProperty("access_token")
   private String accessToken;
 
@@ -45,28 +45,28 @@ public class GoogleTokenResponse {
     return refreshTokenExpiresIn;
   }
 
-  public void setAccessToken(String accessToken) {
-    this.accessToken = accessToken;
+  public void setAccessToken(final String accessTokenParam) {
+    this.accessToken = accessTokenParam;
   }
 
-  public void setExpiresIn(int expiresIn) {
-    this.expiresIn = expiresIn;
+  public void setExpiresIn(final int expiresInParam) {
+    this.expiresIn = expiresInParam;
   }
 
-  public void setRefreshToken(String refreshToken) {
-    this.refreshToken = refreshToken;
+  public void setRefreshToken(final String refreshTokenParam) {
+    this.refreshToken = refreshTokenParam;
   }
 
-  public void setScope(String scope) {
-    this.scope = scope;
+  public void setScope(final String scopeParam) {
+    this.scope = scopeParam;
   }
 
-  public void setTokenType(String tokenType) {
-    this.tokenType = tokenType;
+  public void setTokenType(final String tokenTypeParam) {
+    this.tokenType = tokenTypeParam;
   }
 
-  public void setRefreshTokenExpiresIn(Integer refreshTokenExpiresIn) {
-    this.refreshTokenExpiresIn = refreshTokenExpiresIn;
+  public void setRefreshTokenExpiresIn(final Integer refreshTokenExpiresInParam) {
+    this.refreshTokenExpiresIn = refreshTokenExpiresInParam;
   }
 
   @Override

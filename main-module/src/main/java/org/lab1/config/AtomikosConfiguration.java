@@ -8,7 +8,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.jta.JtaTransactionManager;
 
 @Configuration
-public class AtomikosConfiguration {
+public final class AtomikosConfiguration {
   private static final int TRANSACTION_TIMEOUT_SECONDS = 300;
   private static final String INIT_METHOD = "init";
   private static final String DESTROY_METHOD = "close";

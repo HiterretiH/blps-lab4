@@ -1,6 +1,10 @@
 package org.lab1.model;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
 import java.util.Date;
 
 @Entity
@@ -9,40 +13,41 @@ public class InAppPurchaseLog {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private int id;
 
-  @ManyToOne private InAppPurchase inAppPurchase;
+  @ManyToOne
+  private InAppPurchase inAppPurchase;
 
   private int quantity;
   private Date timestamp;
 
-  public int getId() {
+  public final int getId() {
     return id;
   }
 
-  public void setId(int id) {
+  public final void setId(final int id) {
     this.id = id;
   }
 
-  public InAppPurchase getInAppPurchase() {
+  public final InAppPurchase getInAppPurchase() {
     return inAppPurchase;
   }
 
-  public void setInAppPurchase(InAppPurchase inAppPurchase) {
+  public final void setInAppPurchase(final InAppPurchase inAppPurchase) {
     this.inAppPurchase = inAppPurchase;
   }
 
-  public int getQuantity() {
+  public final int getQuantity() {
     return quantity;
   }
 
-  public void setQuantity(int quantity) {
+  public final void setQuantity(final int quantity) {
     this.quantity = quantity;
   }
 
-  public Date getTimestamp() {
+  public final Date getTimestamp() {
     return timestamp;
   }
 
-  public void setTimestamp(Date timestamp) {
+  public final void setTimestamp(final Date timestamp) {
     this.timestamp = timestamp;
   }
 }

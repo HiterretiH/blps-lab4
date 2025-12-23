@@ -12,11 +12,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/google-results")
-public class GoogleOperationResultsController {
+public final class GoogleOperationResultsController {
+  private static final int UNAUTHORIZED_STATUS_CODE = 401;
 
   private static final String GET_USER_RESULTS_LOG =
       "Received request to get Google operation results for current user";
@@ -42,12 +46,12 @@ public class GoogleOperationResultsController {
 
   @Autowired
   public GoogleOperationResultsController(
-      GoogleOperationResultService googleResultService,
-      UserRepository userRepository,
-      Logger logger) {
-    this.googleResultService = googleResultService;
-    this.userRepository = userRepository;
-    this.logger = logger;
+      final GoogleOperationResultService googleResultServiceParam,
+      final UserRepository userRepositoryParam,
+      final Logger loggerParam) {
+    this.googleResultService = googleResultServiceParam;
+    this.userRepository = userRepositoryParam;
+    this.logger = loggerParam;
   }
 
   @PreAuthorize("hasAuthority('google_results.read.own')")
@@ -61,18 +65,19 @@ public class GoogleOperationResultsController {
 
     if (userOptional.isEmpty()) {
       logger.error(USER_NOT_FOUND_LOG + authentication.getPrincipal());
-      return ResponseEntity.status(401).build();
+      return ResponseEntity.status(UNAUTHORIZED_STATUS_CODE).build();
     }
 
     User user = userOptional.get();
-    List<GoogleOperationResult> results = googleResultService.getResultsByUserId(user.getId());
+    List<GoogleOperationResult> results =
+        googleResultService.getResultsByUserId(user.getId());
     return ResponseEntity.ok(results);
   }
 
   @PreAuthorize("hasAuthority('google_results.read.all')")
   @GetMapping("/user/{userId}")
   public ResponseEntity<List<GoogleOperationResult>> getResultsByUserId(
-      @PathVariable Integer userId) {
+      @PathVariable final Integer userId) {
     logger.info(GET_USER_RESULTS_BY_ID_LOG + userId);
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
@@ -80,25 +85,28 @@ public class GoogleOperationResultsController {
         userRepository.findByUsername(authentication.getPrincipal().toString());
     if (userOptional.isEmpty()) {
       logger.error(USER_NOT_FOUND_LOG + authentication.getPrincipal());
-      return ResponseEntity.status(401).build();
+      return ResponseEntity.status(UNAUTHORIZED_STATUS_CODE).build();
     }
 
-    List<GoogleOperationResult> results = googleResultService.getResultsByUserId(userId);
+    List<GoogleOperationResult> results =
+        googleResultService.getResultsByUserId(userId);
     return ResponseEntity.ok(results);
   }
 
   @PreAuthorize("hasAuthority('google_results.read.by_operation')")
   @GetMapping("/operation/{operation}")
   public ResponseEntity<List<GoogleOperationResult>> getResultsByOperation(
-      @PathVariable String operation) {
+      @PathVariable final String operation) {
     logger.info(GET_RESULTS_BY_OPERATION_LOG + operation);
-    List<GoogleOperationResult> results = googleResultService.getResultsByOperation(operation);
+    List<GoogleOperationResult> results =
+        googleResultService.getResultsByOperation(operation);
     return ResponseEntity.ok(results);
   }
 
   @PreAuthorize("hasAuthority('google_results.read.own')")
   @GetMapping("/my-results/latest/{limit}")
-  public ResponseEntity<List<GoogleOperationResult>> getMyLatestResults(@PathVariable int limit) {
+  public ResponseEntity<List<GoogleOperationResult>> getMyLatestResults(
+      @PathVariable final int limit) {
     logger.info(GET_LAST_RESULTS_LOG.replace("{}", String.valueOf(limit)));
 
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -107,7 +115,7 @@ public class GoogleOperationResultsController {
 
     if (userOptional.isEmpty()) {
       logger.error(USER_NOT_FOUND_LOG + authentication.getPrincipal());
-      return ResponseEntity.status(401).build();
+      return ResponseEntity.status(UNAUTHORIZED_STATUS_CODE).build();
     }
 
     User user = userOptional.get();
@@ -120,7 +128,8 @@ public class GoogleOperationResultsController {
   @GetMapping("/errors")
   public ResponseEntity<List<GoogleOperationResult>> getOperationsWithErrors() {
     logger.info(GET_ERRORS_LOG);
-    List<GoogleOperationResult> results = googleResultService.getOperationsWithErrors();
+    List<GoogleOperationResult> results =
+        googleResultService.getOperationsWithErrors();
     return ResponseEntity.ok(results);
   }
 
@@ -128,13 +137,14 @@ public class GoogleOperationResultsController {
   @GetMapping("/successful")
   public ResponseEntity<List<GoogleOperationResult>> getSuccessfulOperations() {
     logger.info(GET_SUCCESSFUL_LOG);
-    List<GoogleOperationResult> results = googleResultService.getSuccessfulOperations();
+    List<GoogleOperationResult> results =
+        googleResultService.getSuccessfulOperations();
     return ResponseEntity.ok(results);
   }
 
   @PreAuthorize("hasAuthority('google_results.read.by_id')")
   @GetMapping("/{id}")
-  public ResponseEntity<GoogleOperationResult> getResultById(@PathVariable Long id) {
+  public ResponseEntity<GoogleOperationResult> getResultById(@PathVariable final Long id) {
     logger.info(GET_SPECIFIC_RESULT_LOG + id);
     GoogleOperationResult result = googleResultService.getResultById(id);
 
@@ -148,7 +158,7 @@ public class GoogleOperationResultsController {
 
     if (userOptional.isEmpty()) {
       logger.error(USER_NOT_FOUND_LOG + authentication.getPrincipal());
-      return ResponseEntity.status(401).build();
+      return ResponseEntity.status(UNAUTHORIZED_STATUS_CODE).build();
     }
 
     return ResponseEntity.ok(result);
@@ -157,7 +167,7 @@ public class GoogleOperationResultsController {
   @PreAuthorize("hasAuthority('google_results.read.own')")
   @GetMapping("/my-results/operation/{operation}")
   public ResponseEntity<List<GoogleOperationResult>> getMyResultsByOperation(
-      @PathVariable String operation) {
+      @PathVariable final String operation) {
     logger.info(GET_RESULTS_BY_OPERATION_LOG + operation);
 
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -166,7 +176,7 @@ public class GoogleOperationResultsController {
 
     if (userOptional.isEmpty()) {
       logger.error(USER_NOT_FOUND_LOG + authentication.getPrincipal());
-      return ResponseEntity.status(401).build();
+      return ResponseEntity.status(UNAUTHORIZED_STATUS_CODE).build();
     }
 
     User user = userOptional.get();

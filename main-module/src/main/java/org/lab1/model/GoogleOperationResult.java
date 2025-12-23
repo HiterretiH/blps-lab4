@@ -6,7 +6,8 @@ import java.time.LocalDateTime;
 
 @Entity
 public class GoogleOperationResult {
-  @Id private Long id;
+  @Id
+  private Long id;
   private Integer userId;
   private String operation;
   private String targetValue;
@@ -14,16 +15,17 @@ public class GoogleOperationResult {
   private String error;
   private LocalDateTime createdAt;
 
-  public GoogleOperationResult() {}
+  public GoogleOperationResult() {
+  }
 
   public GoogleOperationResult(
-      Long id,
-      Integer userId,
-      String operation,
-      String targetValue,
-      String result,
-      String error,
-      LocalDateTime createdAt) {
+      final Long id,
+      final Integer userId,
+      final String operation,
+      final String targetValue,
+      final String result,
+      final String error,
+      final LocalDateTime createdAt) {
     this.id = id;
     this.userId = userId;
     this.operation = operation;
@@ -33,59 +35,59 @@ public class GoogleOperationResult {
     this.createdAt = createdAt;
   }
 
-  public Long getId() {
+  public final Long getId() {
     return id;
   }
 
-  public void setId(Long id) {
+  public final void setId(final Long id) {
     this.id = id;
   }
 
-  public Integer getUserId() {
+  public final Integer getUserId() {
     return userId;
   }
 
-  public void setUserId(Integer userId) {
+  public final void setUserId(final Integer userId) {
     this.userId = userId;
   }
 
-  public String getOperation() {
+  public final String getOperation() {
     return operation;
   }
 
-  public void setOperation(String operation) {
+  public final void setOperation(final String operation) {
     this.operation = operation;
   }
 
-  public String getTargetValue() {
+  public final String getTargetValue() {
     return targetValue;
   }
 
-  public void setTargetValue(String targetValue) {
+  public final void setTargetValue(final String targetValue) {
     this.targetValue = targetValue;
   }
 
-  public String getResult() {
+  public final String getResult() {
     return result;
   }
 
-  public void setResult(String result) {
+  public final void setResult(final String result) {
     this.result = result;
   }
 
-  public String getError() {
+  public final String getError() {
     return error;
   }
 
-  public void setError(String error) {
+  public final void setError(final String error) {
     this.error = error;
   }
 
-  public LocalDateTime getCreatedAt() {
+  public final LocalDateTime getCreatedAt() {
     return createdAt;
   }
 
-  public void setCreatedAt(LocalDateTime createdAt) {
+  public final void setCreatedAt(final LocalDateTime createdAt) {
     this.createdAt = createdAt;
   }
 }

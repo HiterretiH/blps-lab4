@@ -35,15 +35,15 @@ public class ApplicationStatsService {
 
   @Autowired
   public ApplicationStatsService(
-      ApplicationStatsRepository applicationStatsRepository,
-      ApplicationRepository applicationRepository,
-      Logger logger) {
+      final ApplicationStatsRepository applicationStatsRepository,
+      final ApplicationRepository applicationRepository,
+      final Logger logger) {
     this.applicationStatsRepository = applicationStatsRepository;
     this.applicationRepository = applicationRepository;
     this.logger = logger;
   }
 
-  public ApplicationStats save(ApplicationStatsJson applicationStatsJson) {
+  public ApplicationStats save(final ApplicationStatsJson applicationStatsJson) {
     logger.info(SAVE_REQUEST_LOG + applicationStatsJson.getApplicationId());
     Application application =
         applicationRepository
@@ -65,7 +65,7 @@ public class ApplicationStatsService {
     return savedStats;
   }
 
-  public Optional<ApplicationStats> findById(int id) {
+  public Optional<ApplicationStats> findById(final int id) {
     logger.info(FIND_BY_ID_LOG + id);
     Optional<ApplicationStats> stats = applicationStatsRepository.findById(id);
 
@@ -85,7 +85,7 @@ public class ApplicationStatsService {
     return allStats;
   }
 
-  public void delete(int id) {
+  public void delete(final int id) {
     logger.info(DELETE_LOG + id);
     applicationStatsRepository.deleteById(id);
     logger.info(DELETED_LOG + id);

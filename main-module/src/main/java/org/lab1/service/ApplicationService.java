@@ -26,8 +26,7 @@ public class ApplicationService {
   private static final String SUBMIT_ERROR_LOG = "Failed to submit application: ";
   private static final String CHECK_STATUS_LOG = "Checking status for application ID: ";
   private static final String FOUND_STATUS_LOG = "Found status for application ID: ";
-  private static final String STATUS_NOT_FOUND_LOG =
-      "Application not found for status check with ID: ";
+  private static final String STATUS_NOT_FOUND_LOG = "Application not found for status check with ID: ";
   private static final String FETCH_APP_LOG = "Fetching application with ID: ";
   private static final String FOUND_APP_LOG = "Found application with ID: ";
   private static final String APP_NOT_FOUND_LOG = "Application not found with ID: ";
@@ -56,9 +55,9 @@ public class ApplicationService {
 
   @Autowired
   public ApplicationService(
-      ApplicationRepository applicationRepository,
-      DeveloperRepository developerRepository,
-      Logger logger) {
+      final ApplicationRepository applicationRepository,
+      final DeveloperRepository developerRepository,
+      final Logger logger) {
     this.applicationRepository = applicationRepository;
     this.developerRepository = developerRepository;
     this.logger = logger;
@@ -71,7 +70,7 @@ public class ApplicationService {
     return applications;
   }
 
-  public ResponseEntity<Application> submitApplicationForCheck(Application application) {
+  public ResponseEntity<Application> submitApplicationForCheck(final Application application) {
     logger.info(SUBMIT_APP_LOG + application.getName());
     try {
       Application savedApplication = applicationRepository.save(application);
@@ -83,7 +82,7 @@ public class ApplicationService {
     }
   }
 
-  public ResponseEntity<ApplicationStatus> getApplicationCheckStatus(int applicationId) {
+  public ResponseEntity<ApplicationStatus> getApplicationCheckStatus(final int applicationId) {
     logger.info(CHECK_STATUS_LOG + applicationId);
     Optional<Application> application = applicationRepository.findById(applicationId);
 
@@ -96,7 +95,7 @@ public class ApplicationService {
     return ResponseEntity.notFound().build();
   }
 
-  public ResponseEntity<Application> getApplication(int applicationId) {
+  public ResponseEntity<Application> getApplication(final int applicationId) {
     logger.info(FETCH_APP_LOG + applicationId);
     Optional<Application> application = applicationRepository.findById(applicationId);
 
@@ -109,14 +108,14 @@ public class ApplicationService {
     return ResponseEntity.notFound().build();
   }
 
-  public List<Application> getApplicationsByDeveloperId(int developerId) {
+  public List<Application> getApplicationsByDeveloperId(final int developerId) {
     logger.info(FETCH_BY_DEV_LOG + developerId);
     List<Application> applications = applicationRepository.findByDeveloperId(developerId);
     logger.info(FOUND_FOR_DEV_LOG + applications.size() + APPS_FOR_DEV_LOG + developerId);
     return applications;
   }
 
-  public Application createApplication(ApplicationJson applicationJson) {
+  public Application createApplication(final ApplicationJson applicationJson) {
     logger.info(CREATE_APP_LOG + applicationJson.getDeveloperId());
     Developer developer =
         developerRepository
@@ -145,7 +144,7 @@ public class ApplicationService {
     }
   }
 
-  public Optional<Application> getApplicationById(int id) {
+  public Optional<Application> getApplicationById(final int id) {
     logger.info(LOOKUP_APP_LOG + id);
     Optional<Application> application = applicationRepository.findById(id);
 
@@ -159,13 +158,13 @@ public class ApplicationService {
   }
 
   public Application updateApplication(
-      int id,
-      Developer developer,
-      String name,
-      ApplicationType type,
-      double price,
-      String description,
-      ApplicationStatus status) {
+      final int id,
+      final Developer developer,
+      final String name,
+      final ApplicationType type,
+      final double price,
+      final String description,
+      final ApplicationStatus status) {
     logger.info(UPDATE_APP_LOG + id);
     Application application =
         applicationRepository
@@ -193,7 +192,7 @@ public class ApplicationService {
     }
   }
 
-  public void deleteApplication(int id) {
+  public void deleteApplication(final int id) {
     logger.info(DELETE_APP_LOG + id);
     try {
       if (applicationRepository.existsById(id)) {

@@ -9,11 +9,16 @@ import org.lab1.service.InAppPurchaseService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/in-app-purchases")
-public class InAppPurchaseController {
+public final class InAppPurchaseController {
   private static final String CREATE_REQUEST_LOG =
       "Received request to create InAppPurchases. Titles count: ";
   private static final String DESCRIPTIONS_COUNT_LOG = ", Descriptions count: ";
@@ -37,19 +42,24 @@ public class InAppPurchaseController {
   private final Logger logger;
 
   @Autowired
-  public InAppPurchaseController(InAppPurchaseService inAppPurchaseService, Logger logger) {
-    this.inAppPurchaseService = inAppPurchaseService;
-    this.logger = logger;
+  public InAppPurchaseController(
+      final InAppPurchaseService inAppPurchaseServiceParam,
+      final Logger loggerParam) {
+    this.inAppPurchaseService = inAppPurchaseServiceParam;
+    this.logger = loggerParam;
   }
 
   @PreAuthorize("hasAuthority('in_app_purchase.manage')")
   @PostMapping("/create")
   public ResponseEntity<List<InAppPurchase>> createInAppPurchases(
-      @RequestBody InAppPurchasesJson inAppPurchases) {
-    int titlesCount = inAppPurchases.getTitles() != null ? inAppPurchases.getTitles().size() : 0;
+      @RequestBody final InAppPurchasesJson inAppPurchases) {
+    int titlesCount = inAppPurchases.getTitles() != null
+        ? inAppPurchases.getTitles().size() : 0;
     int descriptionsCount =
-        inAppPurchases.getDescriptions() != null ? inAppPurchases.getDescriptions().size() : 0;
-    int pricesCount = inAppPurchases.getPrices() != null ? inAppPurchases.getPrices().size() : 0;
+        inAppPurchases.getDescriptions() != null
+            ? inAppPurchases.getDescriptions().size() : 0;
+    int pricesCount = inAppPurchases.getPrices() != null
+        ? inAppPurchases.getPrices().size() : 0;
 
     logger.info(
         CREATE_REQUEST_LOG
@@ -84,7 +94,7 @@ public class InAppPurchaseController {
 
   @PreAuthorize("hasAuthority('in_app_purchase.read')")
   @GetMapping("/{id}")
-  public ResponseEntity<InAppPurchase> getInAppPurchaseById(@PathVariable int id) {
+  public ResponseEntity<InAppPurchase> getInAppPurchaseById(@PathVariable final int id) {
     logger.info(GET_REQUEST_LOG + id);
     Optional<InAppPurchase> purchase = inAppPurchaseService.getInAppPurchaseById(id);
 
@@ -99,17 +109,19 @@ public class InAppPurchaseController {
   @PreAuthorize("hasAuthority('in_app_purchase.manage')")
   @PostMapping("/link-to-monetized-app/{monetizedApplicationId}")
   public ResponseEntity<List<InAppPurchase>> linkMonetizedAppToPurchases(
-      @PathVariable int monetizedApplicationId) {
+      @PathVariable final int monetizedApplicationId) {
     logger.info(LINK_REQUEST_LOG + monetizedApplicationId);
 
     try {
       List<InAppPurchase> linkedPurchases =
           inAppPurchaseService.linkMonetizedAppToPurchases(monetizedApplicationId);
       logger.info(
-          LINK_SUCCESS_LOG + linkedPurchases.size() + TO_APP_ID_LOG + monetizedApplicationId);
+          LINK_SUCCESS_LOG + linkedPurchases.size()
+              + TO_APP_ID_LOG + monetizedApplicationId);
       return ResponseEntity.ok(linkedPurchases);
     } catch (RuntimeException exception) {
-      logger.error(LINK_ERROR_LOG + monetizedApplicationId + REASON_LOG + exception.getMessage());
+      logger.error(LINK_ERROR_LOG + monetizedApplicationId
+          + REASON_LOG + exception.getMessage());
       return ResponseEntity.badRequest().body(null);
     }
   }

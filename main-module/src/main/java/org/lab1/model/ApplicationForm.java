@@ -5,11 +5,11 @@ import java.util.Map;
 public class ApplicationForm {
   private Map<String, String> formFields;
 
-  public Map<String, String> getFormFields() {
+  public final Map<String, String> getFormFields() {
     return formFields;
   }
 
-  public void setFormFields(Map<String, String> formFields) {
+  public final void setFormFields(final Map<String, String> formFields) {
     this.formFields = formFields;
   }
 }

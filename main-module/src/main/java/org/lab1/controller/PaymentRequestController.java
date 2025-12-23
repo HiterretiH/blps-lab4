@@ -7,11 +7,18 @@ import org.lab1.service.PaymentRequestService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/payment-requests")
-public class PaymentRequestController {
+public final class PaymentRequestController {
+  private static final int BAD_REQUEST_STATUS_CODE = 400;
+
   private static final String CREATE_REQUEST_LOG =
       "Received request to create PaymentRequest for application ID: ";
   private static final String AMOUNT_LOG = ", amount: ";
@@ -30,15 +37,18 @@ public class PaymentRequestController {
   private final Logger logger;
 
   @Autowired
-  public PaymentRequestController(PaymentRequestService paymentRequestService, Logger logger) {
-    this.paymentRequestService = paymentRequestService;
-    this.logger = logger;
+  public PaymentRequestController(
+      final PaymentRequestService paymentRequestServiceParam,
+      final Logger loggerParam) {
+    this.paymentRequestService = paymentRequestServiceParam;
+    this.logger = loggerParam;
   }
 
   @PreAuthorize("hasAuthority('payment_request.create')")
   @PostMapping
   public ResponseEntity<PaymentRequest> createPaymentRequest(
-      @RequestParam int applicationId, @RequestParam double amount) {
+      @RequestParam final int applicationId,
+      @RequestParam final double amount) {
     logger.info(CREATE_REQUEST_LOG + applicationId + AMOUNT_LOG + amount);
     PaymentRequest paymentRequest =
         paymentRequestService.createPaymentRequest(applicationId, amount);
@@ -52,7 +62,8 @@ public class PaymentRequestController {
 
   @PreAuthorize("hasAuthority('payment_request.read')")
   @GetMapping("/{applicationId}")
-  public ResponseEntity<PaymentRequest> getPaymentRequest(@PathVariable int applicationId) {
+  public ResponseEntity<PaymentRequest> getPaymentRequest(
+      @PathVariable final int applicationId) {
     logger.info(GET_REQUEST_LOG + applicationId);
     Optional<PaymentRequest> paymentRequest =
         paymentRequestService.getPaymentRequestById(applicationId);
@@ -67,17 +78,18 @@ public class PaymentRequestController {
 
   @PreAuthorize("hasAuthority('payment_request.validate_card')")
   @GetMapping("/validate/{applicationId}")
-  public ResponseEntity<String> validateCard(@PathVariable int applicationId) {
+  public ResponseEntity<String> validateCard(@PathVariable final int applicationId) {
     logger.info(VALIDATE_REQUEST_LOG + applicationId);
     Optional<PaymentRequest> paymentRequest =
         paymentRequestService.getPaymentRequestById(applicationId);
 
-    if (paymentRequest.isPresent() && paymentRequestService.validateCard(paymentRequest.get())) {
+    if (paymentRequest.isPresent()
+        && paymentRequestService.validateCard(paymentRequest.get())) {
       logger.info(CARD_VALID_LOG + applicationId);
       return ResponseEntity.ok(CARD_VALID_MESSAGE);
     }
 
     logger.info(CARD_INVALID_LOG + applicationId);
-    return ResponseEntity.status(400).body(CARD_INVALID_MESSAGE);
+    return ResponseEntity.status(BAD_REQUEST_STATUS_CODE).body(CARD_INVALID_MESSAGE);
   }
 }

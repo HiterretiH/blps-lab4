@@ -10,11 +10,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/in-app-ads")
-public class InAppAddController {
+public final class InAppAddController {
   private static final String CREATE_REQUEST_LOG =
       "Received request to create InAppAdd for MonetizedApplication ID: ";
   private static final String CREATE_SUCCESS_LOG = "InAppAdd created with ID: ";
@@ -38,14 +43,16 @@ public class InAppAddController {
   private final Logger logger;
 
   @Autowired
-  public InAppAddController(InAppAddService inAppAddService, Logger logger) {
-    this.inAppAddService = inAppAddService;
-    this.logger = logger;
+  public InAppAddController(
+      final InAppAddService inAppAddServiceParam,
+      final Logger loggerParam) {
+    this.inAppAddService = inAppAddServiceParam;
+    this.logger = loggerParam;
   }
 
   @PreAuthorize("hasAuthority('in_app_add.manage')")
   @PostMapping("/create")
-  public ResponseEntity<InAppAdd> createInAppAdd(@RequestBody InAppAddJson inAppAddJson) {
+  public ResponseEntity<InAppAdd> createInAppAdd(@RequestBody final InAppAddJson inAppAddJson) {
     logger.info(CREATE_REQUEST_LOG + inAppAddJson.getMonetizedApplicationId());
     InAppAdd inAppAdd = inAppAddService.createInAppAdd(inAppAddJson);
     logger.info(
@@ -59,12 +66,13 @@ public class InAppAddController {
   @PreAuthorize("hasAuthority('in_app_add.manage')")
   @PostMapping("/bulk")
   public ResponseEntity<List<InAppAdd>> createMultipleInAppAdds(
-      @RequestBody List<InAppAddJson> inAppAddJsons) {
+      @RequestBody final List<InAppAddJson> inAppAddJsons) {
     int count = inAppAddJsons != null ? inAppAddJsons.size() : 0;
     logger.info(BULK_CREATE_REQUEST_LOG + count);
 
     try {
-      List<InAppAdd> inAppAdds = inAppAddService.createMultipleInAppAdds(inAppAddJsons);
+      List<InAppAdd> inAppAdds =
+          inAppAddService.createMultipleInAppAdds(inAppAddJsons);
       logger.info(BULK_CREATE_SUCCESS_LOG + inAppAdds.size() + IN_APP_ADDS_LOG);
       return ResponseEntity.status(HttpStatus.CREATED).body(inAppAdds);
     } catch (IllegalArgumentException exception) {
@@ -84,7 +92,7 @@ public class InAppAddController {
 
   @PreAuthorize("hasAuthority('in_app_add.read')")
   @GetMapping("get/{id}")
-  public ResponseEntity<InAppAdd> getInAppAddById(@PathVariable int id) {
+  public ResponseEntity<InAppAdd> getInAppAddById(@PathVariable final int id) {
     logger.info(GET_REQUEST_LOG + id);
     Optional<InAppAdd> inAppAdd = inAppAddService.getInAppAddById(id);
 
@@ -99,11 +107,12 @@ public class InAppAddController {
   @PreAuthorize("hasAuthority('in_app_add.read')")
   @GetMapping("/monetized/{monetizedApplicationId}")
   public ResponseEntity<List<InAppAdd>> getInAppAdsByMonetizedApplication(
-      @PathVariable int monetizedApplicationId) {
+      @PathVariable final int monetizedApplicationId) {
     logger.info(GET_BY_APP_REQUEST_LOG + monetizedApplicationId);
     List<InAppAdd> inAppAdds =
         inAppAddService.getInAppAddByMonetizedApplication(monetizedApplicationId);
-    logger.info(GET_BY_APP_FOUND_LOG + inAppAdds.size() + FOR_APP_ID_LOG + monetizedApplicationId);
+    logger.info(GET_BY_APP_FOUND_LOG + inAppAdds.size()
+        + FOR_APP_ID_LOG + monetizedApplicationId);
     return ResponseEntity.ok(inAppAdds);
   }
 }

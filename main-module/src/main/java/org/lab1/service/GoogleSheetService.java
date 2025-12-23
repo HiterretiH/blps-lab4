@@ -66,12 +66,12 @@ public class GoogleSheetService {
 
   @Autowired
   public GoogleSheetService(
-      GoogleTaskSender googleTaskSender,
-      GoogleOAuthService googleOAuthService,
-      UserService userService,
-      MonetizedApplicationRepository monetizedApplicationRepository,
-      ApplicationRepository applicationRepository,
-      Logger logger) {
+      final GoogleTaskSender googleTaskSender,
+      final GoogleOAuthService googleOAuthService,
+      final UserService userService,
+      final MonetizedApplicationRepository monetizedApplicationRepository,
+      final ApplicationRepository applicationRepository,
+      final Logger logger) {
     this.googleTaskSender = googleTaskSender;
     this.googleOAuthService = googleOAuthService;
     this.userService = userService;
@@ -80,7 +80,7 @@ public class GoogleSheetService {
     this.logger = logger;
   }
 
-  public String createRevenueSheet(int userId) throws OAuthException {
+  public final String createRevenueSheet(final int userId) throws OAuthException {
     logger.info(CREATE_REVENUE_SHEET_LOG + userId);
 
     if (!googleOAuthService.isGoogleConnected(userId)) {
@@ -127,7 +127,7 @@ public class GoogleSheetService {
   }
 
   @Transactional
-  public String addAppSheets(int userId, int appId) {
+  public final String addAppSheets(final int userId, final int appId) {
     logger.info(ADD_APP_SHEETS_LOG + userId + APP_ID_LOG + appId);
 
     try {
@@ -167,7 +167,7 @@ public class GoogleSheetService {
     }
   }
 
-  public void triggerUpdateAppsTop() {
+  public final void triggerUpdateAppsTop() {
     logger.info(TRIGGER_UPDATE_LOG);
     googleTaskSender.sendUpdateAppsTopRequest();
     logger.info(UPDATE_REQUEST_SENT_LOG);

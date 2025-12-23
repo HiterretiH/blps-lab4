@@ -12,11 +12,12 @@ import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
-public class WebConfig implements WebMvcConfigurer {
+public final class WebConfig implements WebMvcConfigurer {
   private static final String ALL_PATHS = "/**";
   private static final String LOCAL_FRONTEND_URL = "http://localhost:4200";
   private static final String ALL_HEADERS = "*";
-  private static final String[] ALLOWED_METHODS = {"GET", "POST", "PUT", "DELETE", "OPTIONS"};
+  private static final String[] ALLOWED_METHODS =
+      {"GET", "POST", "PUT", "DELETE", "OPTIONS"};
   private static final String PASSWORD_ENCODER_BEAN = "passwordEncoder";
   private static final String REST_TEMPLATE_BEAN = "restTemplate";
   private static final String LOGGER_BEAN = "logger";
@@ -24,7 +25,7 @@ public class WebConfig implements WebMvcConfigurer {
   private static final String SCOPE_SINGLETON = ConfigurableBeanFactory.SCOPE_SINGLETON;
 
   @Override
-  public void addCorsMappings(CorsRegistry registry) {
+  public void addCorsMappings(final CorsRegistry registry) {
     registry
         .addMapping(ALL_PATHS)
         .allowedOrigins(LOCAL_FRONTEND_URL)

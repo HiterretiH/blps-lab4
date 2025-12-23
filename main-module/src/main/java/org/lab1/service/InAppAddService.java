@@ -57,17 +57,17 @@ public class InAppAddService {
 
   @Autowired
   public InAppAddService(
-      InAppAddRepository inAppAddRepository,
-      MonetizedApplicationRepository monetizedApplicationRepository,
-      JtaTransactionManager transactionManager,
-      Logger logger) {
+      final InAppAddRepository inAppAddRepository,
+      final MonetizedApplicationRepository monetizedApplicationRepository,
+      final JtaTransactionManager transactionManager,
+      final Logger logger) {
     this.inAppAddRepository = inAppAddRepository;
     this.monetizedApplicationRepository = monetizedApplicationRepository;
     this.transactionManager = transactionManager;
     this.logger = logger;
   }
 
-  public InAppAdd createInAppAdd(InAppAddJson inAppAddJson) {
+  public final InAppAdd createInAppAdd(final InAppAddJson inAppAddJson) {
     logger.info(CREATE_REQUEST_LOG + inAppAddJson.getMonetizedApplicationId());
     MonetizedApplication monetizedApplication =
         monetizedApplicationRepository
@@ -95,7 +95,7 @@ public class InAppAddService {
     return savedInAppAdd;
   }
 
-  public List<InAppAdd> createMultipleInAppAdds(List<InAppAddJson> inAppAddJsons) {
+  public final List<InAppAdd> createMultipleInAppAdds(final List<InAppAddJson> inAppAddJsons) {
     int count = inAppAddJsons != null ? inAppAddJsons.size() : 0;
     logger.info(BULK_CREATE_LOG + count);
 
@@ -156,14 +156,14 @@ public class InAppAddService {
     return inAppAdds;
   }
 
-  public List<InAppAdd> getAllInAppAds() {
+  public final List<InAppAdd> getAllInAppAds() {
     logger.info(FETCH_ALL_LOG);
     List<InAppAdd> inAppAdds = inAppAddRepository.findAll();
     logger.info(FOUND_ALL_LOG + inAppAdds.size() + IN_APP_ADDS_LOG);
     return inAppAdds;
   }
 
-  public Optional<InAppAdd> getInAppAddById(int id) {
+  public final Optional<InAppAdd> getInAppAddById(final int id) {
     logger.info(FETCH_BY_ID_LOG + id);
     Optional<InAppAdd> inAppAdd = inAppAddRepository.findById(id);
 
@@ -176,7 +176,7 @@ public class InAppAddService {
     return inAppAdd;
   }
 
-  public List<InAppAdd> getInAppAddByMonetizedApplication(int monetizedApplicationId) {
+  public final List<InAppAdd> getInAppAddByMonetizedApplication(final int monetizedApplicationId) {
     logger.info(FETCH_BY_APP_LOG + monetizedApplicationId);
     List<InAppAdd> inAppAdds =
         inAppAddRepository.findByMonetizedApplicationId(monetizedApplicationId);

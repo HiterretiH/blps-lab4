@@ -33,8 +33,7 @@ public class FormGenerationService {
   private static final String ADDED_FIELD_LOG = "Added field: ";
   private static final String TRANSACTION_COMMITTED_LOG = "Transaction committed for adding ";
   private static final String FIELDS_LOG = " fields.";
-  private static final String TRANSACTION_ROLLED_BACK_LOG =
-      "Transaction rolled back due to error adding fields: ";
+  private static final String TRANSACTION_ROLLED_BACK_LOG = "Transaction rolled back due to error adding fields: ";
   private static final String ADD_FIELD_LOG = "Adding field: ";
   private static final String FIELD_SAVED_LOG = "Field '";
   private static final String SAVED_TO_DB_LOG = "' saved to database.";
@@ -48,11 +47,11 @@ public class FormGenerationService {
 
   @Autowired
   public FormGenerationService(
-      FormFieldRepository formFieldRepository,
-      JtaTransactionManager transactionManager,
-      GoogleTaskSender googleTaskSender,
-      GoogleOAuthService googleOAuthService,
-      Logger logger) {
+      final FormFieldRepository formFieldRepository,
+      final JtaTransactionManager transactionManager,
+      final GoogleTaskSender googleTaskSender,
+      final GoogleOAuthService googleOAuthService,
+      final Logger logger) {
     this.formFieldRepository = formFieldRepository;
     this.transactionManager = transactionManager;
     this.googleTaskSender = googleTaskSender;
@@ -60,7 +59,7 @@ public class FormGenerationService {
     this.logger = logger;
   }
 
-  public String generateAndSendGoogleForm(int userId) throws OAuthException {
+  public String generateAndSendGoogleForm(final int userId) throws OAuthException {
     logger.info(GENERATE_FORM_LOG + userId);
 
     if (!googleOAuthService.isGoogleConnected(userId)) {
@@ -90,7 +89,7 @@ public class FormGenerationService {
     return fieldsMap;
   }
 
-  public void addFields(List<String> fieldNames) {
+  public void addFields(final List<String> fieldNames) {
     logger.info(ADD_MULTIPLE_FIELDS_LOG + fieldNames);
     TransactionDefinition definition = new DefaultTransactionDefinition();
     TransactionStatus status = transactionManager.getTransaction(definition);
@@ -111,7 +110,7 @@ public class FormGenerationService {
     }
   }
 
-  public void addField(String fieldName) {
+  public void addField(final String fieldName) {
     logger.info(ADD_FIELD_LOG + fieldName);
     FormField newField = new FormField();
     newField.setFieldName(fieldName);

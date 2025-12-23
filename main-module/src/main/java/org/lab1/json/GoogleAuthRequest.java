@@ -1,6 +1,6 @@
 package org.lab1.json;
 
-public class GoogleAuthRequest {
+public final class GoogleAuthRequest {
   private String code;
   private String state;
 
@@ -8,15 +8,15 @@ public class GoogleAuthRequest {
     return code;
   }
 
-  public void setCode(String code) {
-    this.code = code;
+  public void setCode(final String codeParam) {
+    this.code = codeParam;
   }
 
   public String getState() {
     return state;
   }
 
-  public void setState(String state) {
-    this.state = state;
+  public void setState(final String stateParam) {
+    this.state = stateParam;
   }
 }

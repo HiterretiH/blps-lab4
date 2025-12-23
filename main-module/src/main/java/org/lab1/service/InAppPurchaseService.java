@@ -55,18 +55,18 @@ public class InAppPurchaseService {
 
   @Autowired
   public InAppPurchaseService(
-      InAppPurchaseRepository inAppPurchaseRepository,
-      MonetizedApplicationRepository monetizedApplicationRepository,
-      JtaTransactionManager transactionManager,
-      Logger logger) {
+      final InAppPurchaseRepository inAppPurchaseRepository,
+      final MonetizedApplicationRepository monetizedApplicationRepository,
+      final JtaTransactionManager transactionManager,
+      final Logger logger) {
     this.inAppPurchaseRepository = inAppPurchaseRepository;
     this.monetizedApplicationRepository = monetizedApplicationRepository;
     this.transactionManager = transactionManager;
     this.logger = logger;
   }
 
-  public List<InAppPurchase> createInAppPurchases(
-      List<String> titles, List<String> descriptions, List<Double> prices) {
+  public final List<InAppPurchase> createInAppPurchases(
+      final List<String> titles, final List<String> descriptions, final List<Double> prices) {
     int titlesCount = titles != null ? titles.size() : 0;
     int descriptionsCount = descriptions != null ? descriptions.size() : 0;
     int pricesCount = prices != null ? prices.size() : 0;
@@ -117,14 +117,14 @@ public class InAppPurchaseService {
     return purchases;
   }
 
-  public List<InAppPurchase> getAllInAppPurchases() {
+  public final List<InAppPurchase> getAllInAppPurchases() {
     logger.info(FETCH_ALL_LOG);
     List<InAppPurchase> purchases = inAppPurchaseRepository.findAll();
     logger.info(FOUND_ALL_LOG + purchases.size() + IN_APP_PURCHASES_LOG);
     return purchases;
   }
 
-  public Optional<InAppPurchase> getInAppPurchaseById(int id) {
+  public final Optional<InAppPurchase> getInAppPurchaseById(final int id) {
     logger.info(FETCH_BY_ID_LOG + id);
     Optional<InAppPurchase> purchase = inAppPurchaseRepository.findById(id);
 
@@ -137,7 +137,7 @@ public class InAppPurchaseService {
     return purchase;
   }
 
-  public List<InAppPurchase> linkMonetizedAppToPurchases(int monetizedApplicationId) {
+  public final List<InAppPurchase> linkMonetizedAppToPurchases(final int monetizedApplicationId) {
     logger.info(LINK_REQUEST_LOG + monetizedApplicationId);
 
     MonetizedApplication monetizedApplication =

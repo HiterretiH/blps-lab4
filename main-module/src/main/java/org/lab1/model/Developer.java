@@ -1,9 +1,11 @@
 package org.lab1.model;
 
-import jakarta.persistence.*;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToOne;
 
 @Entity
 public class Developer {
@@ -17,35 +19,35 @@ public class Developer {
   @OneToOne(cascade = CascadeType.ALL)
   private User user;
 
-  public int getId() {
+  public final int getId() {
     return id;
   }
 
-  public void setId(int id) {
+  public final void setId(final int id) {
     this.id = id;
   }
 
-  public String getName() {
+  public final String getName() {
     return name;
   }
 
-  public void setName(String name) {
+  public final void setName(final String name) {
     this.name = name;
   }
 
-  public String getDescription() {
+  public final String getDescription() {
     return description;
   }
 
-  public void setDescription(String description) {
+  public final void setDescription(final String description) {
     this.description = description;
   }
 
-  public User getUser() {
+  public final User getUser() {
     return user;
   }
 
-  public void setUser(User user) {
+  public final void setUser(final User user) {
     this.user = user;
   }
 }

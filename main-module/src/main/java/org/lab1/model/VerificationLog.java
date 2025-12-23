@@ -1,6 +1,10 @@
 package org.lab1.model;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
 
 @Entity
 public class VerificationLog {
@@ -12,55 +16,56 @@ public class VerificationLog {
   private boolean policyCheckPassed;
   private boolean adsCheckPassed;
 
-  @ManyToOne private Application application;
+  @ManyToOne
+  private Application application;
 
   private String logMessage;
 
-  public int getId() {
+  public final int getId() {
     return id;
   }
 
-  public void setId(int id) {
+  public final void setId(final int id) {
     this.id = id;
   }
 
-  public boolean isSecurityCheckPassed() {
+  public final boolean isSecurityCheckPassed() {
     return securityCheckPassed;
   }
 
-  public void setSecurityCheckPassed(boolean securityCheckPassed) {
+  public final void setSecurityCheckPassed(final boolean securityCheckPassed) {
     this.securityCheckPassed = securityCheckPassed;
   }
 
-  public boolean isPolicyCheckPassed() {
+  public final boolean isPolicyCheckPassed() {
     return policyCheckPassed;
   }
 
-  public void setPolicyCheckPassed(boolean policyCheckPassed) {
+  public final void setPolicyCheckPassed(final boolean policyCheckPassed) {
     this.policyCheckPassed = policyCheckPassed;
   }
 
-  public boolean isAdsCheckPassed() {
+  public final boolean isAdsCheckPassed() {
     return adsCheckPassed;
   }
 
-  public void setAdsCheckPassed(boolean adsCheckPassed) {
+  public final void setAdsCheckPassed(final boolean adsCheckPassed) {
     this.adsCheckPassed = adsCheckPassed;
   }
 
-  public Application getApplication() {
+  public final Application getApplication() {
     return application;
   }
 
-  public void setApplication(Application application) {
+  public final void setApplication(final Application application) {
     this.application = application;
   }
 
-  public String getLogMessage() {
+  public final String getLogMessage() {
     return logMessage;
   }
 
-  public void setLogMessage(String logMessage) {
+  public final void setLogMessage(final String logMessage) {
     this.logMessage = logMessage;
   }
 }

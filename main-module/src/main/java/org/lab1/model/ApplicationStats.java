@@ -1,6 +1,10 @@
 package org.lab1.model;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToOne;
 
 @Entity
 public class ApplicationStats {
@@ -8,40 +12,41 @@ public class ApplicationStats {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private int id;
 
-  @OneToOne private Application application;
+  @OneToOne
+  private Application application;
 
   private long downloads;
   private float rating;
 
-  public int getId() {
+  public final int getId() {
     return id;
   }
 
-  public void setId(int id) {
+  public final void setId(final int id) {
     this.id = id;
   }
 
-  public Application getApplication() {
+  public final Application getApplication() {
     return application;
   }
 
-  public void setApplication(Application application) {
+  public final void setApplication(final Application application) {
     this.application = application;
   }
 
-  public long getDownloads() {
+  public final long getDownloads() {
     return downloads;
   }
 
-  public void setDownloads(long downloads) {
+  public final void setDownloads(final long downloads) {
     this.downloads = downloads;
   }
 
-  public float getRating() {
+  public final float getRating() {
     return rating;
   }
 
-  public void setRating(float rating) {
+  public final void setRating(final float rating) {
     this.rating = rating;
   }
 }

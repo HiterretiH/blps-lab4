@@ -11,11 +11,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/sheets")
-public class GoogleSheetController {
+public final class GoogleSheetController {
   private static final String CREATE_REVENUE_SHEET_LOG =
       "Received request to create revenue sheet.";
   private static final String USER_NOT_FOUND_LOG = "User not found: ";
@@ -40,10 +43,12 @@ public class GoogleSheetController {
 
   @Autowired
   public GoogleSheetController(
-      GoogleSheetService googleSheetService, UserRepository userRepository, Logger logger) {
-    this.googleSheetService = googleSheetService;
-    this.userRepository = userRepository;
-    this.logger = logger;
+      final GoogleSheetService googleSheetServiceParam,
+      final UserRepository userRepositoryParam,
+      final Logger loggerParam) {
+    this.googleSheetService = googleSheetServiceParam;
+    this.userRepository = userRepositoryParam;
+    this.logger = loggerParam;
   }
 
   @PreAuthorize("hasAuthority('stats.create')")
@@ -64,10 +69,12 @@ public class GoogleSheetController {
 
     try {
       String result = googleSheetService.createRevenueSheet(userId);
-      logger.info(REVENUE_SHEET_CREATION_LOG + userId + ". Result: " + result);
+      logger.info(REVENUE_SHEET_CREATION_LOG + userId
+          + ". Result: " + result);
       return ResponseEntity.ok(result);
     } catch (Exception exception) {
-      logger.error(REVENUE_SHEET_ERROR_LOG + userId + REASON_LOG + exception.getMessage());
+      logger.error(REVENUE_SHEET_ERROR_LOG + userId
+          + REASON_LOG + exception.getMessage());
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
           .body("Error creating revenue sheet: " + exception.getMessage());
     }
@@ -75,7 +82,7 @@ public class GoogleSheetController {
 
   @PreAuthorize("hasAuthority('stats.add_sheets')")
   @PostMapping("/{appId}/add-sheets")
-  public ResponseEntity<String> addAppSheets(@PathVariable int appId) {
+  public ResponseEntity<String> addAppSheets(@PathVariable final int appId) {
     logger.info(ADD_APP_SHEETS_LOG + appId);
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     Optional<User> userOptional =
@@ -91,7 +98,8 @@ public class GoogleSheetController {
 
     try {
       String result = googleSheetService.addAppSheets(userId, appId);
-      logger.info(APP_SHEETS_CREATION_LOG + appId + USER_ID_LOG + userId + ". Result: " + result);
+      logger.info(APP_SHEETS_CREATION_LOG + appId
+          + USER_ID_LOG + userId + ". Result: " + result);
       return ResponseEntity.ok(result);
     } catch (Exception exception) {
       logger.error(

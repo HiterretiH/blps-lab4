@@ -7,11 +7,17 @@ import org.lab1.service.MonetizationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/monetization")
-public class MonetizationController {
+public final class MonetizationController {
   private static final String GET_INFO_REQUEST_LOG =
       "Received request to get monetization info for application ID: ";
   private static final String INFO_NOT_FOUND_LOG =
@@ -33,16 +39,20 @@ public class MonetizationController {
   private final Logger logger;
 
   @Autowired
-  public MonetizationController(MonetizationService monetizationService, Logger logger) {
-    this.monetizationService = monetizationService;
-    this.logger = logger;
+  public MonetizationController(
+      final MonetizationService monetizationServiceParam,
+      final Logger loggerParam) {
+    this.monetizationService = monetizationServiceParam;
+    this.logger = loggerParam;
   }
 
   @PreAuthorize("hasAuthority('monetization.read')")
   @GetMapping("/info/{applicationId}")
-  public ResponseEntity<MonetizedApplication> getMonetizationInfo(@PathVariable int applicationId) {
+  public ResponseEntity<MonetizedApplication> getMonetizationInfo(
+      @PathVariable final int applicationId) {
     logger.info(GET_INFO_REQUEST_LOG + applicationId);
-    MonetizedApplication monetizedApp = monetizationService.getMonetizationInfo(applicationId);
+    MonetizedApplication monetizedApp =
+        monetizationService.getMonetizationInfo(applicationId);
 
     if (monetizedApp == null) {
       logger.info(INFO_NOT_FOUND_LOG + applicationId);
@@ -50,16 +60,20 @@ public class MonetizationController {
     }
 
     logger.info(
-        INFO_FOUND_LOG + applicationId + CURRENT_BALANCE_LOG + monetizedApp.getCurrentBalance());
+        INFO_FOUND_LOG + applicationId
+            + CURRENT_BALANCE_LOG + monetizedApp.getCurrentBalance());
     return ResponseEntity.ok(monetizedApp);
   }
 
   @PreAuthorize("hasAuthority('monetization.payout.request')")
   @PostMapping("/sendForm/{applicationId}")
   public ResponseEntity<PaymentRequest> sendForm(
-      @PathVariable int applicationId, @RequestParam double amount) {
-    logger.info(SEND_FORM_REQUEST_LOG + applicationId + AMOUNT_LOG + amount);
-    PaymentRequest paymentRequest = monetizationService.sendForm(applicationId, amount);
+      @PathVariable final int applicationId,
+      @RequestParam final double amount) {
+    logger.info(SEND_FORM_REQUEST_LOG + applicationId
+        + AMOUNT_LOG + amount);
+    PaymentRequest paymentRequest =
+        monetizationService.sendForm(applicationId, amount);
     logger.info(
         FORM_SENT_LOG
             + applicationId
@@ -72,7 +86,7 @@ public class MonetizationController {
 
   @PreAuthorize("hasAuthority('monetization.payout.execute')")
   @PostMapping("/payout")
-  public ResponseEntity<String> makePayout(@RequestBody PaymentRequest paymentRequest) {
+  public ResponseEntity<String> makePayout(@RequestBody final PaymentRequest paymentRequest) {
     logger.info(
         PAYOUT_REQUEST_LOG
             + paymentRequest.getApplicationId()

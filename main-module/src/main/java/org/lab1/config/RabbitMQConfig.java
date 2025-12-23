@@ -8,11 +8,14 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-public class RabbitMQConfig {
+public final class RabbitMQConfig {
   private static final String RABBITMQ_HOST = EnvConfig.get("RABBITMQ_HOST", "rabbit");
-  private static final int RABBITMQ_PORT = Integer.parseInt(EnvConfig.get("RABBITMQ_PORT", "5672"));
-  private static final String RABBITMQ_USERNAME = EnvConfig.get("RABBITMQ_USERNAME", "admin");
-  private static final String RABBITMQ_PASSWORD = EnvConfig.get("RABBITMQ_PASSWORD", "password");
+  private static final int RABBITMQ_PORT =
+      Integer.parseInt(EnvConfig.get("RABBITMQ_PORT", "5672"));
+  private static final String RABBITMQ_USERNAME =
+      EnvConfig.get("RABBITMQ_USERNAME", "admin");
+  private static final String RABBITMQ_PASSWORD =
+      EnvConfig.get("RABBITMQ_PASSWORD", "password");
   private static final String CONNECTION_FACTORY_BEAN = "connectionFactory";
   private static final String RABBIT_ADMIN_BEAN = "rabbitAdmin";
   private static final String RABBIT_TEMPLATE_BEAN = "rabbitTemplate";
@@ -28,12 +31,12 @@ public class RabbitMQConfig {
   }
 
   @Bean(name = RABBIT_ADMIN_BEAN)
-  public RabbitAdmin rabbitAdmin(ConnectionFactory connectionFactory) {
+  public RabbitAdmin rabbitAdmin(final ConnectionFactory connectionFactory) {
     return new RabbitAdmin(connectionFactory);
   }
 
   @Bean(name = RABBIT_TEMPLATE_BEAN)
-  public RabbitTemplate rabbitTemplate(ConnectionFactory connectionFactory) {
+  public RabbitTemplate rabbitTemplate(final ConnectionFactory connectionFactory) {
     return new RabbitTemplate(connectionFactory);
   }
 }

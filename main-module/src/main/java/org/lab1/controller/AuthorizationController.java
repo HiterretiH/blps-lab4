@@ -4,7 +4,10 @@ import io.jsonwebtoken.Claims;
 import io.micrometer.core.instrument.MeterRegistry;
 import java.util.UUID;
 import org.lab.logger.Logger;
-import org.lab1.json.*;
+import org.lab1.json.Credentials;
+import org.lab1.json.GoogleAuthResponse;
+import org.lab1.json.LoginCredentials;
+import org.lab1.json.Token;
 import org.lab1.model.Role;
 import org.lab1.model.User;
 import org.lab1.security.TokenManager;
@@ -18,12 +21,17 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequestMapping("/api/auth")
-public class AuthorizationController {
+public final class AuthorizationController {
   private static final String BEARER_PREFIX = "Bearer ";
   private static final String LOGIN_REQUEST_LOG = "Received login request for user: ";
   private static final String LOGIN_SUCCESS_LOG = "User ";
@@ -44,11 +52,13 @@ public class AuthorizationController {
   private static final String INVALID_TOKEN_LOG =
       "Invalid system token received for Google connect initiation.";
   private static final String INVALID_TOKEN_MESSAGE = "Invalid token";
-  private static final String GENERATED_GOOGLE_AUTH_LOG = "Generated Google auth URL for user ID: ";
+  private static final String GENERATED_GOOGLE_AUTH_LOG =
+      "Generated Google auth URL for user ID: ";
   private static final String STATE_LOG = ", state: ";
   private static final String SECURITY_EXCEPTION_LOG =
       "Security exception during Google connect initiation: ";
-  private static final String GOOGLE_CALLBACK_LOG = "Received Google connect callback with code: ";
+  private static final String GOOGLE_CALLBACK_LOG =
+      "Received Google connect callback with code: ";
   private static final String INVALID_CALLBACK_TOKEN_LOG =
       "Invalid system token received for Google connect callback.";
   private static final String GOOGLE_ACCOUNT_CONNECTED_LOG =
@@ -75,24 +85,24 @@ public class AuthorizationController {
 
   @Autowired
   public AuthorizationController(
-      UserService userService,
-      DeveloperService developerService,
-      PlatformTransactionManager transactionManager,
-      GoogleOAuthService googleOAuthService,
-      TokenManager tokenManager,
-      MeterRegistry meterRegistry,
-      Logger logger) {
-    this.userService = userService;
-    this.developerService = developerService;
-    this.transactionManager = transactionManager;
-    this.googleOAuthService = googleOAuthService;
-    this.tokenManager = tokenManager;
-    this.meterRegistry = meterRegistry;
-    this.logger = logger;
+      final UserService userServiceParam,
+      final DeveloperService developerServiceParam,
+      final PlatformTransactionManager transactionManagerParam,
+      final GoogleOAuthService googleOAuthServiceParam,
+      final TokenManager tokenManagerParam,
+      final MeterRegistry meterRegistryParam,
+      final Logger loggerParam) {
+    this.userService = userServiceParam;
+    this.developerService = developerServiceParam;
+    this.transactionManager = transactionManagerParam;
+    this.googleOAuthService = googleOAuthServiceParam;
+    this.tokenManager = tokenManagerParam;
+    this.meterRegistry = meterRegistryParam;
+    this.logger = loggerParam;
   }
 
   @PostMapping("/login")
-  public ResponseEntity<Token> login(@RequestBody LoginCredentials credentials) {
+  public ResponseEntity<Token> login(@RequestBody final LoginCredentials credentials) {
     logger.info(LOGIN_REQUEST_LOG + credentials.getUsername());
     try {
       Token token =
@@ -108,7 +118,7 @@ public class AuthorizationController {
   }
 
   @PostMapping("/register")
-  public ResponseEntity<Token> registerUser(@RequestBody Credentials credentials) {
+  public ResponseEntity<Token> registerUser(@RequestBody final Credentials credentials) {
     logger.info(REGISTER_REQUEST_LOG + credentials.getUsername());
     try {
       Token token =
@@ -127,7 +137,7 @@ public class AuthorizationController {
   }
 
   @PostMapping("/developer/register")
-  public ResponseEntity<Token> registerDeveloper(@RequestBody Credentials credentials) {
+  public ResponseEntity<Token> registerDeveloper(@RequestBody final Credentials credentials) {
     logger.info(DEVELOPER_REGISTER_REQUEST_LOG + credentials.getUsername());
     TransactionDefinition definition = new DefaultTransactionDefinition();
     TransactionStatus status = transactionManager.getTransaction(definition);
@@ -143,7 +153,8 @@ public class AuthorizationController {
       developerService.createDeveloper(user);
       transactionManager.commit(status);
       logger.info(
-          DEVELOPER_REGISTER_SUCCESS_LOG + credentials.getUsername() + REGISTERED_SUCCESS_LOG);
+          DEVELOPER_REGISTER_SUCCESS_LOG
+              + credentials.getUsername() + REGISTERED_SUCCESS_LOG);
       return ResponseEntity.status(HttpStatus.CREATED).body(token);
     } catch (IllegalArgumentException exception) {
       transactionManager.rollback(status);
@@ -158,7 +169,7 @@ public class AuthorizationController {
 
   @PostMapping("/google/connect")
   public ResponseEntity<GoogleAuthResponse> initiateGoogleConnect(
-      @RequestHeader("Authorization") String authHeader) {
+      @RequestHeader("Authorization") final String authHeader) {
     logger.info(GOOGLE_CONNECT_INITIATE_LOG);
     try {
       String systemToken = authHeader.replace(BEARER_PREFIX, "");
@@ -176,7 +187,8 @@ public class AuthorizationController {
 
       return ResponseEntity.ok(
           new GoogleAuthResponse(
-              authUrl, state, "Copy this URL and open in browser to connect Google account"));
+              authUrl, state,
+              "Copy this URL and open in browser to connect Google account"));
     } catch (SecurityException exception) {
       logger.error(SECURITY_EXCEPTION_LOG + exception.getMessage());
       return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
@@ -185,9 +197,9 @@ public class AuthorizationController {
 
   @PostMapping("/google/connect/callback")
   public ResponseEntity<String> handleGoogleCallback(
-      @RequestParam String code,
-      @RequestParam String state,
-      @RequestHeader("Authorization") String authHeader) {
+      @RequestParam final String code,
+      @RequestParam final String state,
+      @RequestHeader("Authorization") final String authHeader) {
     logger.info(GOOGLE_CALLBACK_LOG + code + STATE_LOG + state);
     try {
       String systemToken = authHeader.replace(BEARER_PREFIX, "");

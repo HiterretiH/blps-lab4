@@ -1,6 +1,10 @@
 package org.lab1.model;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
 
 @Entity
 public class InAppPurchase {
@@ -8,49 +12,50 @@ public class InAppPurchase {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private int id;
 
-  @ManyToOne private MonetizedApplication monetizedApplication;
+  @ManyToOne
+  private MonetizedApplication monetizedApplication;
 
   private String title;
   private String description;
   private double price;
 
-  public int getId() {
+  public final int getId() {
     return id;
   }
 
-  public void setId(int id) {
+  public final void setId(final int id) {
     this.id = id;
   }
 
-  public MonetizedApplication getMonetizedApplication() {
+  public final MonetizedApplication getMonetizedApplication() {
     return monetizedApplication;
   }
 
-  public void setMonetizedApplication(MonetizedApplication monetizedApplication) {
+  public final void setMonetizedApplication(final MonetizedApplication monetizedApplication) {
     this.monetizedApplication = monetizedApplication;
   }
 
-  public String getTitle() {
+  public final String getTitle() {
     return title;
   }
 
-  public void setTitle(String title) {
+  public final void setTitle(final String title) {
     this.title = title;
   }
 
-  public String getDescription() {
+  public final String getDescription() {
     return description;
   }
 
-  public void setDescription(String description) {
+  public final void setDescription(final String description) {
     this.description = description;
   }
 
-  public double getPrice() {
+  public final double getPrice() {
     return price;
   }
 
-  public void setPrice(double price) {
+  public final void setPrice(final double price) {
     this.price = price;
   }
 }

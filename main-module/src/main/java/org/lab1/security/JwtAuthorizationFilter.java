@@ -27,15 +27,15 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
   private final TokenManager tokenManager;
 
   @Autowired
-  public JwtAuthorizationFilter(TokenManager tokenManager) {
+  public JwtAuthorizationFilter(final TokenManager tokenManager) {
     this.tokenManager = tokenManager;
   }
 
   @Override
   protected void doFilterInternal(
-      HttpServletRequest request,
-      @NotNull HttpServletResponse response,
-      @NotNull FilterChain filterChain)
+      final HttpServletRequest request,
+      @NotNull final HttpServletResponse response,
+      @NotNull final FilterChain filterChain)
       throws ServletException, IOException {
 
     String authorizationHeader = request.getHeader(AUTHORIZATION_HEADER);
@@ -49,19 +49,19 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
     processTokenAuthentication(token, response, filterChain, request);
   }
 
-  private boolean isValidAuthorizationHeader(String authorizationHeader) {
+  private boolean isValidAuthorizationHeader(final String authorizationHeader) {
     return authorizationHeader != null && authorizationHeader.startsWith(BEARER_PREFIX);
   }
 
-  private String extractToken(String authorizationHeader) {
+  private String extractToken(final String authorizationHeader) {
     return authorizationHeader.substring(BEARER_PREFIX_LENGTH);
   }
 
   private void processTokenAuthentication(
-      String token,
-      HttpServletResponse response,
-      FilterChain filterChain,
-      HttpServletRequest request)
+      final String token,
+      final HttpServletResponse response,
+      final FilterChain filterChain,
+      final HttpServletRequest request)
       throws IOException, ServletException {
     try {
       if (tokenManager.isTokenValid(token)) {

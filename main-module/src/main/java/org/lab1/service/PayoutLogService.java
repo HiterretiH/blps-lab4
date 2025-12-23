@@ -18,22 +18,22 @@ public class PayoutLogService {
   @Autowired private PayoutLogRepository payoutLogRepository;
   @Autowired private Logger logger;
 
-  public PayoutLog save(PayoutLog payoutLog) {
+  public final PayoutLog save(final PayoutLog payoutLog) {
     logger.info(SAVE_LOG);
     return payoutLogRepository.save(payoutLog);
   }
 
-  public Optional<PayoutLog> findById(int id) {
+  public final Optional<PayoutLog> findById(final int id) {
     logger.info(FIND_BY_ID_LOG + id);
     return payoutLogRepository.findById(id);
   }
 
-  public List<PayoutLog> findAll() {
+  public final List<PayoutLog> findAll() {
     logger.info(FIND_ALL_LOG);
     return payoutLogRepository.findAll();
   }
 
-  public void delete(int id) {
+  public final void delete(final int id) {
     logger.info(DELETE_LOG + id);
     payoutLogRepository.deleteById(id);
   }

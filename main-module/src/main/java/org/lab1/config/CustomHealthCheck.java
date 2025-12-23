@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StopWatch;
 
 @Component
-public class CustomHealthCheck implements HealthIndicator {
+public final class CustomHealthCheck implements HealthIndicator {
   private static final long TIMEOUT_MILLISECONDS = 5000;
   private static final String GOOGLE_REQUESTS_QUEUE = "google.requests";
   private static final String POSTGRESQL_CHECK_NAME = "PostgreSQL check";
@@ -58,14 +58,14 @@ public class CustomHealthCheck implements HealthIndicator {
   private final RabbitTemplate rabbitTemplate;
 
   public CustomHealthCheck(
-      DataSource dataSource,
-      RabbitAdmin rabbitAdmin,
-      JdbcTemplate jdbcTemplate,
-      RabbitTemplate rabbitTemplate) {
-    this.dataSource = dataSource;
-    this.rabbitAdmin = rabbitAdmin;
-    this.jdbcTemplate = jdbcTemplate;
-    this.rabbitTemplate = rabbitTemplate;
+      final DataSource dataSourceParam,
+      final RabbitAdmin rabbitAdminParam,
+      final JdbcTemplate jdbcTemplateParam,
+      final RabbitTemplate rabbitTemplateParam) {
+    this.dataSource = dataSourceParam;
+    this.rabbitAdmin = rabbitAdminParam;
+    this.jdbcTemplate = jdbcTemplateParam;
+    this.rabbitTemplate = rabbitTemplateParam;
   }
 
   @Override
@@ -85,7 +85,8 @@ public class CustomHealthCheck implements HealthIndicator {
 
     Health rabbitHealth = performRabbitMQHealthCheck(stopWatch);
     components.put(
-        RABBITMQ_COMPONENT, buildComponentDetails(rabbitHealth, stopWatch.getLastTaskTimeMillis()));
+        RABBITMQ_COMPONENT,
+        buildComponentDetails(rabbitHealth, stopWatch.getLastTaskTimeMillis()));
     if (rabbitHealth.getStatus().equals(Health.down().build().getStatus())) {
       isHealthy = false;
     }
@@ -100,21 +101,23 @@ public class CustomHealthCheck implements HealthIndicator {
         : Health.down().withDetails(systemDetails).build();
   }
 
-  private Health performDatabaseHealthCheck(StopWatch stopWatch) {
+  private Health performDatabaseHealthCheck(final StopWatch stopWatch) {
     stopWatch.start(POSTGRESQL_CHECK_NAME);
     Health postgresHealth = withTimeout(this::checkPostgresHealth, TIMEOUT_MILLISECONDS);
     stopWatch.stop();
     return postgresHealth;
   }
 
-  private Health performRabbitMQHealthCheck(StopWatch stopWatch) {
+  private Health performRabbitMQHealthCheck(final StopWatch stopWatch) {
     stopWatch.start(RABBITMQ_CHECK_NAME);
     Health rabbitHealth = withTimeout(this::checkRabbitHealth, TIMEOUT_MILLISECONDS);
     stopWatch.stop();
     return rabbitHealth;
   }
 
-  private Map<String, Object> buildComponentDetails(Health health, long duration) {
+  private Map<String, Object> buildComponentDetails(
+      final Health health,
+      final long duration) {
     Map<String, Object> details = new LinkedHashMap<>();
     details.put(STATUS_KEY, health.getStatus().getCode());
     details.put(DETAILS_KEY, health.getDetails());
@@ -178,7 +181,9 @@ public class CustomHealthCheck implements HealthIndicator {
     }
   }
 
-  private Health withTimeout(Callable<Health> healthCheck, long timeoutMs) {
+  private Health withTimeout(
+      final Callable<Health> healthCheck,
+      final long timeoutMs) {
     try {
       return healthCheck.call();
     } catch (Exception exception) {

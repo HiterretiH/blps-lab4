@@ -1,29 +1,30 @@
 package org.lab1.json;
 
-public class AddAppSheetsRequest {
+public final class AddAppSheetsRequest {
   private String spreadsheetId;
   private int appId;
 
-  public AddAppSheetsRequest() {}
+  public AddAppSheetsRequest() {
+  }
 
-  public AddAppSheetsRequest(String spreadsheetId, int appId) {
-    this.spreadsheetId = spreadsheetId;
-    this.appId = appId;
+  public AddAppSheetsRequest(final String spreadsheetIdParam, final int appIdParam) {
+    this.spreadsheetId = spreadsheetIdParam;
+    this.appId = appIdParam;
   }
 
   public String getSpreadsheetId() {
     return spreadsheetId;
   }
 
-  public void setSpreadsheetId(String spreadsheetId) {
-    this.spreadsheetId = spreadsheetId;
+  public void setSpreadsheetId(final String spreadsheetIdParam) {
+    this.spreadsheetId = spreadsheetIdParam;
   }
 
   public int getAppId() {
     return appId;
   }
 
-  public void setAppId(int appId) {
-    this.appId = appId;
+  public void setAppId(final int appIdParam) {
+    this.appId = appIdParam;
   }
 }

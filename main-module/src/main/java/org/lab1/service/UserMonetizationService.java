@@ -4,8 +4,14 @@ import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.DistributionSummary;
 import io.micrometer.core.instrument.MeterRegistry;
 import java.util.Optional;
-import org.lab1.model.*;
-import org.lab1.repository.*;
+import org.lab1.model.InAppAdd;
+import org.lab1.model.InAppPurchase;
+import org.lab1.model.MonetizedApplication;
+import org.lab1.model.User;
+import org.lab1.repository.InAppAddRepository;
+import org.lab1.repository.InAppPurchaseRepository;
+import org.lab1.repository.MonetizedApplicationRepository;
+import org.lab1.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -49,12 +55,12 @@ public class UserMonetizationService {
 
   @Autowired
   public UserMonetizationService(
-      MonetizedApplicationRepository monetizedApplicationRepository,
-      InAppPurchaseRepository inAppPurchaseRepository,
-      InAppAddRepository inAppAddRepository,
-      UserRepository userRepository,
-      PlatformTransactionManager transactionManager,
-      MeterRegistry meterRegistry) {
+      final MonetizedApplicationRepository monetizedApplicationRepository,
+      final InAppPurchaseRepository inAppPurchaseRepository,
+      final InAppAddRepository inAppAddRepository,
+      final UserRepository userRepository,
+      final PlatformTransactionManager transactionManager,
+      final MeterRegistry meterRegistry) {
     this.monetizedApplicationRepository = monetizedApplicationRepository;
     this.inAppPurchaseRepository = inAppPurchaseRepository;
     this.inAppAddRepository = inAppAddRepository;
@@ -84,13 +90,13 @@ public class UserMonetizationService {
             .register(meterRegistry);
   }
 
-  public boolean downloadApplication(
-      int applicationId,
-      int userId,
-      String cardNumber,
-      String cardHolderName,
-      String expiryDate,
-      String cvv) {
+  public final boolean downloadApplication(
+      final int applicationId,
+      final int userId,
+      final String cardNumber,
+      final String cardHolderName,
+      final String expiryDate,
+      final String cvv) {
     TransactionDefinition definition = new DefaultTransactionDefinition();
     TransactionStatus status = transactionManager.getTransaction(definition);
 
@@ -138,13 +144,13 @@ public class UserMonetizationService {
     }
   }
 
-  public boolean purchaseInAppItem(
-      int purchaseId,
-      int userId,
-      String cardNumber,
-      String cardHolderName,
-      String expiryDate,
-      String cvv) {
+  public final boolean purchaseInAppItem(
+      final int purchaseId,
+      final int userId,
+      final String cardNumber,
+      final String cardHolderName,
+      final String expiryDate,
+      final String cvv) {
     TransactionDefinition definition = new DefaultTransactionDefinition();
     TransactionStatus status = transactionManager.getTransaction(definition);
 
@@ -191,14 +197,17 @@ public class UserMonetizationService {
   }
 
   private boolean isValidCard(
-      String cardNumber, String cardHolderName, String expiryDate, String cvv) {
+      final String cardNumber,
+      final String cardHolderName,
+      final String expiryDate,
+      final String cvv) {
     return cardNumber.matches(CARD_NUMBER_REGEX)
         && cardHolderName.matches(CARD_HOLDER_REGEX)
         && expiryDate.matches(EXPIRY_DATE_REGEX)
         && cvv.matches(CVV_REGEX);
   }
 
-  public boolean viewAdvertisement(int adId) {
+  public final boolean viewAdvertisement(final int adId) {
     Optional<InAppAdd> adOptional = inAppAddRepository.findById(adId);
     if (adOptional.isEmpty()) {
       return false;

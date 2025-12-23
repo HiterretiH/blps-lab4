@@ -66,9 +66,9 @@ public class MonetizationService {
 
   @Autowired
   public MonetizationService(
-      MonetizedApplicationRepository monetizedApplicationRepository,
-      MeterRegistry meterRegistry,
-      Logger logger) {
+      final MonetizedApplicationRepository monetizedApplicationRepository,
+      final MeterRegistry meterRegistry,
+      final Logger logger) {
     this.monetizedApplicationRepository = monetizedApplicationRepository;
     this.logger = logger;
     this.payoutSuccessCounter =
@@ -101,7 +101,7 @@ public class MonetizationService {
             .register(meterRegistry);
   }
 
-  public MonetizedApplication getMonetizationInfo(int applicationId) {
+  public final MonetizedApplication getMonetizationInfo(final int applicationId) {
     logger.info(FETCH_INFO_LOG + applicationId);
     MonetizedApplication monetizedApp =
         monetizedApplicationRepository.findByApplicationId(applicationId);
@@ -116,7 +116,7 @@ public class MonetizationService {
     return monetizedApp;
   }
 
-  public PaymentRequest sendForm(int applicationId, double amount) {
+  public final PaymentRequest sendForm(final int applicationId, final double amount) {
     logger.info(GENERATE_FORM_LOG + applicationId + AMOUNT_LOG + amount);
     PaymentRequest paymentRequest = new PaymentRequest(applicationId, amount);
     logger.info(
@@ -129,7 +129,7 @@ public class MonetizationService {
     return paymentRequest;
   }
 
-  public String makePayout(PaymentRequest paymentRequest) {
+  public final String makePayout(final PaymentRequest paymentRequest) {
     logger.info(
         PROCESS_PAYOUT_LOG
             + paymentRequest.getApplicationId()

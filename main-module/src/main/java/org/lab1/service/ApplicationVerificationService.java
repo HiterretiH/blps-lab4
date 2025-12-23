@@ -21,10 +21,8 @@ public class ApplicationVerificationService {
   private static final String POLICY_CHECK_FAILED_MSG = "Policy check failed. ";
   private static final String ADS_CHECK_PASSED_MSG = "Ads check passed.";
   private static final String ADS_CHECK_FAILED_MSG = "Ads check failed.";
-  private static final String VERIFICATION_LOG_SAVED_LOG =
-      "Verification log saved (security failed) with ID: ";
-  private static final String VERIFICATION_POLICY_SAVED_LOG =
-      "Verification log saved (policy failed) with ID: ";
+  private static final String VERIFICATION_LOG_SAVED_LOG = "Verification log saved (security failed) with ID: ";
+  private static final String VERIFICATION_POLICY_SAVED_LOG = "Verification log saved (policy failed) with ID: ";
   private static final String VERIFICATION_FINAL_SAVED_LOG = "Verification log saved with ID: ";
   private static final String SAVE_VERIFICATION_LOG = "Saving verification log.";
   private static final String VERIFICATION_SAVED_LOG = "Verification log saved with ID: ";
@@ -35,18 +33,19 @@ public class ApplicationVerificationService {
 
   @Autowired
   public ApplicationVerificationService(
-      VerificationLogRepository verificationLogRepository, Logger logger) {
+      final VerificationLogRepository verificationLogRepository, final Logger logger) {
     this.verificationLogRepository = verificationLogRepository;
     this.logger = logger;
   }
 
-  public VerificationLog verifyApplicationForm(ApplicationForm form) {
+  public VerificationLog verifyApplicationForm(final ApplicationForm form) {
     logger.info(VERIFY_FORM_LOG);
     Map<String, String> formFields = form.getFormFields();
 
-    boolean securityCheckPassed = random.nextInt(100) < SECURITY_CHECK_THRESHOLD;
-    boolean policyCheckPassed = securityCheckPassed && random.nextInt(100) < POLICY_CHECK_THRESHOLD;
-    boolean adsCheckPassed = policyCheckPassed && random.nextInt(100) < ADS_CHECK_THRESHOLD;
+    final int hundredPercent = 100;
+    boolean securityCheckPassed = random.nextInt(hundredPercent) < SECURITY_CHECK_THRESHOLD;
+    boolean policyCheckPassed = securityCheckPassed && random.nextInt(hundredPercent) < POLICY_CHECK_THRESHOLD;
+    boolean adsCheckPassed = policyCheckPassed && random.nextInt(hundredPercent) < ADS_CHECK_THRESHOLD;
 
     StringBuilder logMessage = new StringBuilder();
 
@@ -81,7 +80,11 @@ public class ApplicationVerificationService {
   }
 
   private VerificationLog saveVerificationLog(
-      ApplicationForm form, boolean security, boolean policy, boolean ads, String logMessage) {
+      final ApplicationForm form,
+      final boolean security,
+      final boolean policy,
+      final boolean ads,
+      final String logMessage) {
     logger.info(SAVE_VERIFICATION_LOG);
     VerificationLog verificationLog = new VerificationLog();
     verificationLog.setSecurityCheckPassed(security);

@@ -4,7 +4,10 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Map;
 import org.lab.logger.Logger;
-import org.lab1.json.*;
+import org.lab1.json.GoogleFormRequest;
+import org.lab1.json.GoogleSheetIdentifier;
+import org.lab1.json.GoogleSheetRequestWithData;
+import org.lab1.json.MonetizationEvent;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageBuilder;
 import org.springframework.amqp.core.MessageProperties;
@@ -59,18 +62,19 @@ public class GoogleTaskSender {
 
   @Autowired
   public GoogleTaskSender(
-      RabbitTemplate rabbitTemplate,
-      GoogleOAuthService googleOAuthService,
-      ObjectMapper objectMapper,
-      Logger logger) {
+      final RabbitTemplate rabbitTemplate,
+      final GoogleOAuthService googleOAuthService,
+      final ObjectMapper objectMapper,
+      final Logger logger) {
     this.rabbitTemplate = rabbitTemplate;
     this.googleOAuthService = googleOAuthService;
     this.objectMapper = objectMapper;
     this.logger = logger;
   }
 
-  public void sendFormCreationRequest(
-      int userId, Map<String, String> fields, String formTitle, String googleEmail) {
+  public final void sendFormCreationRequest(
+      final int userId, final Map<String, String> fields,
+      final String formTitle, final String googleEmail) {
     try {
       GoogleFormRequest request = new GoogleFormRequest(googleEmail, fields, formTitle);
 
@@ -88,7 +92,8 @@ public class GoogleTaskSender {
     }
   }
 
-  public void sendSheetCreationRequest(int userId, GoogleSheetRequestWithData request) {
+  public final void sendSheetCreationRequest(
+      final int userId, final GoogleSheetRequestWithData request) {
     try {
       MessageProperties properties = new MessageProperties();
       properties.setHeader(USER_ID_HEADER, userId);
@@ -104,7 +109,7 @@ public class GoogleTaskSender {
     }
   }
 
-  public void sendAddAppSheetsRequest(int userId, String appName) {
+  public final void sendAddAppSheetsRequest(final int userId, final String appName) {
     try {
       String googleEmail = googleOAuthService.getUserGoogleEmail(userId);
       String spreadsheetTitle = REVENUE_STATS_TITLE + googleEmail + REVENUE_STATS_SUFFIX;
@@ -132,7 +137,7 @@ public class GoogleTaskSender {
     }
   }
 
-  public void sendMonetizationEvent(int userId, MonetizationEvent event) {
+  public final void sendMonetizationEvent(final int userId, final MonetizationEvent event) {
     try {
       MessageProperties properties = new MessageProperties();
       properties.setHeader(OPERATION_HEADER, UPDATE_MONETIZATION_OPERATION);
@@ -155,7 +160,7 @@ public class GoogleTaskSender {
     }
   }
 
-  public void sendUpdateAppsTopRequest() {
+  public final void sendUpdateAppsTopRequest() {
     try {
       MessageProperties properties = new MessageProperties();
       properties.setHeader(OPERATION_HEADER, UPDATE_APPS_TOP_OPERATION);

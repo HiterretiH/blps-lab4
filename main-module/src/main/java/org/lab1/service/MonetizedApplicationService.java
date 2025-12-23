@@ -36,18 +36,18 @@ public class MonetizedApplicationService {
 
   @Autowired
   public MonetizedApplicationService(
-      MonetizedApplicationRepository monetizedApplicationRepository,
-      DeveloperRepository developerRepository,
-      ApplicationRepository applicationRepository,
-      Logger logger) {
+      final MonetizedApplicationRepository monetizedApplicationRepository,
+      final DeveloperRepository developerRepository,
+      final ApplicationRepository applicationRepository,
+      final Logger logger) {
     this.monetizedApplicationRepository = monetizedApplicationRepository;
     this.developerRepository = developerRepository;
     this.applicationRepository = applicationRepository;
     this.logger = logger;
   }
 
-  public MonetizedApplication createMonetizedApplication(
-      MonetizedApplicationJson monetizedApplicationJson) {
+  public final MonetizedApplication createMonetizedApplication(
+      final MonetizedApplicationJson monetizedApplicationJson) {
     logger.info(
         CREATE_REQUEST_LOG
             + monetizedApplicationJson.getDeveloperId()
@@ -93,7 +93,7 @@ public class MonetizedApplicationService {
     return savedMonetizedApplication;
   }
 
-  public Optional<MonetizedApplication> getMonetizedApplicationById(int id) {
+  public final Optional<MonetizedApplication> getMonetizedApplicationById(final int id) {
     logger.info(FETCH_BY_ID_LOG + id);
     Optional<MonetizedApplication> monetizedApplication =
         monetizedApplicationRepository.findById(id);

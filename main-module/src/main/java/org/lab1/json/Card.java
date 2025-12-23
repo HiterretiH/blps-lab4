@@ -1,6 +1,6 @@
 package org.lab1.json;
 
-public class Card {
+public final class Card {
   private String cardNumber;
   private String cardHolderName;
   private String expiryDate;
@@ -10,31 +10,31 @@ public class Card {
     return cardNumber;
   }
 
-  public void setCardNumber(String cardNumber) {
-    this.cardNumber = cardNumber;
+  public void setCardNumber(final String cardNumberParam) {
+    this.cardNumber = cardNumberParam;
   }
 
   public String getCardHolderName() {
     return cardHolderName;
   }
 
-  public void setCardHolderName(String cardHolderName) {
-    this.cardHolderName = cardHolderName;
+  public void setCardHolderName(final String cardHolderNameParam) {
+    this.cardHolderName = cardHolderNameParam;
   }
 
   public String getExpiryDate() {
     return expiryDate;
   }
 
-  public void setExpiryDate(String expiryDate) {
-    this.expiryDate = expiryDate;
+  public void setExpiryDate(final String expiryDateParam) {
+    this.expiryDate = expiryDateParam;
   }
 
   public String getCvv() {
     return cvv;
   }
 
-  public void setCvv(String cvv) {
-    this.cvv = cvv;
+  public void setCvv(final String cvvParam) {
+    this.cvv = cvvParam;
   }
 }

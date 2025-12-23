@@ -25,12 +25,13 @@ public class PaymentRequestService {
   private final Logger logger;
 
   @Autowired
-  public PaymentRequestService(PaymentRequestRepository paymentRequestRepository, Logger logger) {
+  public PaymentRequestService(
+      final PaymentRequestRepository paymentRequestRepository, final Logger logger) {
     this.paymentRequestRepository = paymentRequestRepository;
     this.logger = logger;
   }
 
-  public PaymentRequest createPaymentRequest(int applicationId, double amount) {
+  public final PaymentRequest createPaymentRequest(final int applicationId, final double amount) {
     logger.info(CREATE_REQUEST_LOG + applicationId + AMOUNT_LOG + amount);
     PaymentRequest paymentRequest = new PaymentRequest(applicationId, amount);
     PaymentRequest savedRequest = paymentRequestRepository.save(paymentRequest);
@@ -42,7 +43,7 @@ public class PaymentRequestService {
     return savedRequest;
   }
 
-  public Optional<PaymentRequest> getPaymentRequestById(int applicationId) {
+  public final Optional<PaymentRequest> getPaymentRequestById(final int applicationId) {
     logger.info(FETCH_REQUEST_LOG + applicationId);
     Optional<PaymentRequest> paymentRequest = paymentRequestRepository.findById(applicationId);
 
@@ -56,7 +57,7 @@ public class PaymentRequestService {
     return paymentRequest;
   }
 
-  public boolean validateCard(PaymentRequest paymentRequest) {
+  public final boolean validateCard(final PaymentRequest paymentRequest) {
     logger.info(VALIDATE_CARD_LOG + paymentRequest.getApplicationId());
     boolean isValid = paymentRequest.isCardValid();
     logger.info(

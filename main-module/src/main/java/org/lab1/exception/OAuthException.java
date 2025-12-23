@@ -1,7 +1,7 @@
 package org.lab1.exception;
 
-public class OAuthException extends Exception {
-  public OAuthException(String message) {
+public final class OAuthException extends Exception {
+  public OAuthException(final String message) {
     super(message);
   }
 }

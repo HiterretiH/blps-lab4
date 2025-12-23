@@ -15,11 +15,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/forms")
-public class FormController {
+public final class FormController {
   private static final String GENERATE_FORM_REQUEST_LOG =
       "Received request to generate Google Form.";
   private static final String USER_NOT_FOUND_LOG = "User not found: ";
@@ -60,12 +64,12 @@ public class FormController {
 
   @Autowired
   public FormController(
-      FormGenerationService formGenerationService,
-      UserRepository userRepository,
-      MeterRegistry meterRegistry,
-      Logger logger) {
-    this.formGenerationService = formGenerationService;
-    this.userRepository = userRepository;
+      final FormGenerationService formGenerationServiceParam,
+      final UserRepository userRepositoryParam,
+      final MeterRegistry meterRegistry,
+      final Logger loggerParam) {
+    this.formGenerationService = formGenerationServiceParam;
+    this.userRepository = userRepositoryParam;
     this.formsGeneratedCounter =
         Counter.builder(FORMS_GENERATED_METRIC)
             .description(FORMS_GENERATED_DESCRIPTION)
@@ -74,7 +78,7 @@ public class FormController {
         Counter.builder(FIELDS_ADDED_METRIC)
             .description(FIELDS_ADDED_DESCRIPTION)
             .register(meterRegistry);
-    this.logger = logger;
+    this.logger = loggerParam;
   }
 
   @PreAuthorize("hasAuthority('form.create')")
@@ -99,7 +103,8 @@ public class FormController {
       logger.info(GENERATE_FORM_SUCCESS_LOG + userId + RESULT_LOG + result);
       return ResponseEntity.ok(result);
     } catch (Exception exception) {
-      logger.error(GENERATE_FORM_ERROR_LOG + userId + REASON_LOG + exception.getMessage());
+      logger.error(GENERATE_FORM_ERROR_LOG + userId
+          + REASON_LOG + exception.getMessage());
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
           .body("Error generating form: " + exception.getMessage());
     }
@@ -116,7 +121,7 @@ public class FormController {
 
   @PreAuthorize("hasAuthority('form.manage')")
   @PostMapping("/addField")
-  public ResponseEntity<String> addField(@RequestBody Map<String, String> fieldRequest) {
+  public ResponseEntity<String> addField(@RequestBody final Map<String, String> fieldRequest) {
     String fieldName = fieldRequest.get(FIELD_NAME_KEY);
     logger.info(ADD_FIELD_REQUEST_LOG + fieldName);
 
@@ -133,7 +138,7 @@ public class FormController {
 
   @PreAuthorize("hasAuthority('form.manage')")
   @PostMapping("/addFields")
-  public ResponseEntity<String> addFields(@RequestBody List<Map<String, String>> fieldsRequest) {
+  public ResponseEntity<String> addFields(@RequestBody final List<Map<String, String>> fieldsRequest) {
     logger.info(ADD_FIELDS_REQUEST_LOG);
 
     if (fieldsRequest == null || fieldsRequest.isEmpty()) {
@@ -154,7 +159,8 @@ public class FormController {
 
     formGenerationService.addFields(fieldNames);
     fieldsAddedCounter.increment(fieldNames.size());
-    logger.info(FIELDS_ADDED_SUCCESS_LOG + fieldNames.size() + FIELDS_SUCCESSFULLY_LOG);
+    logger.info(FIELDS_ADDED_SUCCESS_LOG + fieldNames.size()
+        + FIELDS_SUCCESSFULLY_LOG);
     return ResponseEntity.status(HttpStatus.CREATED).body(FIELDS_ADDED_MESSAGE);
   }
 }

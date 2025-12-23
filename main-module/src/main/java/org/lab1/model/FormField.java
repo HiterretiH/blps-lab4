@@ -1,6 +1,9 @@
 package org.lab1.model;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 
 @Entity
 public class FormField {
@@ -10,19 +13,19 @@ public class FormField {
 
   private String fieldName;
 
-  public int getId() {
+  public final int getId() {
     return id;
   }
 
-  public void setId(int id) {
+  public final void setId(final int id) {
     this.id = id;
   }
 
-  public String getFieldName() {
+  public final String getFieldName() {
     return fieldName;
   }
 
-  public void setFieldName(String fieldName) {
+  public final void setFieldName(final String fieldName) {
     this.fieldName = fieldName;
   }
 }

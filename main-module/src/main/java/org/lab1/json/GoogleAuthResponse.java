@@ -1,39 +1,43 @@
 package org.lab1.json;
 
-public class GoogleAuthResponse {
+public final class GoogleAuthResponse {
   private String authUrl;
   private String state;
   private String message;
 
-  public GoogleAuthResponse() {}
+  public GoogleAuthResponse() {
+  }
 
-  public GoogleAuthResponse(String authUrl, String state, String message) {
-    this.authUrl = authUrl;
-    this.state = state;
-    this.message = message;
+  public GoogleAuthResponse(
+      final String authUrlParam,
+      final String stateParam,
+      final String messageParam) {
+    this.authUrl = authUrlParam;
+    this.state = stateParam;
+    this.message = messageParam;
   }
 
   public String getAuthUrl() {
     return authUrl;
   }
 
-  public void setAuthUrl(String authUrl) {
-    this.authUrl = authUrl;
+  public void setAuthUrl(final String authUrlParam) {
+    this.authUrl = authUrlParam;
   }
 
   public String getState() {
     return state;
   }
 
-  public void setState(String state) {
-    this.state = state;
+  public void setState(final String stateParam) {
+    this.state = stateParam;
   }
 
   public String getMessage() {
     return message;
   }
 
-  public void setMessage(String message) {
-    this.message = message;
+  public void setMessage(final String messageParam) {
+    this.message = messageParam;
   }
 }
