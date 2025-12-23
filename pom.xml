@@ -40,27 +40,15 @@
           </dependency>
         </dependencies>
         <configuration>
-          <!-- КРИТИЧНО ВАЖНО: укажите полный путь -->
           <configLocation>${project.basedir}/checkstyle.xml</configLocation>
           <encoding>UTF-8</encoding>
           <consoleOutput>true</consoleOutput>
-          <!-- Чтобы проверялись все файлы: -->
-          <failOnViolation>false</failOnViolation>
-          <failsOnError>false</failsOnError>
+          <failOnViolation>true</failOnViolation>
+          <failsOnError>true</failsOnError>
           <maxAllowedViolations>999999</maxAllowedViolations>
-          <!-- Для проверки всех модулей -->
           <skip>false</skip>
           <includeTestSourceDirectory>true</includeTestSourceDirectory>
         </configuration>
-        <!-- <executions>
-          <execution>
-            <id>checkstyle-check</id>
-            <phase>validate</phase>
-            <goals>
-              <goal>check</goal>
-            </goals>
-          </execution>
-        </executions>-->
       </plugin>
 
       <plugin>

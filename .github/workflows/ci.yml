@@ -30,6 +30,9 @@ jobs:
       - name: Run Spotless Check
         run: mvn spotless:check -Pci
 
+      - name: Run CheckStyle Check
+        run: mvn checkstyle:check -Pci
+
       - name: Build Project
         run: mvn clean compile -Pci
 
