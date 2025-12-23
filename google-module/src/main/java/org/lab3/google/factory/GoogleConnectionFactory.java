@@ -8,14 +8,17 @@ import java.io.Serializable;
 import javax.naming.Reference;
 import org.lab3.google.service.GoogleConnection;
 
-public class GoogleConnectionFactory implements Serializable, Referenceable {
+public final class GoogleConnectionFactory
+    implements Serializable, Referenceable {
   private final ConnectionManager manager;
   private final ManagedConnectionFactory mcf;
   private Reference reference;
 
-  public GoogleConnectionFactory(ManagedConnectionFactory mcf, ConnectionManager manager) {
-    this.mcf = mcf;
-    this.manager = manager;
+  public GoogleConnectionFactory(
+      final ManagedConnectionFactory managedConnectionFactory,
+      final ConnectionManager connectionManager) {
+    this.mcf = managedConnectionFactory;
+    this.manager = connectionManager;
   }
 
   public GoogleConnection getConnection() throws ResourceException {
@@ -23,8 +26,8 @@ public class GoogleConnectionFactory implements Serializable, Referenceable {
   }
 
   @Override
-  public void setReference(Reference reference) {
-    this.reference = reference;
+  public void setReference(final Reference ref) {
+    this.reference = ref;
   }
 
   @Override

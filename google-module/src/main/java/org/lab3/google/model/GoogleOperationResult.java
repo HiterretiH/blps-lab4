@@ -2,7 +2,7 @@ package org.lab3.google.model;
 
 import java.time.LocalDateTime;
 
-public class GoogleOperationResult {
+public final class GoogleOperationResult {
   private Long id;
   private Integer userId;
   private String operation;
@@ -11,15 +11,20 @@ public class GoogleOperationResult {
   private String error;
   private LocalDateTime createdAt;
 
-  public GoogleOperationResult() {}
+  public GoogleOperationResult() {
+  }
 
   public GoogleOperationResult(
-      Integer userId, String operation, String targetValue, String result, String error) {
-    this.userId = userId;
-    this.operation = operation;
-    this.targetValue = targetValue;
-    this.result = result;
-    this.error = error;
+      final Integer userIdParam,
+      final String operationParam,
+      final String targetValueParam,
+      final String resultParam,
+      final String errorParam) {
+    this.userId = userIdParam;
+    this.operation = operationParam;
+    this.targetValue = targetValueParam;
+    this.result = resultParam;
+    this.error = errorParam;
     this.createdAt = LocalDateTime.now();
   }
 
@@ -27,55 +32,55 @@ public class GoogleOperationResult {
     return id;
   }
 
-  public void setId(Long id) {
-    this.id = id;
+  public void setId(final Long idParam) {
+    this.id = idParam;
   }
 
   public Integer getUserId() {
     return userId;
   }
 
-  public void setUserId(Integer userId) {
-    this.userId = userId;
+  public void setUserId(final Integer userIdParam) {
+    this.userId = userIdParam;
   }
 
   public String getOperation() {
     return operation;
   }
 
-  public void setOperation(String operation) {
-    this.operation = operation;
+  public void setOperation(final String operationParam) {
+    this.operation = operationParam;
   }
 
   public String getTargetValue() {
     return targetValue;
   }
 
-  public void setTargetValue(String targetValue) {
-    this.targetValue = targetValue;
+  public void setTargetValue(final String targetValueParam) {
+    this.targetValue = targetValueParam;
   }
 
   public String getResult() {
     return result;
   }
 
-  public void setResult(String result) {
-    this.result = result;
+  public void setResult(final String resultParam) {
+    this.result = resultParam;
   }
 
   public String getError() {
     return error;
   }
 
-  public void setError(String error) {
-    this.error = error;
+  public void setError(final String errorParam) {
+    this.error = errorParam;
   }
 
   public LocalDateTime getCreatedAt() {
     return createdAt;
   }
 
-  public void setCreatedAt(LocalDateTime createdAt) {
-    this.createdAt = createdAt;
+  public void setCreatedAt(final LocalDateTime createdAtParam) {
+    this.createdAt = createdAtParam;
   }
 }
