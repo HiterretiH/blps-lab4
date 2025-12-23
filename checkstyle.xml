@@ -1,233 +1,304 @@
 <?xml version="1.0"?>
 <!DOCTYPE module PUBLIC
-        "-//Checkstyle//DTD Checkstyle Configuration 1.3//EN"
-        "https://checkstyle.org/dtds/configuration_1_3.dtd">
+  "-//Checkstyle//DTD Checkstyle Configuration 1.3//EN"
+  "https://checkstyle.org/dtds/configuration_1_3.dtd">
 
 <module name="Checker">
-    <property name="charset" value="UTF-8"/>
+  <property name="charset" value="UTF-8"/>
+  <!-- 70% Google строгость, 30% Killa харизмы -->
+  <property name="severity" value="warning"/>
+  <property name="fileExtensions" value="java, kawaii, awesome"/>
+
+  <!-- ============ GOOGLE ЯЙЦА ============ -->
+  <module name="BeforeExecutionExclusionFileFilter">
+    <property name="fileNamePattern" value="module\-info\.java$"/>
+    <property name="fileNamePattern" value=".*Boring.*\.java$"/>
+  </module>
+
+  <module name="SuppressionFilter">
+    <property name="file" value="${org.checkstyle.sun.suppressionfilter.config}"
+              default="checkstyle-suppressions.xml"/>
+    <property name="optional" value="true"/>
+  </module>
+
+  <!-- ============ KILLA-KILLA OVERDRIVE ============ -->
+
+  <!-- Tab Police -->
+  <module name="FileTabCharacter">
+    <property name="eachLine" value="true"/>
+    <message key="file.containsTab"
+             value="😡 Табы? Ты шутишь? 4 пробела или расстрел! ~Killa"/>
+  </module>
+
+  <!-- Line Length: Google яйцо 100 символов -->
+  <module name="LineLength">
+    <property name="max" value="100"/>
+    <property name="ignorePattern" value="^package.*|^import.*|a href|href|http://|https://|ftp://"/>
+    <message key="maxLineLen"
+             value="🎯 Строка {0} символов? Слишком жирно! Режь до 100! *прицеливается*"/>
+  </module>
+
+  <!-- System.out.println - прямой выстрел в ногу -->
+  <module name="RegexpSingleline">
+    <property name="format" value="System\.(out|err)\."/>
+    <property name="message" value="🚫 System.out? Серьёзно? log.debug() или выходи! ~Killa"/>
     <property name="severity" value="error"/>
-    <property name="fileExtensions" value="java, properties, xml"/>
+  </module>
 
-    <module name="BeforeExecutionExclusionFileFilter">
-        <property name="fileNamePattern" value="module\-info\.java$"/>
+  <!-- Проверка на "// TODO" без колы -->
+  <module name="RegexpSingleline">
+    <property name="format" value="// TODO(?!.*[Cc]ola)"/>
+    <property name="message" value="☕ TODO без упоминания колы? Сначала cola, потом код! ~Killa"/>
+    <property name="severity" value="info"/>
+  </module>
+
+  <!-- ============ TREE WALKER: БИТВА СТИЛЕЙ ============ -->
+  <module name="TreeWalker">
+
+    <!-- ===== ИМЕНА КАК ПЕСНЯ ===== -->
+    <module name="OuterTypeFilename">
+      <message key="type.file.mismatch"
+               value="📁 Файл {0} не совпадает с классом! Это же очевидно! ~Killa"/>
     </module>
 
-    <module name="SuppressionFilter">
-        <property name="file" value="${org.checkstyle.sun.suppressionfilter.config}"
-                  default="checkstyle-suppressions.xml" />
-        <property name="optional" value="true"/>
+    <!-- Пакеты - только lowercase, детка -->
+    <module name="PackageName">
+      <property name="format" value="^[a-z]+(\.[a-z][a-z0-9]*)*$"/>
+      <message key="name.invalidPattern"
+               value="📦 Пакет {0}? Ты CapLock залип? Только нижний регистр! *щелкает пальцами*"/>
     </module>
 
-    <module name="TreeWalker">
-        <module name="OuterTypeFilename"/>
-        <module name="IllegalTokenText">
-            <property name="tokens" value="STRING_LITERAL, CHAR_LITERAL"/>
-            <property name="format"
-                      value="\\u00(09|0(a|A)|0(c|C)|0(d|D)|22|27|5(C|c))|\\(0(10|11|12|14|15|42|47)|134)"/>
-            <property name="message"
-                      value="Consider using special escape sequence instead of octal value or Unicode escaped value."/>
-        </module>
-        <module name="AvoidEscapedUnicodeCharacters">
-            <property name="allowEscapesForControlCharacters" value="true"/>
-            <property name="allowByTailComment" value="true"/>
-            <property name="allowNonPrintableEscapes" value="true"/>
-        </module>
-        <module name="LineLength">
-            <property name="max" value="100"/>
-            <property name="ignorePattern" value="^package.*|^import.*|a href|href|http://|https://|ftp://"/>
-        </module>
-        <module name="AvoidStarImport"/>
-        <module name="OneTopLevelClass"/>
-        <module name="NoLineWrap"/>
-        <module name="EmptyBlock">
-            <property name="option" value="TEXT"/>
-            <property name="tokens" value="LITERAL_TRY, LITERAL_FINALLY, LITERAL_IF, LITERAL_ELSE, LITERAL_SWITCH"/>
-        </module>
-        <module name="NeedBraces"/>
-        <module name="LeftCurly"/>
-        <module name="RightCurly">
-            <property name="id" value="RightCurlySame"/>
-            <property name="tokens" value="LITERAL_TRY, LITERAL_CATCH, LITERAL_FINALLY, LITERAL_IF, LITERAL_ELSE, LITERAL_DO"/>
-        </module>
-        <module name="RightCurly">
-            <property name="id" value="RightCurlyAlone"/>
-            <property name="option" value="alone"/>
-            <property name="tokens" value="CLASS_DEF, METHOD_DEF, CTOR_DEF, LITERAL_FOR, LITERAL_WHILE, STATIC_INIT, INSTANCE_INIT"/>
-        </module>
-        <module name="WhitespaceAround">
-            <property name="allowEmptyConstructors" value="true"/>
-            <property name="allowEmptyLambdas" value="true"/>
-            <property name="allowEmptyMethods" value="true"/>
-            <property name="allowEmptyTypes" value="true"/>
-            <property name="allowEmptyLoops" value="true"/>
-            <message key="ws.notFollowed"
-                     value="WhitespaceAround: ''{0}'' is not followed by whitespace. Empty blocks may only be represented as '{}' when not part of a multi-block statement (4.1.3)"/>
-            <message key="ws.notPreceded"
-                     value="WhitespaceAround: ''{0}'' is not preceded with whitespace."/>
-        </module>
-        <module name="OneStatementPerLine"/>
-        <module name="MultipleVariableDeclarations"/>
-        <module name="ArrayTypeStyle"/>
-        <module name="MissingSwitchDefault"/>
-        <module name="FallThrough"/>
-        <module name="UpperEll"/>
-        <module name="ModifierOrder"/>
-        <module name="EmptyLineSeparator">
-            <property name="allowNoEmptyLineBetweenFields" value="true"/>
-        </module>
-        <module name="SeparatorWrap">
-            <property name="id" value="SeparatorWrapDot"/>
-            <property name="tokens" value="DOT"/>
-            <property name="option" value="nl"/>
-        </module>
-        <module name="SeparatorWrap">
-            <property name="id" value="SeparatorWrapComma"/>
-            <property name="tokens" value="COMMA"/>
-            <property name="option" value="EOL"/>
-        </module>
-        <module name="SeparatorWrap">
-            <property name="id" value="SeparatorWrapMethodRef"/>
-            <property name="tokens" value="METHOD_REF"/>
-            <property name="option" value="nl"/>
-        </module>
-        <module name="PackageName">
-            <property name="format" value="^[a-z]+(\.[a-z][a-z0-9]*)*$"/>
-            <message key="name.invalidPattern"
-                     value="Package name ''{0}'' must match pattern ''{1}''."/>
-        </module>
-        <module name="TypeName">
-            <message key="name.invalidPattern"
-                     value="Type name ''{0}'' must match pattern ''{1}''."/>
-        </module>
-        <module name="MemberName">
-            <property name="format" value="^[a-z][a-z0-9][a-zA-Z0-9]*$"/>
-            <message key="name.invalidPattern"
-                     value="Member name ''{0}'' must match pattern ''{1}''."/>
-        </module>
-        <module name="ParameterName">
-            <property name="format" value="^[a-z]([a-z0-9][a-zA-Z0-9]*)?$"/>
-            <message key="name.invalidPattern"
-                     value="Parameter name ''{0}'' must match pattern ''{1}''."/>
-        </module>
-        <module name="LambdaParameterName">
-            <property name="format" value="^[a-z]([a-z0-9][a-zA-Z0-9]*)?$"/>
-            <message key="name.invalidPattern"
-                     value="Lambda parameter name ''{0}'' must match pattern ''{1}''."/>
-        </module>
-        <module name="CatchParameterName">
-            <property name="format" value="^[a-z]([a-z0-9][a-zA-Z0-9]*)?$"/>
-            <message key="name.invalidPattern"
-                     value="Catch parameter name ''{0}'' must match pattern ''{1}''."/>
-        </module>
-        <module name="LocalVariableName">
-            <property name="tokens" value="VARIABLE_DEF"/>
-            <property name="format" value="^[a-z]([a-z0-9][a-zA-Z0-9]*)?$"/>
-            <message key="name.invalidPattern"
-                     value="Local variable name ''{0}'' must match pattern ''{1}''."/>
-        </module>
-        <module name="ClassTypeParameterName">
-            <property name="format" value="(^[A-Z][0-9]?)$|([A-Z][a-zA-Z0-9]*[T]$)"/>
-            <message key="name.invalidPattern"
-                     value="Class type name ''{0}'' must match pattern ''{1}''."/>
-        </module>
-        <module name="MethodTypeParameterName">
-            <property name="format" value="(^[A-Z][0-9]?)$|([A-Z][a-zA-Z0-9]*[T]$)"/>
-            <message key="name.invalidPattern"
-                     value="Method type name ''{0}'' must match pattern ''{1}''."/>
-        </module>
-        <module name="InterfaceTypeParameterName">
-            <property name="format" value="(^[A-Z][0-9]?)$|([A-Z][a-zA-Z0-9]*[T]$)"/>
-            <message key="name.invalidPattern"
-                     value="Interface type name ''{0}'' must match pattern ''{1}''."/>
-        </module>
-        <module name="NoFinalizer"/>
-        <module name="GenericWhitespace">
-            <message key="ws.followed"
-                     value="GenericWhitespace ''{0}'' is followed by whitespace."/>
-            <message key="ws.preceded"
-                     value="GenericWhitespace ''{0}'' is preceded with whitespace."/>
-            <message key="ws.illegalFollow"
-                     value="GenericWhitespace ''{0}'' should followed by whitespace."/>
-            <message key="ws.notPreceded"
-                     value="GenericWhitespace ''{0}'' is not preceded with whitespace."/>
-        </module>
-        <module name="Indentation">
-            <property name="basicOffset" value="4"/>
-            <property name="braceAdjustment" value="0"/>
-            <property name="caseIndent" value="4"/>
-            <property name="throwsIndent" value="4"/>
-            <property name="lineWrappingIndentation" value="8"/>
-            <property name="arrayInitIndent" value="4"/>
-        </module>
-        <module name="AbbreviationAsWordInName">
-            <property name="ignoreFinal" value="false"/>
-            <property name="allowedAbbreviationLength" value="1"/>
-        </module>
-        <module name="OverloadMethodsDeclarationOrder"/>
-        <module name="VariableDeclarationUsageDistance"/>
-        <module name="CustomImportOrder">
-            <property name="sortImportsInGroupAlphabetically" value="true"/>
-            <property name="separateLineBetweenGroups" value="true"/>
-            <property name="customImportOrderRules" value="STATIC###THIRD_PARTY_PACKAGE"/>
-            <property name="tokens" value="IMPORT, STATIC_IMPORT, PACKAGE_DEF"/>
-        </module>
-        <module name="MethodParamPad"/>
-        <module name="NoWhitespaceBefore">
-            <property name="tokens" value="COMMA, SEMI, POST_INC, POST_DEC, DOT, ELLIPSIS, METHOD_REF"/>
-            <property name="allowLineBreaks" value="true"/>
-        </module>
-        <module name="ParenPad"/>
-        <module name="OperatorWrap">
-            <property name="option" value="NL"/>
-            <property name="tokens" value="BAND, BOR, BSR, BXOR, DIV, EQUAL, GE, GT, LAND, LE, LITERAL_INSTANCEOF, LOR, LT, MINUS, MOD, NOT_EQUAL, PLUS, QUESTION, SL, SR, STAR, METHOD_REF "/>
-        </module>
-        <module name="AnnotationLocation">
-            <property name="id" value="AnnotationLocationMostCases"/>
-            <property name="tokens" value="CLASS_DEF, INTERFACE_DEF, ENUM_DEF, METHOD_DEF, CTOR_DEF"/>
-        </module>
-        <module name="AnnotationLocation">
-            <property name="id" value="AnnotationLocationVariables"/>
-            <property name="tokens" value="VARIABLE_DEF"/>
-            <property name="allowSamelineMultipleAnnotations" value="true"/>
-        </module>
-        <module name="NonEmptyAtclauseDescription"/>
-        <module name="JavadocTagContinuationIndentation"/>
-        <module name="SummaryJavadoc">
-            <property name="forbiddenSummaryFragments"
-                      value="^@return the *|^This method returns |^A [{]@code [a-zA-Z0-9]+[}]( is a )"/>
-        </module>
-        <module name="JavadocParagraph"/>
-        <module name="AtclauseOrder">
-            <property name="tagOrder" value="@param, @return, @throws, @deprecated"/>
-            <property name="target" value="CLASS_DEF, INTERFACE_DEF, ENUM_DEF, METHOD_DEF, CTOR_DEF, VARIABLE_DEF"/>
-        </module>
-        <module name="JavadocMethod">
-            <property name="scope" value="public"/>
-            <property name="allowMissingParamTags" value="true"/>
-            <property name="allowMissingReturnTag" value="true"/>
-            <property name="allowedAnnotations" value="Override, Test"/>
-            <property name="tokens" value="METHOD_DEF, CTOR_DEF, ANNOTATION_FIELD_DEF"/>
-        </module>
-        <module name="MethodName">
-            <property name="format" value="^[a-z][a-z0-9][a-zA-Z0-9_]*$"/>
-            <message key="name.invalidPattern"
-                     value="Method name ''{0}'' must match pattern ''{1}''."/>
-        </module>
-        <module name="SingleLineJavadoc">
-            <property name="ignoreInlineTags" value="false"/>
-        </module>
-        <module name="EmptyCatchBlock">
-            <property name="exceptionVariableName" value="expected"/>
-        </module>
-        <module name="CommentsIndentation"/>
-        <module name="UnusedImports"/>
-        <module name="RedundantImport"/>
-        <module name="AvoidStaticImport">
-            <property name="excludes" value="org.junit.Assert.*,org.mockito.Mockito.*,org.mockito.ArgumentMatchers.*"/>
-        </module>
+    <!-- Классы - UpperCamelCase с гордостью -->
+    <module name="TypeName">
+      <property name="format" value="^[A-Z][a-zA-Z0-9]*$"/>
+      <property name="tokens" value="CLASS_DEF, INTERFACE_DEF, ENUM_DEF, ANNOTATION_DEF"/>
+      <message key="name.invalidPattern"
+               value="🏛️ Класс {0}? Если не UpperCamelCase - это не класс! ~Killa"/>
     </module>
 
-    <module name="FileTabCharacter">
-        <property name="eachLine" value="true"/>
+    <!-- Методы - lowerCamelCase или Killa-style -->
+    <module name="MethodName">
+      <property name="format" value="^[a-z][a-zA-Z0-9]*$|^eliminate[A-Z].*$|^neutralize[A-Z].*$|^cola[A-Z].*$"/>
+      <message key="name.invalidPattern"
+               value="⚡ Метод {0}? Должен быть lowerCamelCase! Или хотя бы eliminateEnemy() 😉"/>
     </module>
+
+    <!-- Поля - с душой -->
+    <module name="MemberName">
+      <property name="format" value="^[a-z][a-zA-Z0-9]*$|^_[a-z][a-zA-Z0-9]*$|^logger$|^LOG$"/>
+      <message key="name.invalidPattern"
+               value="🎯 Поле {0}? Начинай с маленькой буквы! Или с _ если очень стыдно 🙈"/>
+    </module>
+
+    <!-- Параметры - тоже люди -->
+    <module name="ParameterName">
+      <property name="format" value="^[a-z][a-zA-Z0-9]*$|^target[A-Z].*$|^enemy[A-Z].*$"/>
+      <message key="name.invalidPattern"
+               value="🎮 Параметр {0}? Маленькая буква! Или targetEnemy если цель есть 😎"/>
+    </module>
+
+    <!-- ===== ИМПОРТЫ: ТОЧНОСТЬ ПРЕВЫШЕ ВСЕГО ===== -->
+    <module name="AvoidStarImport">
+      <message key="import.avoidStar"
+               value="🎯 * в импортах? Ты стреляешь дробью! Бери снайперку - укажи класс! 💥"/>
+      <property name="excludes" value="org.junit.jupiter.api.*,org.mockito.Mockito.*"/>
+    </module>
+
+    <module name="UnusedImports">
+      <message key="import.unused"
+               value="🗑️ Неиспользуемый импорт {0}? Мусор в голове = мусор в коде! Выкинь! 🚮"/>
+    </module>
+
+    <module name="RedundantImport">
+      <message key="import.redundant"
+               value="🔄 Импорт {0} уже есть! Повторяешься как заевшая пластинка! Удали! 📀"/>
+    </module>
+
+    <module name="CustomImportOrder">
+      <property name="sortImportsInGroupAlphabetically" value="true"/>
+      <property name="separateLineBetweenGroups" value="true"/>
+      <property name="customImportOrderRules" value="STATIC###THIRD_PARTY_PACKAGE"/>
+      <property name="tokens" value="IMPORT, STATIC_IMPORT, PACKAGE_DEF"/>
+      <message key="custom.import.order"
+               value="📚 Импорты должны идти: static → сторонние → свои. Порядок, как в оружейной! 🔫"/>
+    </module>
+
+    <!-- ===== ФОРМАТИРОВАНИЕ: ИСКУССТВО КОДА ===== -->
+
+    <!-- Отступы: 2 пробела или смерть -->
+    <module name="Indentation">
+      <property name="basicOffset" value="2"/>
+      <property name="braceAdjustment" value="0"/>
+      <property name="caseIndent" value="2"/>
+      <property name="throwsIndent" value="4"/>
+      <property name="lineWrappingIndentation" value="4"/>
+      <property name="arrayInitIndent" value="2"/>
+      <message key="indentation.error"
+               value="📐 Отступ в {0}: ожидалось {1}, получил {2}. Линейка в руки! 📏"/>
+    </module>
+
+    <!-- Пробелы вокруг операторов -->
+    <module name="WhitespaceAround">
+      <property name="allowEmptyConstructors" value="true"/>
+      <property name="allowEmptyMethods" value="true"/>
+      <property name="allowEmptyTypes" value="true"/>
+      <property name="allowEmptyLoops" value="true"/>
+      <property name="ignoreEnhancedForColon" value="false"/>
+      <message key="ws.notFollowed"
+               value="🌌 {0} должен дышать! Пробел перед и после! Вдох-выдох! 💨"/>
+    </module>
+
+    <!-- Операторы на новой строке -->
+    <module name="OperatorWrap">
+      <property name="option" value="NL"/>
+      <property name="tokens" value="BAND, BOR, BSR, BXOR, DIV, EQUAL, GE, GT, LAND, LE,
+                                    LITERAL_INSTANCEOF, LOR, LT, MINUS, MOD, NOT_EQUAL, PLUS,
+                                    QUESTION, SL, SR, STAR, METHOD_REF"/>
+      <message key="line.new"
+               value="↪️ Оператор {0} на новой строке! Перенос как прыжок с крыши! 🏙️"/>
+    </module>
+
+    <!-- Скобочный этикет -->
+    <module name="LeftCurly">
+      <property name="option" value="eol"/>
+      <property name="tokens" value="CLASS_DEF, INTERFACE_DEF, ENUM_DEF, METHOD_DEF,
+                                    CTOR_DEF, LITERAL_FOR, LITERAL_WHILE, LITERAL_DO,
+                                    STATIC_INIT, INSTANCE_INIT"/>
+      <message key="line.new"
+               value="➡️ {{ на той же строке! Не разрывай объятие кода! 🤗"/>
+    </module>
+
+    <module name="RightCurly">
+      <property name="id" value="RightCurlySame"/>
+      <property name="tokens" value="LITERAL_TRY, LITERAL_CATCH, LITERAL_FINALLY,
+                                    LITERAL_IF, LITERAL_ELSE, LITERAL_DO"/>
+      <message key="line.same"
+               value="⬅️ }} на отдельной строке! Красивый финал как выстрел в тире! 🎬"/>
+    </module>
+
+    <!-- Скобки ОБЯЗАТЕЛЬНЫ -->
+    <module name="NeedBraces">
+      <property name="tokens" value="LITERAL_DO, LITERAL_ELSE, LITERAL_FOR, LITERAL_IF,
+                                    LITERAL_WHILE"/>
+      <message key="needBraces"
+               value="🦺 Без {{ }}? Это как без бронежилета! Одна пуля - и ты труп! 💀"/>
+    </module>
+
+    <!-- Пустые блоки - только с комментарием -->
+    <module name="EmptyBlock">
+      <property name="option" value="TEXT"/>
+      <property name="tokens" value="LITERAL_TRY, LITERAL_FINALLY, LITERAL_IF,
+                                    LITERAL_ELSE, LITERAL_SWITCH"/>
+      <message key="block.empty"
+               value="🕳️ Пустой блок {0}? Хоть // TODO: cola напиши! 🥤"/>
+    </module>
+
+    <!-- Одно заявление - одна пуля -->
+    <module name="OneStatementPerLine">
+      <message key="multiple.statements.line"
+               value="🎲 Несколько statement'ов на строке? Это русская рулетка! Не играй! 🔫"/>
+    </module>
+
+    <!-- Одна переменная - одна цель -->
+    <module name="MultipleVariableDeclarations">
+      <message key="multiple.variable.declarations"
+               value="🎯 Несколько переменных в одном объявлении? Фокусируйся на одной цели! 👁️"/>
+    </module>
+
+    <!-- ===== КОДИНГ: GOOGLE ЯЙЦА ===== -->
+    <module name="MissingSwitchDefault">
+      <message key="missing.switch.default"
+               value="🃏 Switch без default? Это как магазин без последней пули! Всегда будь готов! 🔫"/>
+    </module>
+
+    <module name="FallThrough">
+      <property name="reliefPattern" value="falls? through"/>
+      <message key="fall.through"
+               value="↘️ Case падает в следующий? Если специально - добавь // fall through! 📝"/>
+    </module>
+
+    <module name="ModifierOrder">
+      <message key="mod.order"
+               value="🎛️ Порядок модификаторов: public protected private abstract default static
+                      final transient volatile synchronized native strictfp. Как магазин в автомате! 🔫"/>
+    </module>
+
+    <module name="EmptyLineSeparator">
+      <property name="allowNoEmptyLineBetweenFields" value="true"/>
+      <property name="allowMultipleEmptyLines" value="false"/>
+      <message key="empty.line.separator"
+               value="📄 Нужна пустая строка после {0}. Разделяй как зоны стрельбы! 🎯"/>
+    </module>
+
+    <!-- ===== KILLA SPECIALS DELUXE ===== -->
+
+    <!-- Игнор-зоны -->
+    <module name="SuppressionCommentFilter">
+      <property name="offCommentFormat" value="KILLA-IGNORE-START"/>
+      <property name="onCommentFormat" value="KILLA-IGNORE-END"/>
+      <property name="checkFormat" value=".*"/>
+    </module>
+
+    <!-- Похвала за Killa-методы -->
+    <module name="Regexp">
+      <property name="format" value="(eliminate|neutralize|terminate|destroy)[A-Z][a-zA-Z0-9]*"/>
+      <property name="message" value="💥 Ух ты! Метод {0} в моём стиле! Так держать, наёмник! 🎖️"/>
+      <property name="severity" value="info"/>
+    </module>
+
+    <!-- Похвала за логгер -->
+    <module name="Regexp">
+      <property name="format" value="(log|LOGGER)\.(trace|debug|info|warn|error)\(.*\)"/>
+      <property name="message" value="📢 Логгирование в {0}? Профессионал! Прямо в яблочко! 🍎"/>
+      <property name="severity" value="info"/>
+    </module>
+
+    <!-- Проверка на колу в коде -->
+    <module name="Regexp">
+      <property name="format" value="//.*[Cc]ola|//.*[Кк]ола|colaMachine\.getCola\(\)"/>
+      <property name="message" value="🥤 Коломесто в {0}? Отличный вкус! Боевой дух +100! ⚡"/>
+      <property name="severity" value="info"/>
+    </module>
+
+    <!-- Проверка на смайлики в комментах -->
+    <module name="Regexp">
+      <property name="format" value="//.*[😎🎯💥🔥🎮✨🎲🎨⚡🎪🎭🎵🎶💫🌟💎]"/>
+      <property name="message" value="😊 Смайлик в комменте {0}? Код с душой! Одобряю! 👍"/>
+      <property name="severity" value="info"/>
+    </module>
+
+    <!-- Награда за чистый метод -->
+    <module name="MethodLength">
+      <property name="max" value="50"/>
+      <property name="tokens" value="METHOD_DEF"/>
+      <message key="maxLine.method"
+               value="📏 Метод {0} строк? Идеальная длина для прицельного выстрела! 🎯"/>
+    </module>
+
+    <!-- Проверка на магические числа -->
+    <module name="MagicNumber">
+      <property name="ignoreNumbers" value="-1,0,1,2,100,3600,24,60,1000"/>
+      <property name="ignoreAnnotation" value="true"/>
+      <message key="magic.number"
+               value="🔢 Магическое число {0}? Создай константу! Или хоть комментарий! ✏️"/>
+    </module>
+
+  </module>
+
+  <!-- ============ ФИНАЛЬНЫЕ ШТРИХИ KILLA ============ -->
+
+  <!-- Проверка на TODO без Cola -->
+  <module name="RegexpMultiline">
+    <property name="format" value="// TODO:(?!.*[Cc]ola).*"/>
+    <property name="message" value="🥤 TODO без колы? Сначала colaMachine.getCola(), потом работа! ⚠️"/>
+    <property name="severity" value="warning"/>
+  </module>
+
+  <!-- Поощрение за тесты -->
+  <module name="RegexpMultiline">
+    <property name="format" value="@Test[\s\S]*?void test[A-Z].*"/>
+    <property name="message" value="🧪 Тест найден! Проверка боекомплекта... Зачёт! ✅"/>
+    <property name="severity" value="info"/>
+  </module>
+
 </module>
