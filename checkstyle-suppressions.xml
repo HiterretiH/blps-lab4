@@ -14,6 +14,8 @@
   <suppress checks="SingleLineJavadoc" files=".*"/>
   <suppress checks="NonEmptyAtclauseDescription" files=".*"/>
   <suppress checks="LineLength" files=".*"/>
+  <suppress checks="OperatorWrap" message="':' should be on a new line." files=".*"/>
+  <suppress checks="OperatorWrap" message="':' should be on the previous line." files=".*"/>
 
   <suppress checks="WhitespaceAround"
             files=".*"
