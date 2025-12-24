@@ -173,7 +173,10 @@ public class InAppAddService {
     List<InAppAdd> inAppAdds =
         inAppAddRepository.findByMonetizedApplicationId(monetizedApplicationId);
     logger.info(
-        "Found " + inAppAdds.size() + " InAppAdds for MonetizedApplication ID: " + monetizedApplicationId);
+        "Found "
+            + inAppAdds.size()
+            + " InAppAdds for MonetizedApplication ID: "
+            + monetizedApplicationId);
     return inAppAdds;
   }
 }

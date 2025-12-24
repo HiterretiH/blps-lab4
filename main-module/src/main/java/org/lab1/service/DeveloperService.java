@@ -31,7 +31,8 @@ public class DeveloperService {
   private final Logger logger;
 
   @Autowired
-  public DeveloperService(final DeveloperRepository developerRepositoryParam, final Logger loggerParam) {
+  public DeveloperService(
+      final DeveloperRepository developerRepositoryParam, final Logger loggerParam) {
     this.developerRepository = developerRepositoryParam;
     this.logger = loggerParam;
   }
@@ -71,7 +72,8 @@ public class DeveloperService {
     return developer;
   }
 
-  public final Developer updateDeveloper(final int id, final String name, final String description) {
+  public final Developer updateDeveloper(
+      final int id, final String name, final String description) {
     logger.info(UPDATE_DEV_LOG + id + NAME_LOG + name);
     Developer developer =
         developerRepository

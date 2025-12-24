@@ -1,4 +1,3 @@
-
 package org.lab1.service;
 
 import io.micrometer.core.instrument.Counter;

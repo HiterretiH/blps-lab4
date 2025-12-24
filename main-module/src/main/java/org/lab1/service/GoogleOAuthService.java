@@ -97,7 +97,9 @@ public class GoogleOAuthService {
     this.googleAuthDataRepository = googleAuthDataRepositoryParam;
     this.meterRegistry = meterRegistryParam;
     this.googleAuthSuccessCounter =
-        Counter.builder(GOOGLE_AUTH_METRIC).tag(STATUS_TAG, SUCCESS_TAG).register(meterRegistryParam);
+        Counter.builder(GOOGLE_AUTH_METRIC)
+            .tag(STATUS_TAG, SUCCESS_TAG)
+            .register(meterRegistryParam);
 
     this.googleAuthFailCounter =
         Counter.builder(GOOGLE_AUTH_METRIC).tag(STATUS_TAG, FAIL_TAG).register(meterRegistryParam);
