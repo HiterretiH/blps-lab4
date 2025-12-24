@@ -1,98 +1,119 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AppCard } from '../components/apps/AppCard';
 import { CreateAppForm } from '../components/apps/CreateAppForm';
 import { Button } from '../components/ui/Button';
 import { Alert } from '../components/ui/Alert';
 import { Card, CardContent } from '../components/ui/Card';
-import { useApplications } from '../hooks/useApplications';
-import { authService } from '../services/auth.service';
+import { useAuthStore } from '../store/auth.store';
+import { useApplicationsStore } from '../store/applications.store';
 import { Loader2, Package, User, Filter } from 'lucide-react';
 
-interface CreateAppFormData {
+interface AppData {
   name: string;
   type: string;
   price: number;
   description: string;
-  status: number;
-  developerId: number;
 }
 
 export const ApplicationsPage: React.FC = () => {
   const navigate = useNavigate();
-  const {
-    applications,
-    isLoading,
-    error,
-    fetchMyApplications,
-    createApplication,
+  const { user, developerId } = useAuthStore();
+  const { 
+    applications, 
+    isLoading, 
+    error, 
+    fetchMyApplications, 
+    createApplication, 
     deleteApplication,
-  } = useApplications();
+    clearError 
+  } = useApplicationsStore();
 
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const currentUser = authService.getCurrentUser();
-  const isDeveloper = currentUser?.role === 'DEVELOPER';
-  const developerId = authService.getDeveloperId();
+  const [hasFetched, setHasFetched] = useState(false);
+  const isDeveloper = user?.role === 'DEVELOPER';
+
+  const loadApplications = useCallback(async () => {
+    if (hasFetched || isLoading) return;
+    
+    try {
+      await fetchMyApplications();
+      setHasFetched(true);
+    } catch (err) {
+      console.error('Failed to load applications:', err);
+    }
+  }, [fetchMyApplications, hasFetched, isLoading]);
 
   useEffect(() => {
-    fetchMyApplications().catch(err => {
-      console.error('Failed to fetch applications:', err);
-    });
-  }, [fetchMyApplications]);
+    if (!user) {
+      navigate('/login');
+      return;
+    }
 
-  const handleCreateApp = async (appData: CreateAppFormData) => {
-    // Используем ранее определенный тип
+    // Исправить: использовать setTimeout или requestAnimationFrame
+    // чтобы избежать синхронного вызова setState в useEffect
+    const loadData = () => {
+      requestAnimationFrame(() => {
+        loadApplications();
+      });
+    };
+
+    loadData();
+  }, [user, navigate, loadApplications]);
+
+  useEffect(() => {
+    return () => {
+      clearError();
+    };
+  }, [clearError]);
+
+  const handleCreateApp = async (appData: AppData) => {
     try {
       await createApplication(appData);
       await fetchMyApplications();
     } catch (err) {
-      const error = err as Error;
-      alert(error.message || 'Ошибка при создании приложения');
+      console.error('Create app error:', err);
     }
   };
 
   const handleDeleteApp = async (id: number) => {
-    if (window.confirm('Вы уверены, что хотите удалить это приложение?')) {
+    if (window.confirm('Are you sure you want to delete this application?')) {
       try {
         await deleteApplication(id);
         await fetchMyApplications();
       } catch (err) {
-        const error = err as Error;
-        alert(error.message || 'Ошибка при удалении приложения');
+        console.error('Delete app error:', err);
       }
     }
   };
 
-  // Если пользователь не авторизован, перенаправляем
-  if (!currentUser) {
+  if (!user) {
     navigate('/login');
     return null;
   }
 
   return (
     <div className="space-y-6">
-      {/* Заголовок и информация */}
       <div className="flex items-start justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">
-            {isDeveloper ? 'Мои приложения' : 'Каталог приложений'}
+            {isDeveloper ? 'My Applications' : 'Application Catalog'}
           </h1>
           <p className="mt-1 text-gray-600">
             {isDeveloper
-              ? 'Управляйте своими приложениями и отслеживайте статистику'
-              : 'Найдите и скачайте интересные приложения'}
+              ? 'Manage your applications and track statistics'
+              : 'Find and download interesting applications'}
           </p>
         </div>
 
         {isDeveloper && (
           <Button onClick={() => setIsCreateModalOpen(true)} className="flex items-center gap-2">
             <Package className="h-4 w-4" />
-            Создать приложение
+            Create Application
           </Button>
         )}
       </div>
 
-      {/* Информационная карточка */}
       <Card className="bg-gradient-to-r from-primary-50 to-blue-50">
         <CardContent className="p-6">
           <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
@@ -106,18 +127,18 @@ export const ApplicationsPage: React.FC = () => {
               </div>
               <div>
                 <h3 className="font-medium text-gray-900">
-                  {isDeveloper ? 'Статистика разработчика' : 'Статистика пользователя'}
+                  {isDeveloper ? 'Developer Statistics' : 'User Statistics'}
                 </h3>
                 <div className="mt-1 flex items-center gap-4">
                   <span className="text-sm text-gray-600">
-                    Имя: <span className="font-medium">{currentUser.username}</span>
+                    Name: <span className="font-medium">{user.username}</span>
                   </span>
                   <span className="text-sm text-gray-600">
-                    Роль: <span className="font-medium">{currentUser.role}</span>
+                    Role: <span className="font-medium">{user.role}</span>
                   </span>
                   {developerId && (
                     <span className="text-sm text-gray-600">
-                      ID разработчика: <span className="font-medium">{developerId}</span>
+                      Developer ID: <span className="font-medium">{developerId}</span>
                     </span>
                   )}
                 </div>
@@ -127,41 +148,38 @@ export const ApplicationsPage: React.FC = () => {
             <div className="flex items-center gap-2 rounded-lg border bg-white px-3 py-2">
               <Filter className="h-4 w-4 text-gray-500" />
               <span className="text-sm text-gray-700">
-                Приложений: <span className="font-semibold">{applications.length}</span>
+                Applications: <span className="font-semibold">{applications.length}</span>
               </span>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Сообщения об ошибках */}
       {error && (
-        <Alert variant="danger" title="Ошибка">
+        <Alert variant="danger" title="Error">
           {error}
           {error.includes('404') && (
             <div className="mt-2 text-sm">
-              <p>Возможно, эндпоинт API недоступен. Проверьте:</p>
+              <p>Possible API endpoint issues. Check:</p>
               <ul className="mt-1 list-disc pl-5">
-                <li>Запущен ли бэкенд на порту 727</li>
-                <li>Доступен ли эндпоинт /api/applications/developer/{developerId}</li>
-                <li>Правильные ли права доступа у вашего токена</li>
+                <li>Is backend running on port 727</li>
+                <li>Is endpoint /api/applications/developer/{developerId} accessible</li>
+                <li>Do you have correct access rights with your token</li>
               </ul>
             </div>
           )}
         </Alert>
       )}
 
-      {/* Загрузка */}
       {isLoading ? (
         <div className="flex flex-col items-center justify-center py-12">
           <Loader2 className="mb-4 h-12 w-12 animate-spin text-primary-600" />
-          <p className="text-gray-600">Загрузка приложений...</p>
+          <p className="text-gray-600">Loading applications...</p>
           <p className="mt-1 text-sm text-gray-500">
-            Запрос к: /api/applications/developer/{developerId}
+            Request to: /api/applications/developer/{developerId}
           </p>
         </div>
       ) : applications.length === 0 ? (
-        /* Пустой список */
         <Card>
           <CardContent className="py-12">
             <div className="mx-auto max-w-md text-center">
@@ -174,24 +192,24 @@ export const ApplicationsPage: React.FC = () => {
               </div>
 
               <h3 className="mb-2 text-lg font-medium text-gray-900">
-                {isDeveloper ? 'У вас еще нет приложений' : 'Приложения не найдены'}
+                {isDeveloper ? 'You have no applications yet' : 'No applications found'}
               </h3>
 
               <p className="mb-6 text-gray-600">
                 {isDeveloper
-                  ? 'Создайте свое первое приложение, чтобы начать монетизацию!'
-                  : 'В системе пока нет доступных приложений. Попробуйте позже.'}
+                  ? 'Create your first application to start monetization!'
+                  : 'There are no available applications in the system yet. Try again later.'}
               </p>
 
               {isDeveloper ? (
                 <Button onClick={() => setIsCreateModalOpen(true)}>
-                  Создать первое приложение
+                  Create Your First Application
                 </Button>
               ) : (
                 <div className="space-y-3">
-                  <p className="text-sm text-gray-500">Хотите стать разработчиком?</p>
+                  <p className="text-sm text-gray-500">Want to become a developer?</p>
                   <Button variant="outline" onClick={() => navigate('/register')}>
-                    Зарегистрироваться как разработчик
+                    Register as Developer
                   </Button>
                 </div>
               )}
@@ -199,13 +217,12 @@ export const ApplicationsPage: React.FC = () => {
           </CardContent>
         </Card>
       ) : (
-        /* Список приложений */
         <>
           <div className="mb-4 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Package className="h-5 w-5 text-gray-500" />
               <span className="text-sm font-medium text-gray-700">
-                {isDeveloper ? 'Ваши приложения' : 'Доступные приложения'}
+                {isDeveloper ? 'Your Applications' : 'Available Applications'}
               </span>
               <span className="rounded-full bg-gray-100 px-2 py-1 text-xs text-gray-600">
                 {applications.length}
@@ -214,7 +231,7 @@ export const ApplicationsPage: React.FC = () => {
 
             {isDeveloper && (
               <div className="text-sm text-gray-600">
-                Сортировка: <span className="font-medium">по дате создания</span>
+                Sort by: <span className="font-medium">Creation Date</span>
               </div>
             )}
           </div>
@@ -232,7 +249,6 @@ export const ApplicationsPage: React.FC = () => {
         </>
       )}
 
-      {/* Модальное окно создания приложения */}
       <CreateAppForm
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}

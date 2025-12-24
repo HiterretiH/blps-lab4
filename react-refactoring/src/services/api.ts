@@ -10,6 +10,9 @@ export const api = axios.create({
   timeout: 10000,
 });
 
+let requestCounter = 0;
+console.log(requestCounter);
+
 // Флаг для отладки
 const DEBUG_MODE = true;
 
@@ -17,6 +20,7 @@ const DEBUG_MODE = true;
 api.interceptors.request.use(
   config => {
     const token = localStorage.getItem('auth_token');
+    requestCounter++;
 
     if (DEBUG_MODE) {
       console.group('📤 API Request');
@@ -55,6 +59,7 @@ api.interceptors.response.use(
   },
   error => {
     if (DEBUG_MODE) {
+      requestCounter--;
       console.group('❌ API Response Error');
       console.log('URL:', error.config?.url);
       console.log('Method:', error.config?.method?.toUpperCase());

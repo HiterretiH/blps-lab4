@@ -1,18 +1,17 @@
 import React from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { authService } from '../../services/auth.service';
+import { useAuthStore } from '../../store/auth.store';
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
-import { Home, Package, BarChart3, Shield, LogOut, User, Settings } from 'lucide-react';
+import { Home, Package, BarChart3, Shield, LogOut, User, DollarSign } from 'lucide-react';
 
 export const Header: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const currentUser = authService.getCurrentUser();
-  const isAuthenticated = authService.isAuthenticated();
+  const { user, isAuthenticated, logout } = useAuthStore();
 
   const handleLogout = () => {
-    authService.logout();
+    logout();
     navigate('/login');
   };
 
@@ -41,23 +40,13 @@ export const Header: React.FC = () => {
               </div>
               <div>
                 <h1 className="text-xl font-bold text-gray-900">BLPS Platform</h1>
+                <p className="text-xs text-gray-600">Monetization System</p>
               </div>
             </Link>
-
-            {/* Authors Info */}
-            <div className="hidden items-center space-x-2 border-l border-gray-200 pl-4 md:flex">
-              <span className="text-xs text-gray-600">Authors:</span>
-              <Badge variant="info" className="text-xs">
-                Гигачадио
-              </Badge>
-              <Badge variant="info" className="text-xs">
-                Эйяу)
-              </Badge>
-            </div>
           </div>
 
           {/* Navigation */}
-          {isAuthenticated && (
+          {isAuthenticated && user && (
             <nav className="hidden items-center space-x-1 md:flex">
               <Link to="/dashboard">
                 <Button
@@ -92,20 +81,22 @@ export const Header: React.FC = () => {
                 </Button>
               </Link>
 
-              {currentUser?.role === 'DEVELOPER' && (
-                <Link to="/developer">
-                  <Button
-                    variant={isActive('/developer') ? 'primary' : 'outline'}
-                    size="sm"
-                    className="flex items-center space-x-2"
-                  >
-                    <Settings className="h-4 w-4" />
-                    <span>Developer</span>
-                  </Button>
-                </Link>
+              {user.role === 'DEVELOPER' && (
+                <>
+                  <Link to="/developer/profile">
+                    <Button
+                      variant={isActive('/developer/profile') ? 'primary' : 'outline'}
+                      size="sm"
+                      className="flex items-center space-x-2"
+                    >
+                      <DollarSign className="h-4 w-4" />
+                      <span>Developer</span>
+                    </Button>
+                  </Link>
+                </>
               )}
 
-              {currentUser?.role === 'PRIVACY_POLICY' && (
+              {user.role === 'PRIVACY_POLICY' && (
                 <Link to="/admin">
                   <Button
                     variant={isActive('/admin') ? 'primary' : 'outline'}
@@ -122,17 +113,17 @@ export const Header: React.FC = () => {
 
           {/* User Actions */}
           <div className="flex items-center space-x-3">
-            {isAuthenticated ? (
+            {isAuthenticated && user ? (
               <>
                 <div className="flex items-center space-x-2">
                   <div className="rounded-lg bg-gray-100 p-2">
                     <User className="h-4 w-4 text-gray-600" />
                   </div>
                   <div className="hidden sm:block">
-                    <p className="text-sm font-medium text-gray-900">{currentUser?.username}</p>
+                    <p className="text-sm font-medium text-gray-900">{user.username}</p>
                     <div className="flex items-center space-x-1">
-                      <Badge variant={getRoleColor(currentUser?.role)} className="text-xs">
-                        {currentUser?.role?.replace('_', ' ')}
+                      <Badge variant={getRoleColor(user.role)} className="text-xs">
+                        {user.role?.replace('_', ' ')}
                       </Badge>
                     </div>
                   </div>
@@ -167,7 +158,7 @@ export const Header: React.FC = () => {
       </div>
 
       {/* Mobile Navigation */}
-      {isAuthenticated && (
+      {isAuthenticated && user && (
         <div className="border-t border-gray-200 md:hidden">
           <div className="container mx-auto px-4 py-2">
             <div className="flex items-center justify-around">
@@ -204,20 +195,20 @@ export const Header: React.FC = () => {
                 </span>
               </Link>
 
-              {currentUser?.role === 'DEVELOPER' && (
-                <Link to="/developer" className="flex flex-col items-center">
-                  <Settings
-                    className={`h-5 w-5 ${isActive('/developer') ? 'text-primary-600' : 'text-gray-500'}`}
+              {user.role === 'DEVELOPER' && (
+                <Link to="/developer/profile" className="flex flex-col items-center">
+                  <DollarSign
+                    className={`h-5 w-5 ${isActive('/developer/profile') ? 'text-primary-600' : 'text-gray-500'}`}
                   />
                   <span
-                    className={`mt-1 text-xs ${isActive('/developer') ? 'font-medium text-primary-600' : 'text-gray-600'}`}
+                    className={`mt-1 text-xs ${isActive('/developer/profile') ? 'font-medium text-primary-600' : 'text-gray-600'}`}
                   >
                     Dev
                   </span>
                 </Link>
               )}
 
-              {currentUser?.role === 'PRIVACY_POLICY' && (
+              {user.role === 'PRIVACY_POLICY' && (
                 <Link to="/admin" className="flex flex-col items-center">
                   <Shield
                     className={`h-5 w-5 ${isActive('/admin') ? 'text-primary-600' : 'text-gray-500'}`}

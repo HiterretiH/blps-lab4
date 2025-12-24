@@ -8,10 +8,20 @@ import { ApplicationsPage } from './pages/ApplicationsPage';
 import { AnalyticsPage } from './pages/AnalyticsPage';
 import { DeveloperDashboardPage } from './pages/DeveloperDashboardPage';
 import { AdminPanelPage } from './pages/AdminPanelPage';
-import { UiKitDemoPage } from './pages/UiKitDemoPage'; // Добавляем импорт
+import { UiKitDemoPage } from './pages/UiKitDemoPage';
 import { DebugAuthPage } from './pages/DebugAuthPage';
+import { DeveloperProfilePage } from './pages/DeveloperProfilePage.tsx';
+import { MonetizationPage } from './pages/MonetizationPage';
+import { useEffect } from 'react';
+import { useAuthStore } from './store/auth.store';
 
 function App() {
+  const { checkAuth } = useAuthStore();
+
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
+
   return (
     <Router>
       <div className="min-h-screen bg-gray-50">
@@ -21,6 +31,7 @@ function App() {
             {/* Public routes */}
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
+            <Route path="/debug-auth" element={<DebugAuthPage />} />
 
             {/* Protected routes for all authenticated users */}
             <Route
@@ -48,6 +59,14 @@ function App() {
               }
             />
             <Route
+              path="/applications/:id"
+              element={
+                <ProtectedRoute>
+                  <ApplicationsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/analytics"
               element={
                 <ProtectedRoute>
@@ -56,7 +75,7 @@ function App() {
               }
             />
 
-            {/* Developer-only routes */}
+            {/* Developer routes */}
             <Route
               path="/developer"
               element={
@@ -66,10 +85,26 @@ function App() {
               }
             />
             <Route
+              path="/developer/profile"
+              element={
+                <ProtectedRoute requiredRoles={['DEVELOPER']}>
+                  <DeveloperProfilePage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/developer/apps"
               element={
                 <ProtectedRoute requiredRoles={['DEVELOPER']}>
-                  <DeveloperDashboardPage />
+                  <ApplicationsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/monetization/:id"
+              element={
+                <ProtectedRoute requiredRoles={['DEVELOPER', 'PRIVACY_POLICY']}>
+                  <MonetizationPage />
                 </ProtectedRoute>
               }
             />
@@ -93,7 +128,17 @@ function App() {
                 </ProtectedRoute>
               }
             />
-            <Route path="/debug-auth" element={<DebugAuthPage />} />
+
+            {/* 404 route */}
+            <Route
+              path="*"
+              element={
+                <div className="flex min-h-[60vh] flex-col items-center justify-center">
+                  <h1 className="text-4xl font-bold text-gray-900">404</h1>
+                  <p className="mt-2 text-gray-600">Page not found</p>
+                </div>
+              }
+            />
           </Routes>
         </main>
       </div>
