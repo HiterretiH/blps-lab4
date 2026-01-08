@@ -1,15 +1,9 @@
 package org.lab1.model;
 
+import lombok.Data;
 import java.util.Map;
 
+@Data
 public class ApplicationForm {
   private Map<String, String> formFields;
-
-  public final Map<String, String> getFormFields() {
-    return formFields;
-  }
-
-  public final void setFormFields(final Map<String, String> formFieldsParam) {
-    this.formFields = formFieldsParam;
-  }
 }

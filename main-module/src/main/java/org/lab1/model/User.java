@@ -8,9 +8,11 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import lombok.Data;
 
 @Entity
 @Table(name = "app_user")
+@Data
 public class User {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -26,44 +28,4 @@ public class User {
   private String email;
 
   private String passwordHash;
-
-  public final int getId() {
-    return id;
-  }
-
-  public final void setId(final int idParam) {
-    this.id = idParam;
-  }
-
-  public final String getUsername() {
-    return username;
-  }
-
-  public final void setUsername(final String usernameParam) {
-    this.username = usernameParam;
-  }
-
-  public final String getEmail() {
-    return email;
-  }
-
-  public final void setEmail(final String emailParam) {
-    this.email = emailParam;
-  }
-
-  public final Role getRole() {
-    return role;
-  }
-
-  public final void setRole(final Role roleParam) {
-    this.role = roleParam;
-  }
-
-  public final String getPasswordHash() {
-    return passwordHash;
-  }
-
-  public final void setPasswordHash(final String passwordHashParam) {
-    this.passwordHash = passwordHashParam;
-  }
 }

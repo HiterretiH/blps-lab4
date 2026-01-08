@@ -4,9 +4,13 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import java.time.LocalDateTime;
 
 @Entity
+@Data
+@AllArgsConstructor
 public class PaymentRequest {
   private static final double CARD_VALID_PROBABILITY = 0.7;
 
@@ -29,45 +33,5 @@ public class PaymentRequest {
   public PaymentRequest() {
     this.requestTime = LocalDateTime.now();
     this.isCardValid = Math.random() < CARD_VALID_PROBABILITY;
-  }
-
-  public final int getId() {
-    return id;
-  }
-
-  public final void setId(final int idParam) {
-    this.id = idParam;
-  }
-
-  public final int getApplicationId() {
-    return applicationId;
-  }
-
-  public final void setApplicationId(final int applicationIdParam) {
-    this.applicationId = applicationIdParam;
-  }
-
-  public final double getAmount() {
-    return amount;
-  }
-
-  public final void setAmount(final double amountParam) {
-    this.amount = amountParam;
-  }
-
-  public final LocalDateTime getRequestTime() {
-    return requestTime;
-  }
-
-  public final void setRequestTime(final LocalDateTime requestTimeParam) {
-    this.requestTime = requestTimeParam;
-  }
-
-  public final boolean isCardValid() {
-    return isCardValid;
-  }
-
-  public final void setCardValid(final boolean cardValidParam) {
-    this.isCardValid = cardValidParam;
   }
 }

@@ -6,10 +6,12 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import lombok.Data;
 import java.time.Instant;
 
 @Entity
 @Table(name = "google_auth_data")
+@Data
 public class GoogleAuthData {
   private static final int ACCESS_TOKEN_MAX_LENGTH = 2048;
   private static final int REFRESH_TOKEN_MAX_LENGTH = 512;
@@ -38,64 +40,4 @@ public class GoogleAuthData {
 
   @Column(name = "scope")
   private String scope;
-
-  public final Integer getId() {
-    return id;
-  }
-
-  public final Integer getUserId() {
-    return userId;
-  }
-
-  public final void setUserId(final Integer userIdParam) {
-    this.userId = userIdParam;
-  }
-
-  public final String getUserEmail() {
-    return userEmail;
-  }
-
-  public final void setUserEmail(final String userEmailParam) {
-    this.userEmail = userEmailParam;
-  }
-
-  public final String getAccessToken() {
-    return accessToken;
-  }
-
-  public final void setAccessToken(final String accessTokenParam) {
-    this.accessToken = accessTokenParam;
-  }
-
-  public final String getRefreshToken() {
-    return refreshToken;
-  }
-
-  public final void setRefreshToken(final String refreshTokenParam) {
-    this.refreshToken = refreshTokenParam;
-  }
-
-  public final Instant getExpiryDate() {
-    return expiryDate;
-  }
-
-  public final void setExpiryDate(final Instant expiryDateParam) {
-    this.expiryDate = expiryDateParam;
-  }
-
-  public final String getTokenType() {
-    return tokenType;
-  }
-
-  public final void setTokenType(final String tokenTypeParam) {
-    this.tokenType = tokenTypeParam;
-  }
-
-  public final String getScope() {
-    return scope;
-  }
-
-  public final void setScope(final String scopeParam) {
-    this.scope = scopeParam;
-  }
 }

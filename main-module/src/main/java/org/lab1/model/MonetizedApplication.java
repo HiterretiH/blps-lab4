@@ -6,84 +6,24 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
+import lombok.Data;
 
 @Entity
+@Data
 public class MonetizedApplication {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private int id;
 
-  @ManyToOne private Developer developer;
+  @ManyToOne
+  private Developer developer;
 
-  @OneToOne private Application application;
+  @OneToOne
+  private Application application;
 
   private double currentBalance;
   private double revenue;
   private double downloadRevenue;
   private double adsRevenue;
   private double purchasesRevenue;
-
-  public final int getId() {
-    return id;
-  }
-
-  public final void setId(final int idParam) {
-    this.id = idParam;
-  }
-
-  public final Developer getDeveloper() {
-    return developer;
-  }
-
-  public final void setDeveloper(final Developer developerParam) {
-    this.developer = developerParam;
-  }
-
-  public final Application getApplication() {
-    return application;
-  }
-
-  public final void setApplication(final Application applicationParam) {
-    this.application = applicationParam;
-  }
-
-  public final double getCurrentBalance() {
-    return currentBalance;
-  }
-
-  public final void setCurrentBalance(final double currentBalanceParam) {
-    this.currentBalance = currentBalanceParam;
-  }
-
-  public final double getRevenue() {
-    return revenue;
-  }
-
-  public final void setRevenue(final double revenueParam) {
-    this.revenue = revenueParam;
-  }
-
-  public final double getDownloadRevenue() {
-    return downloadRevenue;
-  }
-
-  public final void setDownloadRevenue(final double downloadRevenueParam) {
-    this.downloadRevenue = downloadRevenueParam;
-  }
-
-  public final double getAdsRevenue() {
-    return adsRevenue;
-  }
-
-  public final void setAdsRevenue(final double adsRevenueParam) {
-    this.adsRevenue = adsRevenueParam;
-  }
-
-  public final double getPurchasesRevenue() {
-    return purchasesRevenue;
-  }
-
-  public final void setPurchasesRevenue(final double purchasesRevenueParam) {
-    this.purchasesRevenue = purchasesRevenueParam;
-  }
 }

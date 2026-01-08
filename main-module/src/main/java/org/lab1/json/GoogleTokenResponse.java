@@ -1,7 +1,9 @@
 package org.lab1.json;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
 
+@Data
 public final class GoogleTokenResponse {
   @JsonProperty("access_token")
   private String accessToken;
@@ -20,54 +22,6 @@ public final class GoogleTokenResponse {
 
   @JsonProperty("refresh_token_expires_in")
   private Integer refreshTokenExpiresIn;
-
-  public String getAccessToken() {
-    return accessToken;
-  }
-
-  public int getExpiresIn() {
-    return expiresIn;
-  }
-
-  public String getRefreshToken() {
-    return refreshToken;
-  }
-
-  public String getScope() {
-    return scope;
-  }
-
-  public String getTokenType() {
-    return tokenType;
-  }
-
-  public Integer getRefreshTokenExpiresIn() {
-    return refreshTokenExpiresIn;
-  }
-
-  public void setAccessToken(final String accessTokenParam) {
-    this.accessToken = accessTokenParam;
-  }
-
-  public void setExpiresIn(final int expiresInParam) {
-    this.expiresIn = expiresInParam;
-  }
-
-  public void setRefreshToken(final String refreshTokenParam) {
-    this.refreshToken = refreshTokenParam;
-  }
-
-  public void setScope(final String scopeParam) {
-    this.scope = scopeParam;
-  }
-
-  public void setTokenType(final String tokenTypeParam) {
-    this.tokenType = tokenTypeParam;
-  }
-
-  public void setRefreshTokenExpiresIn(final Integer refreshTokenExpiresInParam) {
-    this.refreshTokenExpiresIn = refreshTokenExpiresInParam;
-  }
 
   @Override
   public String toString() {
