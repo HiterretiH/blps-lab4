@@ -1,17 +1,14 @@
 package org.lab1.controller;
 
 import java.util.List;
-import java.util.Optional;
 import org.lab.logger.Logger;
 import org.lab1.model.GoogleOperationResult;
 import org.lab1.model.User;
-import org.lab1.repository.UserRepository;
 import org.lab1.service.GoogleOperationResultService;
+import org.lab1.service.UserQueryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -41,16 +38,16 @@ public class GoogleOperationResultsController {
       "Unauthorized access attempt to user results";
 
   private final GoogleOperationResultService googleResultService;
-  private final UserRepository userRepository;
+  private final UserQueryService userQueryService;
   private final Logger logger;
 
   @Autowired
   public GoogleOperationResultsController(
       final GoogleOperationResultService googleResultServiceParam,
-      final UserRepository userRepositoryParam,
+      final UserQueryService userQueryServiceParam,
       final Logger loggerParam) {
     this.googleResultService = googleResultServiceParam;
-    this.userRepository = userRepositoryParam;
+    this.userQueryService = userQueryServiceParam;
     this.logger = loggerParam;
   }
 
@@ -59,18 +56,14 @@ public class GoogleOperationResultsController {
   public ResponseEntity<List<GoogleOperationResult>> getMyResults() {
     logger.info(GET_USER_RESULTS_LOG);
 
-    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-    Optional<User> userOptional =
-        userRepository.findByUsername(authentication.getPrincipal().toString());
-
-    if (userOptional.isEmpty()) {
-      logger.error(USER_NOT_FOUND_LOG + authentication.getPrincipal());
+    try {
+      User user = userQueryService.getCurrentAuthenticatedUser();
+      List<GoogleOperationResult> results = googleResultService.getResultsByUserId(user.getId());
+      return ResponseEntity.ok(results);
+    } catch (Exception exception) {
+      logger.error(USER_NOT_FOUND_LOG + exception.getMessage());
       return ResponseEntity.status(UNAUTHORIZED_STATUS_CODE).build();
     }
-
-    User user = userOptional.get();
-    List<GoogleOperationResult> results = googleResultService.getResultsByUserId(user.getId());
-    return ResponseEntity.ok(results);
   }
 
   @PreAuthorize("hasAuthority('google_results.read.all')")
@@ -78,12 +71,11 @@ public class GoogleOperationResultsController {
   public ResponseEntity<List<GoogleOperationResult>> getResultsByUserId(
       @PathVariable final Integer userId) {
     logger.info(GET_USER_RESULTS_BY_ID_LOG + userId);
-    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-    Optional<User> userOptional =
-        userRepository.findByUsername(authentication.getPrincipal().toString());
-    if (userOptional.isEmpty()) {
-      logger.error(USER_NOT_FOUND_LOG + authentication.getPrincipal());
+    try {
+      userQueryService.getCurrentAuthenticatedUser();
+    } catch (Exception exception) {
+      logger.error(USER_NOT_FOUND_LOG + exception.getMessage());
       return ResponseEntity.status(UNAUTHORIZED_STATUS_CODE).build();
     }
 
@@ -106,19 +98,15 @@ public class GoogleOperationResultsController {
       @PathVariable final int limit) {
     logger.info(GET_LAST_RESULTS_LOG.replace("{}", String.valueOf(limit)));
 
-    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-    Optional<User> userOptional =
-        userRepository.findByUsername(authentication.getPrincipal().toString());
-
-    if (userOptional.isEmpty()) {
-      logger.error(USER_NOT_FOUND_LOG + authentication.getPrincipal());
+    try {
+      User user = userQueryService.getCurrentAuthenticatedUser();
+      List<GoogleOperationResult> results =
+          googleResultService.getLatestResultsByUserId(user.getId(), limit);
+      return ResponseEntity.ok(results);
+    } catch (Exception exception) {
+      logger.error(USER_NOT_FOUND_LOG + exception.getMessage());
       return ResponseEntity.status(UNAUTHORIZED_STATUS_CODE).build();
     }
-
-    User user = userOptional.get();
-    List<GoogleOperationResult> results =
-        googleResultService.getLatestResultsByUserId(user.getId(), limit);
-    return ResponseEntity.ok(results);
   }
 
   @PreAuthorize("hasAuthority('google_results.read.errors')")
@@ -147,12 +135,10 @@ public class GoogleOperationResultsController {
       return ResponseEntity.notFound().build();
     }
 
-    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-    Optional<User> userOptional =
-        userRepository.findByUsername(authentication.getPrincipal().toString());
-
-    if (userOptional.isEmpty()) {
-      logger.error(USER_NOT_FOUND_LOG + authentication.getPrincipal());
+    try {
+      userQueryService.getCurrentAuthenticatedUser();
+    } catch (Exception exception) {
+      logger.error(USER_NOT_FOUND_LOG + exception.getMessage());
       return ResponseEntity.status(UNAUTHORIZED_STATUS_CODE).build();
     }
 
@@ -165,18 +151,14 @@ public class GoogleOperationResultsController {
       @PathVariable final String operation) {
     logger.info(GET_RESULTS_BY_OPERATION_LOG + operation);
 
-    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-    Optional<User> userOptional =
-        userRepository.findByUsername(authentication.getPrincipal().toString());
-
-    if (userOptional.isEmpty()) {
-      logger.error(USER_NOT_FOUND_LOG + authentication.getPrincipal());
+    try {
+      User user = userQueryService.getCurrentAuthenticatedUser();
+      List<GoogleOperationResult> results =
+          googleResultService.getResultsByUserIdAndOperation(user.getId(), operation);
+      return ResponseEntity.ok(results);
+    } catch (Exception exception) {
+      logger.error(USER_NOT_FOUND_LOG + exception.getMessage());
       return ResponseEntity.status(UNAUTHORIZED_STATUS_CODE).build();
     }
-
-    User user = userOptional.get();
-    List<GoogleOperationResult> results =
-        googleResultService.getResultsByUserIdAndOperation(user.getId(), operation);
-    return ResponseEntity.ok(results);
   }
 }

@@ -177,6 +177,13 @@ public class InAppPurchaseService {
     return purchase;
   }
 
+  public final InAppPurchase getInAppPurchaseByIdOrThrow(final int id) {
+    return inAppPurchaseRepository
+        .findById(id)
+        .orElseThrow(
+            () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "InAppPurchase not found"));
+  }
+
   public final Optional<InAppPurchaseJson> getInAppPurchaseByIdAsJson(final int id) {
     Optional<InAppPurchase> purchase = getInAppPurchaseById(id);
     return purchase.map(inAppPurchaseMapper::toDto);

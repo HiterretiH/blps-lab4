@@ -4,17 +4,14 @@ import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import org.lab.logger.Logger;
 import org.lab1.model.User;
-import org.lab1.repository.UserRepository;
 import org.lab1.service.FormGenerationService;
+import org.lab1.service.UserQueryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -57,7 +54,7 @@ public class FormController {
   private static final String REASON_LOG = ". Reason: ";
 
   private final FormGenerationService formGenerationService;
-  private final UserRepository userRepository;
+  private final UserQueryService userQueryService;
   private final Counter formsGeneratedCounter;
   private final Counter fieldsAddedCounter;
   private final Logger logger;
@@ -65,11 +62,11 @@ public class FormController {
   @Autowired
   public FormController(
       final FormGenerationService formGenerationServiceParam,
-      final UserRepository userRepositoryParam,
+      final UserQueryService userQueryServiceParam,
       final MeterRegistry meterRegistry,
       final Logger loggerParam) {
     this.formGenerationService = formGenerationServiceParam;
-    this.userRepository = userRepositoryParam;
+    this.userQueryService = userQueryServiceParam;
     this.formsGeneratedCounter =
         Counter.builder(FORMS_GENERATED_METRIC)
             .description(FORMS_GENERATED_DESCRIPTION)
@@ -85,25 +82,17 @@ public class FormController {
   @PostMapping("/create")
   public ResponseEntity<String> generateGoogleForm() {
     logger.info(GENERATE_FORM_REQUEST_LOG);
-    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-    Optional<User> userOptional =
-        userRepository.findByUsername(authentication.getPrincipal().toString());
-
-    if (userOptional.isEmpty()) {
-      logger.error(USER_NOT_FOUND_LOG + authentication.getPrincipal());
-      return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-    }
-
-    User user = userOptional.get();
-    int userId = user.getId();
 
     try {
+      User user = userQueryService.getCurrentAuthenticatedUser();
+      int userId = user.getId();
+
       String result = formGenerationService.generateAndSendGoogleForm(userId);
       formsGeneratedCounter.increment();
       logger.info(GENERATE_FORM_SUCCESS_LOG + userId + RESULT_LOG + result);
       return ResponseEntity.ok(result);
     } catch (Exception exception) {
-      logger.error(GENERATE_FORM_ERROR_LOG + userId + REASON_LOG + exception.getMessage());
+      logger.error(GENERATE_FORM_ERROR_LOG + exception.getMessage());
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
           .body("Error generating form: " + exception.getMessage());
     }

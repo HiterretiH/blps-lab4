@@ -9,6 +9,8 @@ import org.lab1.repository.UserRepository;
 import org.lab1.security.TokenManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -76,5 +78,25 @@ public class UserQueryService {
     return userRepository
         .findById(userId)
         .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, USER_NOT_FOUND_MSG));
+  }
+
+  public final User getCurrentAuthenticatedUser() {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    String username = authentication.getPrincipal().toString();
+
+    return userRepository
+        .findByUsername(username)
+        .orElseThrow(
+            () -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, USER_NOT_FOUND_MSG));
+  }
+
+  public final User getUserByUsername(final String username) {
+    return userRepository
+        .findByUsername(username)
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, USER_NOT_FOUND_MSG));
+  }
+
+  public final boolean userExists(final int userId) {
+    return userRepository.existsById(userId);
   }
 }

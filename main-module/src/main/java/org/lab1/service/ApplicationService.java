@@ -207,6 +207,12 @@ public class ApplicationService {
     return application;
   }
 
+  public final Application getApplicationByIdOrThrow(final int id) {
+    return applicationRepository
+        .findById(id)
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, APP_NOT_FOUND_MSG));
+  }
+
   public final Optional<ApplicationJson> getApplicationJsonById(final int id) {
     Optional<Application> application = getApplicationById(id);
     return application.map(applicationMapper::toDto);

@@ -185,6 +185,12 @@ public class InAppAddService {
     return inAppAdd;
   }
 
+  public final InAppAdd getInAppAddByIdOrThrow(final int id) {
+    return inAppAddRepository
+        .findById(id)
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "InAppAdd not found"));
+  }
+
   public final Optional<InAppAddJson> getInAppAddByIdAsJson(final int id) {
     Optional<InAppAdd> inAppAdd = getInAppAddById(id);
     return inAppAdd.map(inAppAddMapper::toDto);

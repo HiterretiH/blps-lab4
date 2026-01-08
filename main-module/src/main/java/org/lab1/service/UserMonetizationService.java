@@ -4,6 +4,7 @@ import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.DistributionSummary;
 import io.micrometer.core.instrument.MeterRegistry;
 import java.util.Optional;
+import org.lab1.json.MonetizationEvent;
 import org.lab1.model.InAppAdd;
 import org.lab1.model.InAppPurchase;
 import org.lab1.model.MonetizedApplication;
@@ -224,5 +225,42 @@ public class UserMonetizationService {
     adAmountSummary.record(ad.getPrice());
     monetizedApplicationRepository.save(monetizedApplication);
     return true;
+  }
+
+  public final InAppPurchase getInAppPurchaseById(final int purchaseId) {
+    return inAppPurchaseRepository
+        .findById(purchaseId)
+        .orElseThrow(
+            () -> new ResponseStatusException(HttpStatus.NOT_FOUND, IN_APP_PURCHASE_NOT_FOUND_MSG));
+  }
+
+  public final InAppAdd getInAppAddById(final int adId) {
+    return inAppAddRepository
+        .findById(adId)
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "InAppAdd not found"));
+  }
+
+  public final MonetizationEvent createPurchaseEvent(
+      final int userId, final int purchaseId, final double price) {
+    InAppPurchase purchase = getInAppPurchaseById(purchaseId);
+    int applicationId = purchase.getMonetizedApplication().getApplication().getId();
+
+    return new MonetizationEvent(
+        MonetizationEvent.EventType.PURCHASE, userId, applicationId, purchaseId, price);
+  }
+
+  public final MonetizationEvent createAdViewEvent(
+      final int userId, final int adId, final double revenue) {
+    InAppAdd ad = getInAppAddById(adId);
+    int applicationId = ad.getMonetizedApplication().getApplication().getId();
+
+    return new MonetizationEvent(
+        MonetizationEvent.EventType.AD_VIEW, userId, applicationId, adId, revenue);
+  }
+
+  public final MonetizationEvent createDownloadEvent(
+      final int userId, final int applicationId, final double price) {
+    return new MonetizationEvent(
+        MonetizationEvent.EventType.DOWNLOAD, userId, applicationId, applicationId, price);
   }
 }

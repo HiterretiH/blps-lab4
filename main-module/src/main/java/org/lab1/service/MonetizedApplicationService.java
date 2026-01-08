@@ -124,4 +124,16 @@ public class MonetizedApplicationService {
     Optional<MonetizedApplication> monetizedApplication = getMonetizedApplicationById(id);
     return monetizedApplication.map(monetizedApplicationMapper::toDto);
   }
+
+  public final MonetizedApplication getMonetizedApplicationByApplicationId(
+      final int applicationId) {
+    MonetizedApplication monetizedApp =
+        monetizedApplicationRepository.findByApplicationId(applicationId);
+
+    if (monetizedApp == null) {
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Monetized application not found");
+    }
+
+    return monetizedApp;
+  }
 }
