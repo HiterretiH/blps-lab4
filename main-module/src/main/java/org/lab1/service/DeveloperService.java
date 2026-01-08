@@ -2,11 +2,15 @@ package org.lab1.service;
 
 import java.util.Optional;
 import org.lab.logger.Logger;
+import org.lab1.json.DeveloperJson;
+import org.lab1.mapper.DeveloperMapper;
 import org.lab1.model.Developer;
 import org.lab1.model.User;
 import org.lab1.repository.DeveloperRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class DeveloperService {
@@ -28,12 +32,16 @@ public class DeveloperService {
   private static final String DELETED_DEV_LOG = "Developer deleted with ID: ";
 
   private final DeveloperRepository developerRepository;
+  private final DeveloperMapper developerMapper;
   private final Logger logger;
 
   @Autowired
   public DeveloperService(
-      final DeveloperRepository developerRepositoryParam, final Logger loggerParam) {
+      final DeveloperRepository developerRepositoryParam,
+      final DeveloperMapper developerMapperParam,
+      final Logger loggerParam) {
     this.developerRepository = developerRepositoryParam;
+    this.developerMapper = developerMapperParam;
     this.logger = loggerParam;
   }
 
@@ -45,6 +53,14 @@ public class DeveloperService {
     Developer savedDeveloper = developerRepository.save(developer);
     logger.info(CREATED_DEV_LOG + savedDeveloper.getId());
     return savedDeveloper;
+  }
+
+  public final DeveloperJson createDeveloperFromJson(final DeveloperJson developerJson) {
+    logger.info(CREATE_DEV_LOG + developerJson.getName());
+    Developer developer = developerMapper.toEntity(developerJson);
+    Developer savedDeveloper = developerRepository.save(developer);
+    logger.info(CREATED_DEV_LOG + savedDeveloper.getId());
+    return developerMapper.toDto(savedDeveloper);
   }
 
   public final Developer createDeveloper(final User user) {
@@ -72,6 +88,11 @@ public class DeveloperService {
     return developer;
   }
 
+  public final Optional<DeveloperJson> getDeveloperByIdAsJson(final int id) {
+    Optional<Developer> developer = getDeveloperById(id);
+    return developer.map(developerMapper::toDto);
+  }
+
   public final Developer updateDeveloper(
       final int id, final String name, final String description) {
     logger.info(UPDATE_DEV_LOG + id + NAME_LOG + name);
@@ -81,13 +102,32 @@ public class DeveloperService {
             .orElseThrow(
                 () -> {
                   logger.error(UPDATE_NOT_FOUND_LOG + id + UPDATE_NOT_FOUND_MSG);
-                  return new RuntimeException(DEV_NOT_FOUND_MSG);
+                  return new ResponseStatusException(HttpStatus.NOT_FOUND, DEV_NOT_FOUND_MSG);
                 });
     developer.setName(name);
     developer.setDescription(description);
     Developer updatedDeveloper = developerRepository.save(developer);
     logger.info(UPDATED_DEV_LOG + updatedDeveloper.getId());
     return updatedDeveloper;
+  }
+
+  public final DeveloperJson updateDeveloperFromJson(
+      final int id, final DeveloperJson developerJson) {
+    logger.info(UPDATE_DEV_LOG + id + NAME_LOG + developerJson.getName());
+
+    Developer developer = developerRepository
+        .findById(id)
+        .orElseThrow(() -> {
+          logger.error(UPDATE_NOT_FOUND_LOG + id + UPDATE_NOT_FOUND_MSG);
+          return new ResponseStatusException(HttpStatus.NOT_FOUND, DEV_NOT_FOUND_MSG);
+        });
+
+    developer.setName(developerJson.getName());
+    developer.setDescription(developerJson.getDescription());
+
+    Developer updatedDeveloper = developerRepository.save(developer);
+    logger.info(UPDATED_DEV_LOG + updatedDeveloper.getId());
+    return developerMapper.toDto(updatedDeveloper);
   }
 
   public final void deleteDeveloper(final int id) {

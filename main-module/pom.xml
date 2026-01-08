@@ -22,6 +22,8 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <google.api.client.version>1.32.1</google.api.client.version>
     <google-java-format.version>1.23.0</google-java-format.version>
+    <mapstruct.version>1.6.0</mapstruct.version>
+    <mavencompiler.version>3.13.0</mavencompiler.version>
   </properties>
 
   <dependencies>
@@ -121,6 +123,19 @@
       <artifactId>logger-module</artifactId>
       <version>1.0</version>
     </dependency>
+
+    <dependency>
+      <groupId>org.mapstruct</groupId>
+      <artifactId>mapstruct</artifactId>
+      <version>${mapstruct.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.mapstruct</groupId>
+      <artifactId>mapstruct-processor</artifactId>
+      <version>${mapstruct.version}</version>
+      <scope>provided</scope>
+    </dependency>
   </dependencies>
 
   <build>
@@ -128,6 +143,24 @@
       <plugin>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>${mavencompiler.version}</version>
+        <configuration>
+          <annotationProcessorPaths>
+            <path>
+              <groupId>org.mapstruct</groupId>
+              <artifactId>mapstruct-processor</artifactId>
+              <version>${mapstruct.version}</version>
+            </path>
+          </annotationProcessorPaths>
+          <compilerArgs>
+            <compilerArg>-Amapstruct.defaultComponentModel=spring</compilerArg>
+          </compilerArgs>
+        </configuration>
       </plugin>
 
       <plugin>

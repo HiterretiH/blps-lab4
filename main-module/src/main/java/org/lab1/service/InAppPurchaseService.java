@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import org.lab.logger.Logger;
+import org.lab1.json.InAppPurchaseJson;
+import org.lab1.mapper.InAppPurchaseMapper;
 import org.lab1.model.InAppPurchase;
 import org.lab1.model.MonetizedApplication;
 import org.lab1.repository.InAppPurchaseRepository;
@@ -50,6 +52,7 @@ public class InAppPurchaseService {
 
   private final InAppPurchaseRepository inAppPurchaseRepository;
   private final MonetizedApplicationRepository monetizedApplicationRepository;
+  private final InAppPurchaseMapper inAppPurchaseMapper;
   private final JtaTransactionManager transactionManager;
   private final Logger logger;
 
@@ -57,10 +60,12 @@ public class InAppPurchaseService {
   public InAppPurchaseService(
       final InAppPurchaseRepository inAppPurchaseRepositoryParam,
       final MonetizedApplicationRepository monetizedApplicationRepositoryParam,
+      final InAppPurchaseMapper inAppPurchaseMapperParam,
       final JtaTransactionManager transactionManagerParam,
       final Logger loggerParam) {
     this.inAppPurchaseRepository = inAppPurchaseRepositoryParam;
     this.monetizedApplicationRepository = monetizedApplicationRepositoryParam;
+    this.inAppPurchaseMapper = inAppPurchaseMapperParam;
     this.transactionManager = transactionManagerParam;
     this.logger = loggerParam;
   }
@@ -117,11 +122,50 @@ public class InAppPurchaseService {
     return purchases;
   }
 
+  public final List<InAppPurchaseJson> createInAppPurchasesFromJson(
+      final List<InAppPurchaseJson> purchaseJsons) {
+    logger.info("Creating InAppPurchases from JSON. Count: " + purchaseJsons.size());
+
+    TransactionDefinition definition = new DefaultTransactionDefinition();
+    TransactionStatus status = transactionManager.getTransaction(definition);
+    List<InAppPurchase> purchases = new ArrayList<>();
+
+    try {
+      for (InAppPurchaseJson purchaseJson : purchaseJsons) {
+        InAppPurchase purchase = inAppPurchaseMapper.toEntity(purchaseJson);
+        inAppPurchaseRepository.save(purchase);
+        purchases.add(purchase);
+        logger.info(CREATED_PURCHASE_LOG + purchase.getTitle() + WITH_ID_LOG + purchase.getId());
+      }
+
+      transactionManager.commit(status);
+      logger.info(TRANSACTION_COMMITTED_LOG + purchases.size() + IN_APP_PURCHASES_LOG);
+
+      return purchases.stream()
+          .map(inAppPurchaseMapper::toDto)
+          .toList();
+
+    } catch (Exception exception) {
+      transactionManager.rollback(status);
+      logger.error(CREATION_ERROR_LOG + exception.getMessage());
+      throw exception;
+    }
+  }
+
   public final List<InAppPurchase> getAllInAppPurchases() {
     logger.info(FETCH_ALL_LOG);
     List<InAppPurchase> purchases = inAppPurchaseRepository.findAll();
     logger.info(FOUND_ALL_LOG + purchases.size() + IN_APP_PURCHASES_LOG);
     return purchases;
+  }
+
+  public final List<InAppPurchaseJson> getAllInAppPurchasesAsJson() {
+    logger.info(FETCH_ALL_LOG);
+    List<InAppPurchase> purchases = inAppPurchaseRepository.findAll();
+    logger.info(FOUND_ALL_LOG + purchases.size() + IN_APP_PURCHASES_LOG);
+    return purchases.stream()
+        .map(inAppPurchaseMapper::toDto)
+        .toList();
   }
 
   public final Optional<InAppPurchase> getInAppPurchaseById(final int id) {
@@ -135,6 +179,11 @@ public class InAppPurchaseService {
     }
 
     return purchase;
+  }
+
+  public final Optional<InAppPurchaseJson> getInAppPurchaseByIdAsJson(final int id) {
+    Optional<InAppPurchase> purchase = getInAppPurchaseById(id);
+    return purchase.map(inAppPurchaseMapper::toDto);
   }
 
   public final List<InAppPurchase> linkMonetizedAppToPurchases(final int monetizedApplicationId) {
@@ -162,5 +211,12 @@ public class InAppPurchaseService {
     logger.info(
         LINK_SUCCESS_LOG + purchases.size() + PURCHASES_TO_APP_LOG + monetizedApplicationId);
     return purchases;
+  }
+
+  public final List<InAppPurchaseJson> linkMonetizedAppToPurchasesAsJson(final int monetizedApplicationId) {
+    List<InAppPurchase> purchases = linkMonetizedAppToPurchases(monetizedApplicationId);
+    return purchases.stream()
+        .map(inAppPurchaseMapper::toDto)
+        .toList();
   }
 }

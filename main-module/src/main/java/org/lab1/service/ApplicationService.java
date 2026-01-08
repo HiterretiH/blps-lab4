@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 import org.lab.logger.Logger;
 import org.lab1.json.ApplicationJson;
+import org.lab1.mapper.ApplicationMapper;
 import org.lab1.model.Application;
 import org.lab1.model.ApplicationStatus;
 import org.lab1.model.ApplicationType;
@@ -52,15 +53,18 @@ public class ApplicationService {
 
   private final ApplicationRepository applicationRepository;
   private final DeveloperRepository developerRepository;
+  private final ApplicationMapper applicationMapper;
   private final Logger logger;
 
   @Autowired
   public ApplicationService(
       final ApplicationRepository applicationRepositoryParam,
       final DeveloperRepository developerRepositoryParam,
+      final ApplicationMapper applicationMapperParam,
       final Logger loggerParam) {
     this.applicationRepository = applicationRepositoryParam;
     this.developerRepository = developerRepositoryParam;
+    this.applicationMapper = applicationMapperParam;
     this.logger = loggerParam;
   }
 
@@ -71,6 +75,15 @@ public class ApplicationService {
     return applications;
   }
 
+  public final List<ApplicationJson> getAllApplicationsAsJson() {
+    logger.info(FETCH_ALL_APPS_LOG);
+    List<Application> applications = applicationRepository.findAll();
+    logger.info(FOUND_APPS_LOG + applications.size() + APPLICATIONS_LOG);
+    return applications.stream()
+        .map(applicationMapper::toDto)
+        .toList();
+  }
+
   public final ResponseEntity<Application> submitApplicationForCheck(
       final Application application) {
     logger.info(SUBMIT_APP_LOG + application.getName());
@@ -78,6 +91,20 @@ public class ApplicationService {
       Application savedApplication = applicationRepository.save(application);
       logger.info(SUBMIT_SUCCESS_LOG + savedApplication.getId());
       return ResponseEntity.ok(savedApplication);
+    } catch (Exception exception) {
+      logger.error(SUBMIT_ERROR_LOG + exception.getMessage());
+      throw exception;
+    }
+  }
+
+  public final ResponseEntity<ApplicationJson> submitApplicationForCheckFromJson(
+      final ApplicationJson applicationJson) {
+    logger.info(SUBMIT_APP_LOG + applicationJson.getName());
+    try {
+      Application application = applicationMapper.toEntity(applicationJson);
+      Application savedApplication = applicationRepository.save(application);
+      logger.info(SUBMIT_SUCCESS_LOG + savedApplication.getId());
+      return ResponseEntity.ok(applicationMapper.toDto(savedApplication));
     } catch (Exception exception) {
       logger.error(SUBMIT_ERROR_LOG + exception.getMessage());
       throw exception;
@@ -111,6 +138,19 @@ public class ApplicationService {
     return ResponseEntity.notFound().build();
   }
 
+  public final ResponseEntity<ApplicationJson> getApplicationAsJson(final int applicationId) {
+    logger.info(FETCH_APP_LOG + applicationId);
+    Optional<Application> application = applicationRepository.findById(applicationId);
+
+    if (application.isPresent()) {
+      logger.info(FOUND_APP_LOG + applicationId);
+      return ResponseEntity.ok(applicationMapper.toDto(application.get()));
+    }
+
+    logger.error(APP_NOT_FOUND_LOG + applicationId);
+    return ResponseEntity.notFound().build();
+  }
+
   public final List<Application> getApplicationsByDeveloperId(final int developerId) {
     logger.info(FETCH_BY_DEV_LOG + developerId);
     List<Application> applications = applicationRepository.findByDeveloperId(developerId);
@@ -118,24 +158,27 @@ public class ApplicationService {
     return applications;
   }
 
+  public final List<ApplicationJson> getApplicationsByDeveloperIdAsJson(final int developerId) {
+    logger.info(FETCH_BY_DEV_LOG + developerId);
+    List<Application> applications = applicationRepository.findByDeveloperId(developerId);
+    logger.info(FOUND_FOR_DEV_LOG + applications.size() + APPS_FOR_DEV_LOG + developerId);
+    return applications.stream()
+        .map(applicationMapper::toDto)
+        .toList();
+  }
+
   public final Application createApplication(final ApplicationJson applicationJson) {
     logger.info(CREATE_APP_LOG + applicationJson.getDeveloperId());
-    Developer developer =
-        developerRepository
-            .findById(applicationJson.getDeveloperId())
-            .orElseThrow(
-                () -> {
-                  logger.error(DEV_NOT_FOUND_LOG + applicationJson.getDeveloperId());
-                  return new ResponseStatusException(HttpStatus.NOT_FOUND, DEV_NOT_FOUND_MSG);
-                });
 
-    Application application = new Application();
+    Developer developer = developerRepository
+        .findById(applicationJson.getDeveloperId())
+        .orElseThrow(() -> {
+          logger.error(DEV_NOT_FOUND_LOG + applicationJson.getDeveloperId());
+          return new ResponseStatusException(HttpStatus.NOT_FOUND, DEV_NOT_FOUND_MSG);
+        });
+
+    Application application = applicationMapper.toEntity(applicationJson);
     application.setDeveloper(developer);
-    application.setName(applicationJson.getName());
-    application.setType(applicationJson.getType());
-    application.setPrice(applicationJson.getPrice());
-    application.setDescription(applicationJson.getDescription());
-    application.setStatus(applicationJson.getStatus());
 
     try {
       Application savedApplication = applicationRepository.save(application);
@@ -145,6 +188,11 @@ public class ApplicationService {
       logger.error(CREATE_ERROR_LOG + exception.getMessage());
       throw exception;
     }
+  }
+
+  public final ApplicationJson createApplicationAndReturnJson(final ApplicationJson applicationJson) {
+    Application application = createApplication(applicationJson);
+    return applicationMapper.toDto(application);
   }
 
   public final Optional<Application> getApplicationById(final int id) {
@@ -158,6 +206,11 @@ public class ApplicationService {
     }
 
     return application;
+  }
+
+  public final Optional<ApplicationJson> getApplicationJsonById(final int id) {
+    Optional<Application> application = getApplicationById(id);
+    return application.map(applicationMapper::toDto);
   }
 
   public final Application updateApplication(
@@ -189,6 +242,40 @@ public class ApplicationService {
       Application updatedApplication = applicationRepository.save(application);
       logger.info(UPDATE_SUCCESS_LOG + id);
       return updatedApplication;
+    } catch (Exception exception) {
+      logger.error(UPDATE_ERROR_LOG + id + ERROR_LOG + exception.getMessage());
+      throw exception;
+    }
+  }
+
+  public final ApplicationJson updateApplicationFromJson(
+      final int id,
+      final ApplicationJson applicationJson) {
+    logger.info(UPDATE_APP_LOG + id);
+
+    Application application = applicationRepository
+        .findById(id)
+        .orElseThrow(() -> {
+          logger.error(APP_NOT_FOUND_LOG + id);
+          return new ResponseStatusException(HttpStatus.NOT_FOUND, APP_NOT_FOUND_MSG);
+        });
+
+    if (applicationJson.getDeveloperId() > 0) {
+      Developer developer = developerRepository
+          .findById(applicationJson.getDeveloperId())
+          .orElseThrow(() -> {
+            logger.error(DEV_NOT_FOUND_LOG + applicationJson.getDeveloperId());
+            return new ResponseStatusException(HttpStatus.NOT_FOUND, DEV_NOT_FOUND_MSG);
+          });
+      application.setDeveloper(developer);
+    }
+
+    applicationMapper.updateEntityFromDto(applicationJson, application);
+
+    try {
+      Application updatedApplication = applicationRepository.save(application);
+      logger.info(UPDATE_SUCCESS_LOG + id);
+      return applicationMapper.toDto(updatedApplication);
     } catch (Exception exception) {
       logger.error(UPDATE_ERROR_LOG + id + ERROR_LOG + exception.getMessage());
       throw exception;

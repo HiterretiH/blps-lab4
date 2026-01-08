@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 import org.lab.logger.Logger;
 import org.lab1.json.ApplicationStatsJson;
+import org.lab1.mapper.ApplicationStatsMapper;
 import org.lab1.model.Application;
 import org.lab1.model.ApplicationStats;
 import org.lab1.repository.ApplicationRepository;
@@ -31,38 +32,42 @@ public class ApplicationStatsService {
 
   private final ApplicationStatsRepository applicationStatsRepository;
   private final ApplicationRepository applicationRepository;
+  private final ApplicationStatsMapper applicationStatsMapper;
   private final Logger logger;
 
   @Autowired
   public ApplicationStatsService(
       final ApplicationStatsRepository applicationStatsRepositoryParam,
       final ApplicationRepository applicationRepositoryParam,
+      final ApplicationStatsMapper applicationStatsMapperParam,
       final Logger loggerParam) {
     this.applicationStatsRepository = applicationStatsRepositoryParam;
     this.applicationRepository = applicationRepositoryParam;
+    this.applicationStatsMapper = applicationStatsMapperParam;
     this.logger = loggerParam;
   }
 
   public final ApplicationStats save(final ApplicationStatsJson applicationStatsJson) {
     logger.info(SAVE_REQUEST_LOG + applicationStatsJson.getApplicationId());
-    Application application =
-        applicationRepository
-            .findById(applicationStatsJson.getApplicationId())
-            .orElseThrow(
-                () -> {
-                  logger.error(APP_NOT_FOUND_LOG + applicationStatsJson.getApplicationId());
-                  return new ResponseStatusException(HttpStatus.NOT_FOUND, APP_NOT_FOUND_MSG);
-                });
 
-    ApplicationStats applicationStats = new ApplicationStats();
-    applicationStats.setId(application.getId());
+    Application application = applicationRepository
+        .findById(applicationStatsJson.getApplicationId())
+        .orElseThrow(() -> {
+          logger.error(APP_NOT_FOUND_LOG + applicationStatsJson.getApplicationId());
+          return new ResponseStatusException(HttpStatus.NOT_FOUND, APP_NOT_FOUND_MSG);
+        });
+
+    ApplicationStats applicationStats = applicationStatsMapper.toEntity(applicationStatsJson);
     applicationStats.setApplication(application);
-    applicationStats.setDownloads(applicationStatsJson.getDownloads());
-    applicationStats.setRating(applicationStatsJson.getRating());
 
     ApplicationStats savedStats = applicationStatsRepository.save(applicationStats);
     logger.info(SAVED_STATS_LOG + savedStats.getId() + FOR_APP_ID_LOG + application.getId());
     return savedStats;
+  }
+
+  public final ApplicationStatsJson saveAndReturnJson(final ApplicationStatsJson applicationStatsJson) {
+    ApplicationStats savedStats = save(applicationStatsJson);
+    return applicationStatsMapper.toDto(savedStats);
   }
 
   public final Optional<ApplicationStats> findById(final int id) {
@@ -78,11 +83,25 @@ public class ApplicationStatsService {
     return stats;
   }
 
+  public final Optional<ApplicationStatsJson> findByIdAsJson(final int id) {
+    Optional<ApplicationStats> stats = findById(id);
+    return stats.map(applicationStatsMapper::toDto);
+  }
+
   public final List<ApplicationStats> findAll() {
     logger.info(FIND_ALL_LOG);
     List<ApplicationStats> allStats = applicationStatsRepository.findAll();
     logger.info(FOUND_ALL_LOG + allStats.size() + STATS_COUNT_LOG);
     return allStats;
+  }
+
+  public final List<ApplicationStatsJson> findAllAsJson() {
+    logger.info(FIND_ALL_LOG);
+    List<ApplicationStats> allStats = applicationStatsRepository.findAll();
+    logger.info(FOUND_ALL_LOG + allStats.size() + STATS_COUNT_LOG);
+    return allStats.stream()
+        .map(applicationStatsMapper::toDto)
+        .toList();
   }
 
   public final void delete(final int id) {

@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 import org.lab.logger.Logger;
 import org.lab1.json.InAppAddJson;
+import org.lab1.mapper.InAppAddMapper;
 import org.lab1.model.InAppAdd;
 import org.lab1.model.MonetizedApplication;
 import org.lab1.repository.InAppAddRepository;
@@ -44,6 +45,7 @@ public class InAppAddService {
 
   private final InAppAddRepository inAppAddRepository;
   private final MonetizedApplicationRepository monetizedApplicationRepository;
+  private final InAppAddMapper inAppAddMapper;
   private final JtaTransactionManager transactionManager;
   private final Logger logger;
 
@@ -51,16 +53,19 @@ public class InAppAddService {
   public InAppAddService(
       final InAppAddRepository inAppAddRepositoryParam,
       final MonetizedApplicationRepository monetizedApplicationRepositoryParam,
+      final InAppAddMapper inAppAddMapperParam,
       final JtaTransactionManager transactionManagerParam,
       final Logger loggerParam) {
     this.inAppAddRepository = inAppAddRepositoryParam;
     this.monetizedApplicationRepository = monetizedApplicationRepositoryParam;
+    this.inAppAddMapper = inAppAddMapperParam;
     this.transactionManager = transactionManagerParam;
     this.logger = loggerParam;
   }
 
   public final InAppAdd createInAppAdd(final InAppAddJson inAppAddJson) {
     logger.info(CREATE_REQUEST_LOG + inAppAddJson.getMonetizedApplicationId());
+
     MonetizedApplication monetizedApplication =
         monetizedApplicationRepository
             .findById(inAppAddJson.getMonetizedApplicationId())
@@ -72,11 +77,8 @@ public class InAppAddService {
                       HttpStatus.NOT_FOUND, MONETIZED_APP_NOT_FOUND_MSG);
                 });
 
-    InAppAdd inAppAdd = new InAppAdd();
+    InAppAdd inAppAdd = inAppAddMapper.toEntity(inAppAddJson);
     inAppAdd.setMonetizedApplication(monetizedApplication);
-    inAppAdd.setTitle(inAppAddJson.getTitle());
-    inAppAdd.setDescription(inAppAddJson.getDescription());
-    inAppAdd.setPrice(inAppAddJson.getPrice());
 
     InAppAdd savedInAppAdd = inAppAddRepository.save(inAppAdd);
     logger.info(
@@ -85,6 +87,11 @@ public class InAppAddService {
             + FOR_MONETIZED_APP_LOG
             + monetizedApplication.getId());
     return savedInAppAdd;
+  }
+
+  public final InAppAddJson createInAppAddAndReturnJson(final InAppAddJson inAppAddJson) {
+    InAppAdd savedInAppAdd = createInAppAdd(inAppAddJson);
+    return inAppAddMapper.toDto(savedInAppAdd);
   }
 
   public final List<InAppAdd> createMultipleInAppAdds(final List<InAppAddJson> inAppAddJsons) {
@@ -126,11 +133,8 @@ public class InAppAddService {
           throw new ResponseStatusException(HttpStatus.BAD_REQUEST, BULK_SAME_APP_ERROR);
         }
 
-        InAppAdd inAppAdd = new InAppAdd();
+        InAppAdd inAppAdd = inAppAddMapper.toEntity(inAppAddJson);
         inAppAdd.setMonetizedApplication(monetizedApplication);
-        inAppAdd.setTitle(inAppAddJson.getTitle());
-        inAppAdd.setDescription(inAppAddJson.getDescription());
-        inAppAdd.setPrice(inAppAddJson.getPrice());
         inAppAdds.add(inAppAdd);
       }
 
@@ -148,11 +152,27 @@ public class InAppAddService {
     return inAppAdds;
   }
 
+  public final List<InAppAddJson> createMultipleInAppAddsAndReturnJson(final List<InAppAddJson> inAppAddJsons) {
+    List<InAppAdd> inAppAdds = createMultipleInAppAdds(inAppAddJsons);
+    return inAppAdds.stream()
+        .map(inAppAddMapper::toDto)
+        .toList();
+  }
+
   public final List<InAppAdd> getAllInAppAds() {
     logger.info("Fetching all InAppAdds.");
     List<InAppAdd> inAppAdds = inAppAddRepository.findAll();
     logger.info("Found " + inAppAdds.size() + " InAppAdds.");
     return inAppAdds;
+  }
+
+  public final List<InAppAddJson> getAllInAppAdsAsJson() {
+    logger.info("Fetching all InAppAdds.");
+    List<InAppAdd> inAppAdds = inAppAddRepository.findAll();
+    logger.info("Found " + inAppAdds.size() + " InAppAdds.");
+    return inAppAdds.stream()
+        .map(inAppAddMapper::toDto)
+        .toList();
   }
 
   public final Optional<InAppAdd> getInAppAddById(final int id) {
@@ -168,6 +188,11 @@ public class InAppAddService {
     return inAppAdd;
   }
 
+  public final Optional<InAppAddJson> getInAppAddByIdAsJson(final int id) {
+    Optional<InAppAdd> inAppAdd = getInAppAddById(id);
+    return inAppAdd.map(inAppAddMapper::toDto);
+  }
+
   public final List<InAppAdd> getInAppAddByMonetizedApplication(final int monetizedApplicationId) {
     logger.info("Fetching InAppAdds by MonetizedApplication ID: " + monetizedApplicationId);
     List<InAppAdd> inAppAdds =
@@ -178,5 +203,12 @@ public class InAppAddService {
             + " InAppAdds for MonetizedApplication ID: "
             + monetizedApplicationId);
     return inAppAdds;
+  }
+
+  public final List<InAppAddJson> getInAppAddByMonetizedApplicationAsJson(final int monetizedApplicationId) {
+    List<InAppAdd> inAppAdds = getInAppAddByMonetizedApplication(monetizedApplicationId);
+    return inAppAdds.stream()
+        .map(inAppAddMapper::toDto)
+        .toList();
   }
 }

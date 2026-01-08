@@ -3,6 +3,7 @@ package org.lab1.service;
 import java.util.Optional;
 import org.lab.logger.Logger;
 import org.lab1.json.MonetizedApplicationJson;
+import org.lab1.mapper.MonetizedApplicationMapper;
 import org.lab1.model.Application;
 import org.lab1.model.Developer;
 import org.lab1.model.MonetizedApplication;
@@ -32,6 +33,7 @@ public class MonetizedApplicationService {
   private final MonetizedApplicationRepository monetizedApplicationRepository;
   private final DeveloperRepository developerRepository;
   private final ApplicationRepository applicationRepository;
+  private final MonetizedApplicationMapper monetizedApplicationMapper;
   private final Logger logger;
 
   @Autowired
@@ -39,10 +41,12 @@ public class MonetizedApplicationService {
       final MonetizedApplicationRepository monetizedApplicationRepositoryParam,
       final DeveloperRepository developerRepositoryParam,
       final ApplicationRepository applicationRepositoryParam,
+      final MonetizedApplicationMapper monetizedApplicationMapperParam,
       final Logger loggerParam) {
     this.monetizedApplicationRepository = monetizedApplicationRepositoryParam;
     this.developerRepository = developerRepositoryParam;
     this.applicationRepository = applicationRepositoryParam;
+    this.monetizedApplicationMapper = monetizedApplicationMapperParam;
     this.logger = loggerParam;
   }
 
@@ -72,14 +76,9 @@ public class MonetizedApplicationService {
                   return new ResponseStatusException(HttpStatus.NOT_FOUND, APP_NOT_FOUND_MSG);
                 });
 
-    MonetizedApplication monetizedApplication = new MonetizedApplication();
+    MonetizedApplication monetizedApplication = monetizedApplicationMapper.toEntity(monetizedApplicationJson);
     monetizedApplication.setDeveloper(developer);
     monetizedApplication.setApplication(application);
-    monetizedApplication.setCurrentBalance(monetizedApplicationJson.getCurrentBalance());
-    monetizedApplication.setRevenue(monetizedApplicationJson.getRevenue());
-    monetizedApplication.setDownloadRevenue(monetizedApplicationJson.getDownloadRevenue());
-    monetizedApplication.setAdsRevenue(monetizedApplicationJson.getAdsRevenue());
-    monetizedApplication.setPurchasesRevenue(monetizedApplicationJson.getPurchasesRevenue());
 
     MonetizedApplication savedMonetizedApplication =
         monetizedApplicationRepository.save(monetizedApplication);
@@ -91,6 +90,12 @@ public class MonetizedApplicationService {
             + APPLICATION_ID_LOG
             + application.getId());
     return savedMonetizedApplication;
+  }
+
+  public final MonetizedApplicationJson createMonetizedApplicationAndReturnJson(
+      final MonetizedApplicationJson monetizedApplicationJson) {
+    MonetizedApplication savedMonetizedApplication = createMonetizedApplication(monetizedApplicationJson);
+    return monetizedApplicationMapper.toDto(savedMonetizedApplication);
   }
 
   public final Optional<MonetizedApplication> getMonetizedApplicationById(final int id) {
@@ -111,5 +116,10 @@ public class MonetizedApplicationService {
     }
 
     return monetizedApplication;
+  }
+
+  public final Optional<MonetizedApplicationJson> getMonetizedApplicationByIdAsJson(final int id) {
+    Optional<MonetizedApplication> monetizedApplication = getMonetizedApplicationById(id);
+    return monetizedApplication.map(monetizedApplicationMapper::toDto);
   }
 }
