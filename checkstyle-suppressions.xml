@@ -16,6 +16,8 @@
   <suppress checks="LineLength" files=".*"/>
   <suppress checks="OperatorWrap" message="':' should be on a new line." files=".*"/>
   <suppress checks="OperatorWrap" message="':' should be on the previous line." files=".*"/>
+  <suppress checks="DesignForExtension" message="Class .* looks like designed for extension.*" files=".*"/>
+  <suppress checks="HideUtilityClassConstructor" files=".*"/>
 
   <suppress checks="WhitespaceAround"
             files=".*"
