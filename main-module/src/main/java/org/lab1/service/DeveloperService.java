@@ -115,12 +115,14 @@ public class DeveloperService {
       final int id, final DeveloperJson developerJson) {
     logger.info(UPDATE_DEV_LOG + id + NAME_LOG + developerJson.getName());
 
-    Developer developer = developerRepository
-        .findById(id)
-        .orElseThrow(() -> {
-          logger.error(UPDATE_NOT_FOUND_LOG + id + UPDATE_NOT_FOUND_MSG);
-          return new ResponseStatusException(HttpStatus.NOT_FOUND, DEV_NOT_FOUND_MSG);
-        });
+    Developer developer =
+        developerRepository
+            .findById(id)
+            .orElseThrow(
+                () -> {
+                  logger.error(UPDATE_NOT_FOUND_LOG + id + UPDATE_NOT_FOUND_MSG);
+                  return new ResponseStatusException(HttpStatus.NOT_FOUND, DEV_NOT_FOUND_MSG);
+                });
 
     developer.setName(developerJson.getName());
     developer.setDescription(developerJson.getDescription());

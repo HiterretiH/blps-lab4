@@ -6,8 +6,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import lombok.Data;
 import java.time.Instant;
+import lombok.Data;
 
 @Entity
 @Table(name = "google_auth_data")

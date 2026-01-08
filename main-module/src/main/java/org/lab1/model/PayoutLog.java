@@ -5,8 +5,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
-import lombok.Data;
 import java.util.Date;
+import lombok.Data;
 
 @Entity
 @Data
@@ -15,11 +15,9 @@ public class PayoutLog {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private int id;
 
-  @ManyToOne
-  private Developer developer;
+  @ManyToOne private Developer developer;
 
-  @ManyToOne
-  private MonetizedApplication monetizedApplication;
+  @ManyToOne private MonetizedApplication monetizedApplication;
 
   private double payoutValue;
   private Date timestamp;

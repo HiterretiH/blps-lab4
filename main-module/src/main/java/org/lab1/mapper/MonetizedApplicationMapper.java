@@ -1,8 +1,8 @@
 package org.lab1.mapper;
 
 import org.lab1.json.MonetizedApplicationJson;
-import org.lab1.model.MonetizedApplication;
 import org.lab1.model.Developer;
+import org.lab1.model.MonetizedApplication;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;

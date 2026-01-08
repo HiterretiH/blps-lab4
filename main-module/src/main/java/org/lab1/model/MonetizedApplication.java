@@ -15,11 +15,9 @@ public class MonetizedApplication {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private int id;
 
-  @ManyToOne
-  private Developer developer;
+  @ManyToOne private Developer developer;
 
-  @OneToOne
-  private Application application;
+  @OneToOne private Application application;
 
   private double currentBalance;
   private double revenue;

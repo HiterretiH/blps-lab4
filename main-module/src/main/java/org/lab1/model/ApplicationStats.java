@@ -14,8 +14,7 @@ public class ApplicationStats {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private int id;
 
-  @OneToOne
-  private Application application;
+  @OneToOne private Application application;
 
   private long downloads;
   private float rating;

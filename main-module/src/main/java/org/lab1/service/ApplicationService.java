@@ -79,9 +79,7 @@ public class ApplicationService {
     logger.info(FETCH_ALL_APPS_LOG);
     List<Application> applications = applicationRepository.findAll();
     logger.info(FOUND_APPS_LOG + applications.size() + APPLICATIONS_LOG);
-    return applications.stream()
-        .map(applicationMapper::toDto)
-        .toList();
+    return applications.stream().map(applicationMapper::toDto).toList();
   }
 
   public final ResponseEntity<Application> submitApplicationForCheck(
@@ -162,20 +160,20 @@ public class ApplicationService {
     logger.info(FETCH_BY_DEV_LOG + developerId);
     List<Application> applications = applicationRepository.findByDeveloperId(developerId);
     logger.info(FOUND_FOR_DEV_LOG + applications.size() + APPS_FOR_DEV_LOG + developerId);
-    return applications.stream()
-        .map(applicationMapper::toDto)
-        .toList();
+    return applications.stream().map(applicationMapper::toDto).toList();
   }
 
   public final Application createApplication(final ApplicationJson applicationJson) {
     logger.info(CREATE_APP_LOG + applicationJson.getDeveloperId());
 
-    Developer developer = developerRepository
-        .findById(applicationJson.getDeveloperId())
-        .orElseThrow(() -> {
-          logger.error(DEV_NOT_FOUND_LOG + applicationJson.getDeveloperId());
-          return new ResponseStatusException(HttpStatus.NOT_FOUND, DEV_NOT_FOUND_MSG);
-        });
+    Developer developer =
+        developerRepository
+            .findById(applicationJson.getDeveloperId())
+            .orElseThrow(
+                () -> {
+                  logger.error(DEV_NOT_FOUND_LOG + applicationJson.getDeveloperId());
+                  return new ResponseStatusException(HttpStatus.NOT_FOUND, DEV_NOT_FOUND_MSG);
+                });
 
     Application application = applicationMapper.toEntity(applicationJson);
     application.setDeveloper(developer);
@@ -190,7 +188,8 @@ public class ApplicationService {
     }
   }
 
-  public final ApplicationJson createApplicationAndReturnJson(final ApplicationJson applicationJson) {
+  public final ApplicationJson createApplicationAndReturnJson(
+      final ApplicationJson applicationJson) {
     Application application = createApplication(applicationJson);
     return applicationMapper.toDto(application);
   }
@@ -249,24 +248,27 @@ public class ApplicationService {
   }
 
   public final ApplicationJson updateApplicationFromJson(
-      final int id,
-      final ApplicationJson applicationJson) {
+      final int id, final ApplicationJson applicationJson) {
     logger.info(UPDATE_APP_LOG + id);
 
-    Application application = applicationRepository
-        .findById(id)
-        .orElseThrow(() -> {
-          logger.error(APP_NOT_FOUND_LOG + id);
-          return new ResponseStatusException(HttpStatus.NOT_FOUND, APP_NOT_FOUND_MSG);
-        });
+    Application application =
+        applicationRepository
+            .findById(id)
+            .orElseThrow(
+                () -> {
+                  logger.error(APP_NOT_FOUND_LOG + id);
+                  return new ResponseStatusException(HttpStatus.NOT_FOUND, APP_NOT_FOUND_MSG);
+                });
 
     if (applicationJson.getDeveloperId() > 0) {
-      Developer developer = developerRepository
-          .findById(applicationJson.getDeveloperId())
-          .orElseThrow(() -> {
-            logger.error(DEV_NOT_FOUND_LOG + applicationJson.getDeveloperId());
-            return new ResponseStatusException(HttpStatus.NOT_FOUND, DEV_NOT_FOUND_MSG);
-          });
+      Developer developer =
+          developerRepository
+              .findById(applicationJson.getDeveloperId())
+              .orElseThrow(
+                  () -> {
+                    logger.error(DEV_NOT_FOUND_LOG + applicationJson.getDeveloperId());
+                    return new ResponseStatusException(HttpStatus.NOT_FOUND, DEV_NOT_FOUND_MSG);
+                  });
       application.setDeveloper(developer);
     }
 

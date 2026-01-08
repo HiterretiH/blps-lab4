@@ -141,9 +141,7 @@ public class InAppPurchaseService {
       transactionManager.commit(status);
       logger.info(TRANSACTION_COMMITTED_LOG + purchases.size() + IN_APP_PURCHASES_LOG);
 
-      return purchases.stream()
-          .map(inAppPurchaseMapper::toDto)
-          .toList();
+      return purchases.stream().map(inAppPurchaseMapper::toDto).toList();
 
     } catch (Exception exception) {
       transactionManager.rollback(status);
@@ -163,9 +161,7 @@ public class InAppPurchaseService {
     logger.info(FETCH_ALL_LOG);
     List<InAppPurchase> purchases = inAppPurchaseRepository.findAll();
     logger.info(FOUND_ALL_LOG + purchases.size() + IN_APP_PURCHASES_LOG);
-    return purchases.stream()
-        .map(inAppPurchaseMapper::toDto)
-        .toList();
+    return purchases.stream().map(inAppPurchaseMapper::toDto).toList();
   }
 
   public final Optional<InAppPurchase> getInAppPurchaseById(final int id) {
@@ -213,10 +209,9 @@ public class InAppPurchaseService {
     return purchases;
   }
 
-  public final List<InAppPurchaseJson> linkMonetizedAppToPurchasesAsJson(final int monetizedApplicationId) {
+  public final List<InAppPurchaseJson> linkMonetizedAppToPurchasesAsJson(
+      final int monetizedApplicationId) {
     List<InAppPurchase> purchases = linkMonetizedAppToPurchases(monetizedApplicationId);
-    return purchases.stream()
-        .map(inAppPurchaseMapper::toDto)
-        .toList();
+    return purchases.stream().map(inAppPurchaseMapper::toDto).toList();
   }
 }

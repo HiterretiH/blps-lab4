@@ -152,11 +152,10 @@ public class InAppAddService {
     return inAppAdds;
   }
 
-  public final List<InAppAddJson> createMultipleInAppAddsAndReturnJson(final List<InAppAddJson> inAppAddJsons) {
+  public final List<InAppAddJson> createMultipleInAppAddsAndReturnJson(
+      final List<InAppAddJson> inAppAddJsons) {
     List<InAppAdd> inAppAdds = createMultipleInAppAdds(inAppAddJsons);
-    return inAppAdds.stream()
-        .map(inAppAddMapper::toDto)
-        .toList();
+    return inAppAdds.stream().map(inAppAddMapper::toDto).toList();
   }
 
   public final List<InAppAdd> getAllInAppAds() {
@@ -170,9 +169,7 @@ public class InAppAddService {
     logger.info("Fetching all InAppAdds.");
     List<InAppAdd> inAppAdds = inAppAddRepository.findAll();
     logger.info("Found " + inAppAdds.size() + " InAppAdds.");
-    return inAppAdds.stream()
-        .map(inAppAddMapper::toDto)
-        .toList();
+    return inAppAdds.stream().map(inAppAddMapper::toDto).toList();
   }
 
   public final Optional<InAppAdd> getInAppAddById(final int id) {
@@ -205,10 +202,9 @@ public class InAppAddService {
     return inAppAdds;
   }
 
-  public final List<InAppAddJson> getInAppAddByMonetizedApplicationAsJson(final int monetizedApplicationId) {
+  public final List<InAppAddJson> getInAppAddByMonetizedApplicationAsJson(
+      final int monetizedApplicationId) {
     List<InAppAdd> inAppAdds = getInAppAddByMonetizedApplication(monetizedApplicationId);
-    return inAppAdds.stream()
-        .map(inAppAddMapper::toDto)
-        .toList();
+    return inAppAdds.stream().map(inAppAddMapper::toDto).toList();
   }
 }

@@ -16,8 +16,7 @@ public class Application {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private int id;
 
-  @ManyToOne
-  private Developer developer;
+  @ManyToOne private Developer developer;
 
   private String name;
 

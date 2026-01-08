@@ -76,7 +76,8 @@ public class MonetizedApplicationService {
                   return new ResponseStatusException(HttpStatus.NOT_FOUND, APP_NOT_FOUND_MSG);
                 });
 
-    MonetizedApplication monetizedApplication = monetizedApplicationMapper.toEntity(monetizedApplicationJson);
+    MonetizedApplication monetizedApplication =
+        monetizedApplicationMapper.toEntity(monetizedApplicationJson);
     monetizedApplication.setDeveloper(developer);
     monetizedApplication.setApplication(application);
 
@@ -94,7 +95,8 @@ public class MonetizedApplicationService {
 
   public final MonetizedApplicationJson createMonetizedApplicationAndReturnJson(
       final MonetizedApplicationJson monetizedApplicationJson) {
-    MonetizedApplication savedMonetizedApplication = createMonetizedApplication(monetizedApplicationJson);
+    MonetizedApplication savedMonetizedApplication =
+        createMonetizedApplication(monetizedApplicationJson);
     return monetizedApplicationMapper.toDto(savedMonetizedApplication);
   }
 
