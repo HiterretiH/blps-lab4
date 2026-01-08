@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/monetized-applications")
-public final class MonetizedApplicationController {
+public class MonetizedApplicationController {
   private static final String CREATE_REQUEST_LOG =
       "Received request to create MonetizedApplication for developer ID: ";
   private static final String APPLICATION_ID_LOG = ", application ID: ";

@@ -22,7 +22,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
  * валидность JWT токена, устанавливает контекст безопасности.
  */
 @Component
-public final class JwtAuthorizationFilter extends OncePerRequestFilter {
+public class JwtAuthorizationFilter extends OncePerRequestFilter {
   private static final String AUTHORIZATION_HEADER = "Authorization";
   private static final String BEARER_PREFIX = "Bearer ";
   private static final int BEARER_PREFIX_LENGTH = 7;

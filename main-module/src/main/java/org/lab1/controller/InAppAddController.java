@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/in-app-ads")
-public final class InAppAddController {
+public class InAppAddController {
   private static final String CREATE_REQUEST_LOG =
       "Received request to create InAppAdd for MonetizedApplication ID: ";
   private static final String CREATE_SUCCESS_LOG = "InAppAdd created with ID: ";

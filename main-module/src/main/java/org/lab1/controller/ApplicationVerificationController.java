@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/applications")
-public final class ApplicationVerificationController {
+public class ApplicationVerificationController {
   private static final String VERIFICATION_REQUEST_LOG =
       "Received request to verify application form.";
   private static final String SECURITY_CHECK_FAILED_LOG = "Security check failed.";

@@ -27,7 +27,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequestMapping("/api/user")
-public final class UserMonetizationController {
+public class UserMonetizationController {
   private static final String APPLICATION_NOT_FOUND_MESSAGE = "Application not found";
   private static final String DOWNLOAD_SUCCESS_MESSAGE = "Application downloaded successfully.";
   private static final String DOWNLOAD_FAILED_MESSAGE = "Application not found or download failed.";

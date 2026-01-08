@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/google-results")
-public final class GoogleOperationResultsController {
+public class GoogleOperationResultsController {
   private static final int UNAUTHORIZED_STATUS_CODE = 401;
 
   private static final String GET_USER_RESULTS_LOG =

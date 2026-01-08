@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/payment-requests")
-public final class PaymentRequestController {
+public class PaymentRequestController {
   private static final int BAD_REQUEST_STATUS_CODE = 400;
 
   private static final String CREATE_REQUEST_LOG =

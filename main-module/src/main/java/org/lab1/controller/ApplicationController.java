@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/applications")
-public final class ApplicationController {
+public class ApplicationController {
   private static final String APPLICATION_CREATE_LOG =
       "Attempting to create new application for developer ID: ";
   private static final String APPLICATION_CREATE_SUCCESS_LOG =

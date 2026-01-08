@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StopWatch;
 
 @Component
-public final class CustomHealthCheck implements HealthIndicator {
+public class CustomHealthCheck implements HealthIndicator {
   private static final long TIMEOUT_MILLISECONDS = 5000;
   private static final String GOOGLE_REQUESTS_QUEUE = "google.requests";
   private static final String POSTGRESQL_CHECK_NAME = "PostgreSQL check";

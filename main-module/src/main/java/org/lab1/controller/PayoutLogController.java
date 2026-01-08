@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/payout-logs")
-public final class PayoutLogController {
+public class PayoutLogController {
   private static final String CREATE_LOG = "Creating PayoutLog";
   private static final String UPDATE_LOG = "Updating PayoutLog with ID: ";
   private static final String GET_LOG = "Getting PayoutLog with ID: ";

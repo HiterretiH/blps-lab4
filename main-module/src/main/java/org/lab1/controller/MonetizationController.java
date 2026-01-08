@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/monetization")
-public final class MonetizationController {
+public class MonetizationController {
   private static final String GET_INFO_REQUEST_LOG =
       "Received request to get monetization info for application ID: ";
   private static final String INFO_NOT_FOUND_LOG =

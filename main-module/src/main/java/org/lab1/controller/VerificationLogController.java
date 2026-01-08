@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/verification-logs")
-public final class VerificationLogController {
+public class VerificationLogController {
   private static final String CREATE_LOG = "Creating VerificationLog";
   private static final String GET_LOG = "Getting VerificationLog by ID: ";
 

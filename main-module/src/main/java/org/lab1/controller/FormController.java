@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/forms")
-public final class FormController {
+public class FormController {
   private static final String GENERATE_FORM_REQUEST_LOG =
       "Received request to generate Google Form.";
   private static final String USER_NOT_FOUND_LOG = "User not found: ";

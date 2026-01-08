@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/application-stats")
-public final class ApplicationStatsController {
+public class ApplicationStatsController {
   private static final String CREATE_REQUEST_LOG = "Received request to create ApplicationStats";
   private static final String CREATE_SUCCESS_LOG = "ApplicationStats created with ID: ";
   private static final String UPDATE_REQUEST_LOG =

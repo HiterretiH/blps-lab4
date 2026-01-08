@@ -31,7 +31,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequestMapping("/api/auth")
-public final class AuthorizationController {
+public class AuthorizationController {
   private static final String BEARER_PREFIX = "Bearer ";
   private static final String LOGIN_REQUEST_LOG = "Received login request for user: ";
   private static final String LOGIN_SUCCESS_LOG = "User ";

@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/sheets")
-public final class GoogleSheetController {
+public class GoogleSheetController {
   private static final String CREATE_REVENUE_SHEET_LOG =
       "Received request to create revenue sheet.";
   private static final String USER_NOT_FOUND_LOG = "User not found: ";

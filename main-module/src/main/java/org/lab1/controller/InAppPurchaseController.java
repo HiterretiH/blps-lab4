@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/in-app-purchases")
-public final class InAppPurchaseController {
+public class InAppPurchaseController {
   private static final String CREATE_REQUEST_LOG =
       "Received request to create InAppPurchases. Titles count: ";
   private static final String DESCRIPTIONS_COUNT_LOG = ", Descriptions count: ";

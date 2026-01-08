@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/developers")
-public final class DeveloperController {
+public class DeveloperController {
   private static final String CREATE_REQUEST_LOG = "Received request to create developer.";
   private static final String CREATE_SUCCESS_LOG = "Developer created with ID: ";
   private static final String GET_REQUEST_LOG = "Received request to get developer with ID: ";
