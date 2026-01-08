@@ -43,7 +43,7 @@ public class FormGenerationService {
   private final FormFieldRepository formFieldRepository;
   private final JtaTransactionManager transactionManager;
   private final GoogleTaskSender googleTaskSender;
-  private final GoogleOAuthService googleOAuthService;
+  private final GoogleOAuthQueryService googleOAuthQueryService;
   private final Logger logger;
 
   @Autowired
@@ -51,24 +51,24 @@ public class FormGenerationService {
       final FormFieldRepository formFieldRepositoryParam,
       final JtaTransactionManager transactionManagerParam,
       final GoogleTaskSender googleTaskSenderParam,
-      final GoogleOAuthService googleOAuthServiceParam,
+      final GoogleOAuthQueryService googleOAuthQueryServiceParam,
       final Logger loggerParam) {
     this.formFieldRepository = formFieldRepositoryParam;
     this.transactionManager = transactionManagerParam;
     this.googleTaskSender = googleTaskSenderParam;
-    this.googleOAuthService = googleOAuthServiceParam;
+    this.googleOAuthQueryService = googleOAuthQueryServiceParam;
     this.logger = loggerParam;
   }
 
   public final String generateAndSendGoogleForm(final int userId) throws OAuthException {
     logger.info(GENERATE_FORM_LOG + userId);
 
-    if (!googleOAuthService.isGoogleConnected(userId)) {
+    if (!googleOAuthQueryService.isGoogleConnected(userId)) {
       logger.error(GOOGLE_NOT_CONNECTED_LOG + userId + NOT_CONNECTED_GOOGLE_LOG);
       throw new IllegalStateException(NOT_CONNECTED_MSG);
     }
 
-    String googleEmail = googleOAuthService.getUserGoogleEmail(userId);
+    String googleEmail = googleOAuthQueryService.getUserGoogleEmail(userId);
     logger.info(RETRIEVED_EMAIL_LOG + userId + COLON_SEPARATOR + googleEmail);
 
     Map<String, String> formFields = generateFormFields();

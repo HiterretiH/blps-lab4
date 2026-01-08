@@ -56,18 +56,18 @@ public class GoogleTaskSender {
   private static final String REVENUE_STATS_SUFFIX = " - 52";
 
   private final RabbitTemplate rabbitTemplate;
-  private final GoogleOAuthService googleOAuthService;
+  private final GoogleOAuthQueryService googleOAuthQueryService;
   private final ObjectMapper objectMapper;
   private final Logger logger;
 
   @Autowired
   public GoogleTaskSender(
       final RabbitTemplate rabbitTemplateParam,
-      final GoogleOAuthService googleOAuthServiceParam,
+      final GoogleOAuthQueryService googleOAuthQueryServiceParam,
       final ObjectMapper objectMapperParam,
       final Logger loggerParam) {
     this.rabbitTemplate = rabbitTemplateParam;
-    this.googleOAuthService = googleOAuthServiceParam;
+    this.googleOAuthQueryService = googleOAuthQueryServiceParam;
     this.objectMapper = objectMapperParam;
     this.logger = loggerParam;
   }
@@ -113,7 +113,7 @@ public class GoogleTaskSender {
 
   public final void sendAddAppSheetsRequest(final int userId, final String appName) {
     try {
-      String googleEmail = googleOAuthService.getUserGoogleEmail(userId);
+      String googleEmail = googleOAuthQueryService.getUserGoogleEmail(userId);
       String spreadsheetTitle = REVENUE_STATS_TITLE + googleEmail + REVENUE_STATS_SUFFIX;
 
       GoogleSheetIdentifier request = new GoogleSheetIdentifier(googleEmail, spreadsheetTitle);

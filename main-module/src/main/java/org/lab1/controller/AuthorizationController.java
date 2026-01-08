@@ -12,8 +12,10 @@ import org.lab1.model.Role;
 import org.lab1.model.User;
 import org.lab1.security.TokenManager;
 import org.lab1.service.DeveloperService;
-import org.lab1.service.GoogleOAuthService;
-import org.lab1.service.UserService;
+import org.lab1.service.GoogleOAuthQueryService;
+import org.lab1.service.GoogleOAuthRegistrationService;
+import org.lab1.service.UserQueryService;
+import org.lab1.service.UserRegistrationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -73,38 +75,22 @@ public class AuthorizationController {
   private static final String REASON_LABEL = "reason";
   private static final String USER_ID_CLAIM = "userId";
 
-  private final UserService userService;
-  private final DeveloperService developerService;
-  private final PlatformTransactionManager transactionManager;
-  private final GoogleOAuthService googleOAuthService;
-  private final TokenManager tokenManager;
-  private final MeterRegistry meterRegistry;
-  private final Logger logger;
-
-  @Autowired
-  public AuthorizationController(
-      final UserService userServiceParam,
-      final DeveloperService developerServiceParam,
-      final PlatformTransactionManager transactionManagerParam,
-      final GoogleOAuthService googleOAuthServiceParam,
-      final TokenManager tokenManagerParam,
-      final MeterRegistry meterRegistryParam,
-      final Logger loggerParam) {
-    this.userService = userServiceParam;
-    this.developerService = developerServiceParam;
-    this.transactionManager = transactionManagerParam;
-    this.googleOAuthService = googleOAuthServiceParam;
-    this.tokenManager = tokenManagerParam;
-    this.meterRegistry = meterRegistryParam;
-    this.logger = loggerParam;
-  }
+  @Autowired private UserQueryService userQueryService;
+  @Autowired private UserRegistrationService userRegistrationService;
+  @Autowired private DeveloperService developerService;
+  @Autowired private PlatformTransactionManager transactionManager;
+  @Autowired private GoogleOAuthQueryService googleOAuthQueryService;
+  @Autowired private GoogleOAuthRegistrationService googleOAuthRegistrationService;
+  @Autowired private TokenManager tokenManager;
+  @Autowired private MeterRegistry meterRegistry;
+  @Autowired private Logger logger;
 
   @PostMapping("/login")
   public ResponseEntity<Token> login(@RequestBody final LoginCredentials credentials) {
     logger.info(LOGIN_REQUEST_LOG + credentials.getUsername());
     try {
       Token token =
-          userService.authenticateUser(credentials.getUsername(), credentials.getPassword());
+          userQueryService.authenticateUser(credentials.getUsername(), credentials.getPassword());
       logger.info(LOGIN_SUCCESS_LOG + credentials.getUsername() + LOGGED_IN_SUCCESS_LOG);
       return ResponseEntity.status(HttpStatus.CREATED).body(token);
     } catch (IllegalArgumentException exception) {
@@ -120,7 +106,7 @@ public class AuthorizationController {
     logger.info(REGISTER_REQUEST_LOG + credentials.getUsername());
     try {
       Token token =
-          userService.registerUserAndGetToken(
+          userRegistrationService.registerUserAndGetToken(
               credentials.getUsername(),
               credentials.getEmail(),
               credentials.getPassword(),
@@ -142,12 +128,12 @@ public class AuthorizationController {
 
     try {
       User user =
-          userService.registerUser(
+          userRegistrationService.registerUser(
               credentials.getUsername(),
               credentials.getEmail(),
               credentials.getPassword(),
               Role.DEVELOPER);
-      Token token = userService.generateToken(user);
+      Token token = userRegistrationService.generateToken(user);
       developerService.createDeveloper(user);
       transactionManager.commit(status);
       logger.info(
@@ -179,7 +165,7 @@ public class AuthorizationController {
       Claims claims = tokenManager.getClaimsFromToken(systemToken);
       Integer userId = (Integer) claims.get(USER_ID_CLAIM);
       String state = UUID.randomUUID().toString();
-      String authUrl = googleOAuthService.getAuthorizationUrl(userId, state);
+      String authUrl = googleOAuthQueryService.getAuthorizationUrl(userId, state);
       logger.info(GENERATED_GOOGLE_AUTH_LOG + userId + STATE_LOG + state);
 
       return ResponseEntity.ok(
@@ -207,7 +193,7 @@ public class AuthorizationController {
 
       Claims claims = tokenManager.getClaimsFromToken(systemToken);
       Integer userId = (Integer) claims.get(USER_ID_CLAIM);
-      googleOAuthService.processGoogleCallback(userId, code, state);
+      googleOAuthRegistrationService.processGoogleCallback(userId, code, state);
       logger.info(GOOGLE_ACCOUNT_CONNECTED_LOG + userId + ".");
       return ResponseEntity.ok(CONNECT_SUCCESS_MESSAGE);
     } catch (SecurityException exception) {

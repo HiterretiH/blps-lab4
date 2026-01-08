@@ -57,8 +57,8 @@ public class GoogleSheetService {
   private static final String UPDATE_REQUEST_SENT_LOG = "Update apps top request sent.";
 
   private final GoogleTaskSender googleTaskSender;
-  private final GoogleOAuthService googleOAuthService;
-  private final UserService userService;
+  private final GoogleOAuthQueryService googleOAuthQueryService;
+  private final UserQueryService userQueryService;
   private final MonetizedApplicationRepository monetizedApplicationRepository;
   private final ApplicationRepository applicationRepository;
   private final Logger logger;
@@ -66,14 +66,14 @@ public class GoogleSheetService {
   @Autowired
   public GoogleSheetService(
       final GoogleTaskSender googleTaskSenderParam,
-      final GoogleOAuthService googleOAuthServiceParam,
-      final UserService userServiceParam,
+      final GoogleOAuthQueryService googleOAuthQueryServiceParam,
+      final UserQueryService userQueryServiceParam,
       final MonetizedApplicationRepository monetizedApplicationRepositoryParam,
       final ApplicationRepository applicationRepositoryParam,
       final Logger loggerParam) {
     this.googleTaskSender = googleTaskSenderParam;
-    this.googleOAuthService = googleOAuthServiceParam;
-    this.userService = userServiceParam;
+    this.googleOAuthQueryService = googleOAuthQueryServiceParam;
+    this.userQueryService = userQueryServiceParam;
     this.monetizedApplicationRepository = monetizedApplicationRepositoryParam;
     this.applicationRepository = applicationRepositoryParam;
     this.logger = loggerParam;
@@ -82,12 +82,12 @@ public class GoogleSheetService {
   public final String createRevenueSheet(final int userId) throws OAuthException {
     logger.info(CREATE_REVENUE_SHEET_LOG + userId);
 
-    if (!googleOAuthService.isGoogleConnected(userId)) {
+    if (!googleOAuthQueryService.isGoogleConnected(userId)) {
       logger.error(NOT_CONNECTED_LOG + userId + NOT_CONNECTED_GOOGLE_LOG);
       throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, NOT_CONNECTED_MSG);
     }
 
-    String googleEmail = googleOAuthService.getUserGoogleEmail(userId);
+    String googleEmail = googleOAuthQueryService.getUserGoogleEmail(userId);
     String sheetTitle = REVENUE_SHEET_TITLE_PREFIX + googleEmail + REVENUE_SHEET_TITLE_SUFFIX;
     List<MonetizedApplication> apps = monetizedApplicationRepository.findByDeveloperUserId(userId);
 
@@ -130,7 +130,7 @@ public class GoogleSheetService {
     logger.info(ADD_APP_SHEETS_LOG + userId + APP_ID_LOG + appId);
 
     try {
-      User user = userService.getUserById(userId);
+      User user = userQueryService.getUserById(userId);
       if (user.getRole() != Role.DEVELOPER) {
         logger.error(NOT_CONNECTED_LOG + userId + NOT_DEVELOPER_MSG);
         throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, DEVELOPER_ONLY_MSG);
@@ -150,7 +150,7 @@ public class GoogleSheetService {
         throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, NOT_BELONG_MSG);
       }
 
-      if (!googleOAuthService.isGoogleConnected(userId)) {
+      if (!googleOAuthQueryService.isGoogleConnected(userId)) {
         logger.error(NOT_CONNECTED_LOG + userId + NOT_CONNECTED_GOOGLE_LOG);
         throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, NOT_CONNECTED_MSG);
       }
