@@ -7,10 +7,14 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
-import org.lab1.exception.ForbiddenException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -27,6 +31,8 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
   private static final String BEARER_PREFIX = "Bearer ";
   private static final int BEARER_PREFIX_LENGTH = 7;
   private static final String ROLE_CLAIM = "role";
+  private static final DateTimeFormatter DATE_FORMATTER =
+      DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
 
   private final TokenManager tokenManager;
 
@@ -60,7 +66,12 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
     }
 
     String token = extractToken(authorizationHeader);
-    processTokenAuthentication(token, response, filterChain, request);
+
+    if (!processTokenAuthentication(token, response, request)) {
+      return;
+    }
+
+    filterChain.doFilter(request, response);
   }
 
   private boolean isValidAuthorizationHeader(final String authorizationHeader) {
@@ -71,12 +82,9 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
     return authorizationHeader.substring(BEARER_PREFIX_LENGTH);
   }
 
-  private void processTokenAuthentication(
-      final String token,
-      final HttpServletResponse response,
-      final FilterChain filterChain,
-      final HttpServletRequest request)
-      throws IOException, ServletException {
+  private boolean processTokenAuthentication(
+      final String token, final HttpServletResponse response, final HttpServletRequest request)
+      throws IOException {
     try {
       if (tokenManager.isTokenValid(token)) {
         Claims claims = tokenManager.getClaimsFromToken(token);
@@ -88,11 +96,47 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
             new UsernamePasswordAuthenticationToken(username, null, authorities);
 
         SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+        return true;
+      } else {
+        sendErrorResponse(
+            response, HttpStatus.FORBIDDEN, "INVALID_TOKEN", "Invalid or expired JWT token");
+        return false;
       }
     } catch (JwtException jwtException) {
-      throw new ForbiddenException("Invalid JWT token: " + jwtException.getMessage());
+      sendErrorResponse(response, HttpStatus.FORBIDDEN, "INVALID_TOKEN", "Invalid JWT token");
+      return false;
+    } catch (Exception exception) {
+      sendErrorResponse(
+          response, HttpStatus.INTERNAL_SERVER_ERROR, "INTERNAL_ERROR", "Internal server error");
+      return false;
     }
+  }
 
-    filterChain.doFilter(request, response);
+  private void sendErrorResponse(
+      final HttpServletResponse response,
+      final HttpStatus status,
+      final String errorCode,
+      final String message)
+      throws IOException {
+
+    String timestamp = LocalDateTime.now().format(DATE_FORMATTER);
+
+    String jsonResponse =
+        String.format(
+            "{\"timestamp\":\"%s\",\"status\":%d,\"error\":\"%s\",\"errorCode\":\"%s\",\"message\":\"%s\"}",
+            timestamp,
+            status.value(),
+            status.getReasonPhrase(),
+            errorCode,
+            message.replace("\"", "\\\""));
+
+    response.setStatus(status.value());
+    response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+    response.setCharacterEncoding("UTF-8");
+
+    try (PrintWriter writer = response.getWriter()) {
+      writer.write(jsonResponse);
+      writer.flush();
+    }
   }
 }

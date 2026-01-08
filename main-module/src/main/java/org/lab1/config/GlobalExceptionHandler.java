@@ -9,6 +9,7 @@ import org.lab1.json.ErrorResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -35,6 +36,23 @@ public class GlobalExceptionHandler {
             .build();
 
     return new ResponseEntity<>(errorResponse, ex.getHttpStatus());
+  }
+
+  @ExceptionHandler(AuthenticationException.class)
+  public ResponseEntity<ErrorResponse> handleAuthenticationException(
+      final AuthenticationException ex, final HttpServletRequest request) {
+    log.error("Authentication error: {}", ex.getMessage(), ex);
+
+    ErrorResponse errorResponse =
+        ErrorResponse.builder()
+            .status(HttpStatus.UNAUTHORIZED.value())
+            .error(HttpStatus.UNAUTHORIZED.getReasonPhrase())
+            .errorCode("AUTHENTICATION_FAILED")
+            .message("Authentication failed: " + ex.getMessage())
+            .path(request.getRequestURI())
+            .build();
+
+    return new ResponseEntity<>(errorResponse, HttpStatus.UNAUTHORIZED);
   }
 
   @ExceptionHandler(MethodArgumentNotValidException.class)

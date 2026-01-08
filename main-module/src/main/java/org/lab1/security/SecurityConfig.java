@@ -4,12 +4,10 @@ import java.util.Arrays;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -34,10 +32,14 @@ public class SecurityConfig {
   private static final String ALL_PATHS = "/**";
 
   private final JwtAuthorizationFilter jwtAuthorizationFilter;
+  private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
 
   @Autowired
-  public SecurityConfig(final JwtAuthorizationFilter jwtAuthorizationFilterParam) {
+  public SecurityConfig(
+      final JwtAuthorizationFilter jwtAuthorizationFilterParam,
+      final CustomAuthenticationEntryPoint customAuthenticationEntryPointParam) {
     this.jwtAuthorizationFilter = jwtAuthorizationFilterParam;
+    this.customAuthenticationEntryPoint = customAuthenticationEntryPointParam;
   }
 
   /**
@@ -58,8 +60,7 @@ public class SecurityConfig {
             session ->
                 session.sessionCreationPolicy(
                     org.springframework.security.config.http.SessionCreationPolicy.STATELESS))
-        .exceptionHandling(
-            ex -> ex.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
+        .exceptionHandling(ex -> ex.authenticationEntryPoint(customAuthenticationEntryPoint))
         .addFilterBefore(jwtAuthorizationFilter, UsernamePasswordAuthenticationFilter.class);
 
     return http.build();
