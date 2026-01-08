@@ -18,7 +18,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
-public final class SecurityConfig {
+public class SecurityConfig {
   private static final String[] PUBLIC_ENDPOINTS = {
     "/api/auth/**", "/actuator/health", "/actuator/info", "/actuator/prometheus"
   };

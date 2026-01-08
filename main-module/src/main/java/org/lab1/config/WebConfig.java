@@ -12,7 +12,7 @@ import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
-public final class WebConfig implements WebMvcConfigurer {
+public class WebConfig implements WebMvcConfigurer {
   private static final String ALL_PATHS = "/**";
   private static final String LOCAL_FRONTEND_URL = "http://localhost:4200";
   private static final String ALL_HEADERS = "*";

@@ -8,7 +8,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-public final class RabbitMQConfig {
+public class RabbitMQConfig {
   private static final String RABBITMQ_HOST = EnvConfig.get("RABBITMQ_HOST", "rabbit");
   private static final int RABBITMQ_PORT = Integer.parseInt(EnvConfig.get("RABBITMQ_PORT", "5672"));
   private static final String RABBITMQ_USERNAME = EnvConfig.get("RABBITMQ_USERNAME", "admin");
