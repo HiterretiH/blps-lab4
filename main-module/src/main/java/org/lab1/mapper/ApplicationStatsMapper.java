@@ -2,7 +2,8 @@ package org.lab1.mapper;
 
 import org.lab1.json.ApplicationStatsJson;
 import org.lab1.model.ApplicationStats;
-import org.mapstruct.*;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring")
 public interface ApplicationStatsMapper {

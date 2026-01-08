@@ -3,7 +3,9 @@ package org.lab1.mapper;
 import org.lab1.json.DeveloperJson;
 import org.lab1.model.Developer;
 import org.lab1.model.User;
-import org.mapstruct.*;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.Named;
 
 @Mapper(componentModel = "spring")
 public interface DeveloperMapper {

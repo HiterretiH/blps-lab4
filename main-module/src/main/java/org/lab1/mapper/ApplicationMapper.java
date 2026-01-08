@@ -3,7 +3,12 @@ package org.lab1.mapper;
 import org.lab1.json.ApplicationJson;
 import org.lab1.model.Application;
 import org.lab1.model.Developer;
-import org.mapstruct.*;
+import org.mapstruct.BeanMapping;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
+import org.mapstruct.Named;
+import org.mapstruct.NullValuePropertyMappingStrategy;
 
 @Mapper(componentModel = "spring")
 public interface ApplicationMapper {

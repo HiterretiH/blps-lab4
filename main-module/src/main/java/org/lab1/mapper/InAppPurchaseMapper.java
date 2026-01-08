@@ -2,7 +2,8 @@ package org.lab1.mapper;
 
 import org.lab1.json.InAppPurchaseJson;
 import org.lab1.model.InAppPurchase;
-import org.mapstruct.*;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring")
 public interface InAppPurchaseMapper {
