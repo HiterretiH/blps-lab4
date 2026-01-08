@@ -1,8 +1,8 @@
 package org.lab1.controller;
 
 import java.util.List;
-import java.util.Optional;
 import org.lab.logger.Logger;
+import org.lab1.exception.NotFoundException;
 import org.lab1.json.ApplicationStatsJson;
 import org.lab1.model.ApplicationStats;
 import org.lab1.service.ApplicationStatsService;
@@ -68,16 +68,14 @@ public class ApplicationStatsController {
 
   @PreAuthorize("hasAuthority('application_stats.read')")
   @GetMapping("/{id}")
-  public Optional<ApplicationStats> getById(@PathVariable final int id) {
+  public ApplicationStats getById(@PathVariable final int id) {
     logger.info(GET_REQUEST_LOG + id);
-    Optional<ApplicationStats> stats = applicationStatsService.findById(id);
+    ApplicationStats stats =
+        applicationStatsService
+            .findById(id)
+            .orElseThrow(() -> new NotFoundException("ApplicationStats not found with ID: " + id));
 
-    if (stats.isPresent()) {
-      logger.info(GET_FOUND_LOG + id);
-    } else {
-      logger.info(GET_NOT_FOUND_LOG + id);
-    }
-
+    logger.info(GET_FOUND_LOG + id);
     return stats;
   }
 

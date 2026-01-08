@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import org.lab.logger.Logger;
 import org.lab1.exception.OAuthException;
+import org.lab1.exception.UnauthorizedException;
 import org.lab1.model.FormField;
 import org.lab1.repository.FormFieldRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,7 +66,7 @@ public class FormGenerationService {
 
     if (!googleOAuthQueryService.isGoogleConnected(userId)) {
       logger.error(GOOGLE_NOT_CONNECTED_LOG + userId + NOT_CONNECTED_GOOGLE_LOG);
-      throw new IllegalStateException(NOT_CONNECTED_MSG);
+      throw new UnauthorizedException(NOT_CONNECTED_MSG);
     }
 
     String googleEmail = googleOAuthQueryService.getUserGoogleEmail(userId);

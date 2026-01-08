@@ -1,11 +1,11 @@
 package org.lab1.controller;
 
 import org.lab.logger.Logger;
+import org.lab1.exception.ValidationException;
 import org.lab1.model.ApplicationForm;
 import org.lab1.model.VerificationLog;
 import org.lab1.service.ApplicationVerificationService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -46,17 +46,17 @@ public class ApplicationVerificationController {
 
     if (!verificationLog.isSecurityCheckPassed()) {
       logger.info(SECURITY_CHECK_FAILED_LOG);
-      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(SECURITY_CHECK_FAILED_MESSAGE);
+      throw new ValidationException(SECURITY_CHECK_FAILED_MESSAGE);
     }
 
     if (!verificationLog.isPolicyCheckPassed()) {
       logger.info(POLICY_CHECK_FAILED_LOG);
-      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(POLICY_CHECK_FAILED_MESSAGE);
+      throw new ValidationException(POLICY_CHECK_FAILED_MESSAGE);
     }
 
     if (!verificationLog.isAdsCheckPassed()) {
       logger.info(ADS_CHECK_FAILED_LOG);
-      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ADS_CHECK_FAILED_MESSAGE);
+      throw new ValidationException(ADS_CHECK_FAILED_MESSAGE);
     }
 
     logger.info(VERIFICATION_SUCCESS_LOG);

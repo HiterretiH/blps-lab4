@@ -1,6 +1,8 @@
 package org.lab1.controller;
 
 import org.lab.logger.Logger;
+import org.lab1.exception.NotFoundException;
+import org.lab1.exception.ValidationException;
 import org.lab1.model.MonetizedApplication;
 import org.lab1.model.PaymentRequest;
 import org.lab1.service.MonetizationService;
@@ -54,7 +56,8 @@ public class MonetizationController {
 
     if (monetizedApp == null) {
       logger.info(INFO_NOT_FOUND_LOG + applicationId);
-      return ResponseEntity.notFound().build();
+      throw new NotFoundException(
+          "Monetization info not found for application ID: " + applicationId);
     }
 
     logger.info(
@@ -106,6 +109,6 @@ public class MonetizationController {
             + paymentRequest.getAmount()
             + REASON_LOG
             + result);
-    return ResponseEntity.badRequest().body(result);
+    throw new ValidationException(result);
   }
 }

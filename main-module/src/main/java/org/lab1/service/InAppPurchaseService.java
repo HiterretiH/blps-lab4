@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import org.lab.logger.Logger;
+import org.lab1.exception.NotFoundException;
+import org.lab1.exception.ValidationException;
 import org.lab1.json.InAppPurchaseJson;
 import org.lab1.mapper.InAppPurchaseMapper;
 import org.lab1.model.InAppPurchase;
@@ -11,13 +13,11 @@ import org.lab1.model.MonetizedApplication;
 import org.lab1.repository.InAppPurchaseRepository;
 import org.lab1.repository.MonetizedApplicationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.jta.JtaTransactionManager;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
-import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class InAppPurchaseService {
@@ -96,7 +96,7 @@ public class InAppPurchaseService {
           || descriptions.size() != prices.size()) {
         transactionManager.rollback(status);
         logger.error(SAME_COUNT_ERROR);
-        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, SAME_COUNT_ERROR);
+        throw new ValidationException(SAME_COUNT_ERROR);
       }
 
       for (int i = 0; i < titles.size(); i++) {
@@ -180,8 +180,7 @@ public class InAppPurchaseService {
   public final InAppPurchase getInAppPurchaseByIdOrThrow(final int id) {
     return inAppPurchaseRepository
         .findById(id)
-        .orElseThrow(
-            () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "InAppPurchase not found"));
+        .orElseThrow(() -> new NotFoundException("InAppPurchase not found with ID: " + id));
   }
 
   public final Optional<InAppPurchaseJson> getInAppPurchaseByIdAsJson(final int id) {
@@ -198,8 +197,8 @@ public class InAppPurchaseService {
             .orElseThrow(
                 () -> {
                   logger.error(MONETIZED_APP_NOT_FOUND_LOG + monetizedApplicationId);
-                  return new ResponseStatusException(
-                      HttpStatus.NOT_FOUND, MONETIZED_APP_NOT_FOUND_MSG);
+                  return new NotFoundException(
+                      "Monetized application not found with ID: " + monetizedApplicationId);
                 });
 
     List<InAppPurchase> purchases = inAppPurchaseRepository.findByMonetizedApplicationNull();

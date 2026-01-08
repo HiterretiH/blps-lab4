@@ -1,7 +1,7 @@
 package org.lab1.controller;
 
-import java.util.Optional;
 import org.lab.logger.Logger;
+import org.lab1.exception.NotFoundException;
 import org.lab1.model.VerificationLog;
 import org.lab1.service.VerificationLogService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,9 +48,11 @@ public class VerificationLogController {
   @GetMapping("/{id}")
   public ResponseEntity<VerificationLog> getVerificationLog(@PathVariable final int id) {
     logger.info(GET_LOG + id);
-    Optional<VerificationLog> verificationLog = verificationLogService.getVerificationLogById(id);
-    return verificationLog
-        .map(ResponseEntity::ok)
-        .orElseGet(() -> ResponseEntity.notFound().build());
+    VerificationLog verificationLog =
+        verificationLogService
+            .getVerificationLogById(id)
+            .orElseThrow(() -> new NotFoundException("VerificationLog not found with ID: " + id));
+
+    return ResponseEntity.ok(verificationLog);
   }
 }

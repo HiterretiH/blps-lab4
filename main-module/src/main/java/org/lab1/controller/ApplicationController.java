@@ -3,6 +3,7 @@ package org.lab1.controller;
 import java.util.List;
 import java.util.Optional;
 import org.lab.logger.Logger;
+import org.lab1.exception.NotFoundException;
 import org.lab1.json.ApplicationJson;
 import org.lab1.model.Application;
 import org.lab1.model.ApplicationStatus;
@@ -100,7 +101,7 @@ public class ApplicationController {
     }
 
     logger.error(APPLICATION_NOT_FOUND_LOG + id);
-    return ResponseEntity.notFound().build();
+    throw new NotFoundException("Application not found with ID: " + id);
   }
 
   @PreAuthorize("hasAuthority('application.manage')")

@@ -2,15 +2,14 @@ package org.lab1.service;
 
 import java.util.Optional;
 import org.lab.logger.Logger;
+import org.lab1.exception.NotFoundException;
 import org.lab1.json.DeveloperJson;
 import org.lab1.mapper.DeveloperMapper;
 import org.lab1.model.Developer;
 import org.lab1.model.User;
 import org.lab1.repository.DeveloperRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class DeveloperService {
@@ -102,7 +101,7 @@ public class DeveloperService {
             .orElseThrow(
                 () -> {
                   logger.error(UPDATE_NOT_FOUND_LOG + id + UPDATE_NOT_FOUND_MSG);
-                  return new ResponseStatusException(HttpStatus.NOT_FOUND, DEV_NOT_FOUND_MSG);
+                  return new NotFoundException("Developer not found with ID: " + id);
                 });
     developer.setName(name);
     developer.setDescription(description);
@@ -121,7 +120,7 @@ public class DeveloperService {
             .orElseThrow(
                 () -> {
                   logger.error(UPDATE_NOT_FOUND_LOG + id + UPDATE_NOT_FOUND_MSG);
-                  return new ResponseStatusException(HttpStatus.NOT_FOUND, DEV_NOT_FOUND_MSG);
+                  return new NotFoundException("Developer not found with ID: " + id);
                 });
 
     developer.setName(developerJson.getName());

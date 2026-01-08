@@ -1,8 +1,8 @@
 package org.lab1.controller;
 
 import java.util.List;
-import java.util.Optional;
 import org.lab.logger.Logger;
+import org.lab1.exception.NotFoundException;
 import org.lab1.model.PayoutLog;
 import org.lab1.service.PayoutLogService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,9 +51,11 @@ public class PayoutLogController {
 
   @PreAuthorize("hasAuthority('payout_log.read')")
   @GetMapping("/{id}")
-  public Optional<PayoutLog> getById(@PathVariable final int id) {
+  public PayoutLog getById(@PathVariable final int id) {
     logger.info(GET_LOG + id);
-    return payoutLogService.findById(id);
+    return payoutLogService
+        .findById(id)
+        .orElseThrow(() -> new NotFoundException("PayoutLog not found with ID: " + id));
   }
 
   @PreAuthorize("hasAuthority('payout_log.read')")

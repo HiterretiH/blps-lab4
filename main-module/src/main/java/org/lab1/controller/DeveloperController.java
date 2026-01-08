@@ -1,7 +1,7 @@
 package org.lab1.controller;
 
-import java.util.Optional;
 import org.lab.logger.Logger;
+import org.lab1.exception.NotFoundException;
 import org.lab1.model.Developer;
 import org.lab1.service.DeveloperService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,14 +52,12 @@ public class DeveloperController {
   @GetMapping("/{id}")
   public ResponseEntity<Developer> getDeveloper(@PathVariable final int id) {
     logger.info(GET_REQUEST_LOG + id);
-    Optional<Developer> developer = developerService.getDeveloperById(id);
+    Developer developer =
+        developerService
+            .getDeveloperById(id)
+            .orElseThrow(() -> new NotFoundException("Developer not found with ID: " + id));
 
-    if (developer.isPresent()) {
-      return ResponseEntity.ok(developer.get());
-    }
-
-    logger.info(NOT_FOUND_LOG + id);
-    return ResponseEntity.notFound().build();
+    return ResponseEntity.ok(developer);
   }
 
   @PreAuthorize("hasAuthority('developer.manage')")

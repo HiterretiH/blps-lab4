@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import org.lab.logger.Logger;
+import org.lab1.exception.NotFoundException;
+import org.lab1.exception.ValidationException;
 import org.lab1.json.InAppAddJson;
 import org.lab1.mapper.InAppAddMapper;
 import org.lab1.model.InAppAdd;
@@ -11,13 +13,11 @@ import org.lab1.model.MonetizedApplication;
 import org.lab1.repository.InAppAddRepository;
 import org.lab1.repository.MonetizedApplicationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.jta.JtaTransactionManager;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
-import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class InAppAddService {
@@ -73,8 +73,9 @@ public class InAppAddService {
                 () -> {
                   logger.error(
                       MONETIZED_APP_NOT_FOUND_LOG + inAppAddJson.getMonetizedApplicationId());
-                  return new ResponseStatusException(
-                      HttpStatus.NOT_FOUND, MONETIZED_APP_NOT_FOUND_MSG);
+                  return new NotFoundException(
+                      "Monetized Application not found with ID: "
+                          + inAppAddJson.getMonetizedApplicationId());
                 });
 
     InAppAdd inAppAdd = inAppAddMapper.toEntity(inAppAddJson);
@@ -118,8 +119,8 @@ public class InAppAddService {
                         BULK_MONETIZED_NOT_FOUND_LOG
                             + monetizedApplicationId
                             + BULK_MONETIZED_NOT_FOUND_MSG);
-                    return new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, MONETIZED_APP_NOT_FOUND_MSG);
+                    return new NotFoundException(
+                        "Monetized Application not found with ID: " + monetizedApplicationId);
                   });
 
       for (InAppAddJson inAppAddJson : inAppAddJsons) {
@@ -130,7 +131,7 @@ public class InAppAddService {
                   + inAppAddJson.getMonetizedApplicationId()
                   + EXPECTED_ID_LOG
                   + monetizedApplicationId);
-          throw new ResponseStatusException(HttpStatus.BAD_REQUEST, BULK_SAME_APP_ERROR);
+          throw new ValidationException(BULK_SAME_APP_ERROR);
         }
 
         InAppAdd inAppAdd = inAppAddMapper.toEntity(inAppAddJson);
@@ -188,7 +189,7 @@ public class InAppAddService {
   public final InAppAdd getInAppAddByIdOrThrow(final int id) {
     return inAppAddRepository
         .findById(id)
-        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "InAppAdd not found"));
+        .orElseThrow(() -> new NotFoundException("InAppAdd not found with ID: " + id));
   }
 
   public final Optional<InAppAddJson> getInAppAddByIdAsJson(final int id) {

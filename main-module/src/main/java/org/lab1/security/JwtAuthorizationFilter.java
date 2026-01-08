@@ -9,8 +9,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
+import org.lab1.exception.ForbiddenException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -90,8 +90,7 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
         SecurityContextHolder.getContext().setAuthentication(authenticationToken);
       }
     } catch (JwtException jwtException) {
-      response.setStatus(HttpStatus.FORBIDDEN.value());
-      return;
+      throw new ForbiddenException("Invalid JWT token: " + jwtException.getMessage());
     }
 
     filterChain.doFilter(request, response);

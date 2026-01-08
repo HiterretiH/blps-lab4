@@ -1,7 +1,7 @@
 package org.lab1.controller;
 
-import java.util.Optional;
 import org.lab.logger.Logger;
+import org.lab1.exception.NotFoundException;
 import org.lab1.json.MonetizedApplicationJson;
 import org.lab1.model.MonetizedApplication;
 import org.lab1.service.MonetizedApplicationService;
@@ -64,14 +64,12 @@ public class MonetizedApplicationController {
   public ResponseEntity<MonetizedApplication> getMonetizedApplicationById(
       @PathVariable final int id) {
     logger.info(GET_REQUEST_LOG + id);
-    Optional<MonetizedApplication> monetizedApplication =
-        monetizedApplicationService.getMonetizedApplicationById(id);
+    MonetizedApplication monetizedApplication =
+        monetizedApplicationService
+            .getMonetizedApplicationById(id)
+            .orElseThrow(
+                () -> new NotFoundException("MonetizedApplication not found with ID: " + id));
 
-    if (monetizedApplication.isPresent()) {
-      return ResponseEntity.ok(monetizedApplication.get());
-    }
-
-    logger.info(GET_NOT_FOUND_LOG + id);
-    return ResponseEntity.notFound().build();
+    return ResponseEntity.ok(monetizedApplication);
   }
 }

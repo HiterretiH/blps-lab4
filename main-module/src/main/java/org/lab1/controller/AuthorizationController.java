@@ -4,6 +4,9 @@ import io.jsonwebtoken.Claims;
 import io.micrometer.core.instrument.MeterRegistry;
 import java.util.UUID;
 import org.lab.logger.Logger;
+import org.lab1.exception.ForbiddenException;
+import org.lab1.exception.UnauthorizedException;
+import org.lab1.exception.ValidationException;
 import org.lab1.json.Credentials;
 import org.lab1.json.GoogleAuthResponse;
 import org.lab1.json.LoginCredentials;
@@ -29,7 +32,6 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -97,7 +99,7 @@ public class AuthorizationController {
       meterRegistry.counter(AUTH_ERROR_METRIC, TYPE_LABEL, LOGIN_TYPE).increment();
       logger.error(
           LOGIN_FAILED_LOG + credentials.getUsername() + REASON_LOG + exception.getMessage());
-      return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+      throw new UnauthorizedException("Invalid username or password");
     }
   }
 
@@ -116,7 +118,7 @@ public class AuthorizationController {
     } catch (IllegalArgumentException exception) {
       logger.error(
           REGISTER_FAILED_LOG + credentials.getUsername() + REASON_LOG + exception.getMessage());
-      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+      throw new ValidationException(exception.getMessage());
     }
   }
 
@@ -146,7 +148,7 @@ public class AuthorizationController {
               + credentials.getUsername()
               + REASON_LOG
               + exception.getMessage());
-      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+      throw new ValidationException(exception.getMessage());
     }
   }
 
@@ -159,7 +161,7 @@ public class AuthorizationController {
 
       if (!tokenManager.isTokenValid(systemToken)) {
         logger.error(INVALID_TOKEN_LOG);
-        throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, INVALID_TOKEN_MESSAGE);
+        throw new ForbiddenException(INVALID_TOKEN_MESSAGE);
       }
 
       Claims claims = tokenManager.getClaimsFromToken(systemToken);
@@ -173,7 +175,7 @@ public class AuthorizationController {
               authUrl, state, "Copy this URL and open in browser to connect Google account"));
     } catch (SecurityException exception) {
       logger.error(SECURITY_EXCEPTION_LOG + exception.getMessage());
-      return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+      throw new ForbiddenException(exception.getMessage());
     }
   }
 
@@ -188,7 +190,7 @@ public class AuthorizationController {
 
       if (!tokenManager.isTokenValid(systemToken)) {
         logger.error(INVALID_CALLBACK_TOKEN_LOG);
-        throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, INVALID_TOKEN_MESSAGE);
+        throw new ForbiddenException(INVALID_TOKEN_MESSAGE);
       }
 
       Claims claims = tokenManager.getClaimsFromToken(systemToken);
@@ -201,13 +203,13 @@ public class AuthorizationController {
           .counter(AUTH_GOOGLE_ERROR_METRIC, REASON_LABEL, exception.getMessage())
           .increment();
       logger.error(SECURITY_EXCEPTION_LOG + exception.getMessage());
-      return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+      throw new ForbiddenException(exception.getMessage());
     } catch (Exception exception) {
       meterRegistry
           .counter(AUTH_GOOGLE_ERROR_METRIC, REASON_LABEL, exception.getMessage())
           .increment();
       logger.error(INTERNAL_SERVER_ERROR_LOG + exception.getMessage());
-      return ResponseEntity.internalServerError().build();
+      throw new RuntimeException("Internal server error during Google connect callback");
     }
   }
 }

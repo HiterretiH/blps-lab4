@@ -1,7 +1,8 @@
 package org.lab1.controller;
 
-import java.util.Optional;
 import org.lab.logger.Logger;
+import org.lab1.exception.NotFoundException;
+import org.lab1.exception.ValidationException;
 import org.lab1.model.PaymentRequest;
 import org.lab1.service.PaymentRequestService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,8 +18,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/payment-requests")
 public class PaymentRequestController {
-  private static final int BAD_REQUEST_STATUS_CODE = 400;
-
   private static final String CREATE_REQUEST_LOG =
       "Received request to create PaymentRequest for application ID: ";
   private static final String AMOUNT_LOG = ", amount: ";
@@ -62,30 +61,35 @@ public class PaymentRequestController {
   @GetMapping("/{applicationId}")
   public ResponseEntity<PaymentRequest> getPaymentRequest(@PathVariable final int applicationId) {
     logger.info(GET_REQUEST_LOG + applicationId);
-    Optional<PaymentRequest> paymentRequest =
-        paymentRequestService.getPaymentRequestById(applicationId);
+    PaymentRequest paymentRequest =
+        paymentRequestService
+            .getPaymentRequestById(applicationId)
+            .orElseThrow(
+                () ->
+                    new NotFoundException(
+                        "PaymentRequest not found for application ID: " + applicationId));
 
-    if (paymentRequest.isPresent()) {
-      return ResponseEntity.ok(paymentRequest.get());
-    }
-
-    logger.info(GET_NOT_FOUND_LOG + applicationId);
-    return ResponseEntity.notFound().build();
+    return ResponseEntity.ok(paymentRequest);
   }
 
   @PreAuthorize("hasAuthority('payment_request.validate_card')")
   @GetMapping("/validate/{applicationId}")
   public ResponseEntity<String> validateCard(@PathVariable final int applicationId) {
     logger.info(VALIDATE_REQUEST_LOG + applicationId);
-    Optional<PaymentRequest> paymentRequest =
-        paymentRequestService.getPaymentRequestById(applicationId);
+    PaymentRequest paymentRequest =
+        paymentRequestService
+            .getPaymentRequestById(applicationId)
+            .orElseThrow(
+                () ->
+                    new NotFoundException(
+                        "PaymentRequest not found for application ID: " + applicationId));
 
-    if (paymentRequest.isPresent() && paymentRequestService.validateCard(paymentRequest.get())) {
+    if (paymentRequestService.validateCard(paymentRequest)) {
       logger.info(CARD_VALID_LOG + applicationId);
       return ResponseEntity.ok(CARD_VALID_MESSAGE);
     }
 
     logger.info(CARD_INVALID_LOG + applicationId);
-    return ResponseEntity.status(BAD_REQUEST_STATUS_CODE).body(CARD_INVALID_MESSAGE);
+    throw new ValidationException(CARD_INVALID_MESSAGE);
   }
 }

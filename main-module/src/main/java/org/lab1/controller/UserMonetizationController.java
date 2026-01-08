@@ -2,6 +2,8 @@ package org.lab1.controller;
 
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
+import org.lab1.exception.NotFoundException;
+import org.lab1.exception.UnauthorizedException;
 import org.lab1.json.Card;
 import org.lab1.json.MonetizationEvent;
 import org.lab1.model.Application;
@@ -10,7 +12,6 @@ import org.lab1.service.GoogleTaskSender;
 import org.lab1.service.UserMonetizationService;
 import org.lab1.service.UserQueryService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -19,7 +20,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequestMapping("/api/user")
@@ -89,11 +89,11 @@ public class UserMonetizationController {
         return ResponseEntity.ok(DOWNLOAD_SUCCESS_MESSAGE);
       }
 
-      return ResponseEntity.badRequest().body(DOWNLOAD_FAILED_MESSAGE);
-    } catch (ResponseStatusException exception) {
-      return ResponseEntity.status(exception.getStatusCode()).body(exception.getReason());
+      throw new NotFoundException(DOWNLOAD_FAILED_MESSAGE);
+    } catch (NotFoundException exception) {
+      throw exception;
     } catch (Exception exception) {
-      return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(USER_NOT_AUTHORIZED_MESSAGE);
+      throw new UnauthorizedException(USER_NOT_AUTHORIZED_MESSAGE);
     }
   }
 
@@ -126,11 +126,11 @@ public class UserMonetizationController {
         return ResponseEntity.ok(PURCHASE_SUCCESS_MESSAGE);
       }
 
-      return ResponseEntity.badRequest().body(PURCHASE_FAILED_MESSAGE);
-    } catch (ResponseStatusException exception) {
-      return ResponseEntity.status(exception.getStatusCode()).body(exception.getReason());
+      throw new NotFoundException(PURCHASE_FAILED_MESSAGE);
+    } catch (NotFoundException exception) {
+      throw exception;
     } catch (Exception exception) {
-      return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(USER_NOT_AUTHORIZED_MESSAGE);
+      throw new UnauthorizedException(USER_NOT_AUTHORIZED_MESSAGE);
     }
   }
 
@@ -153,11 +153,11 @@ public class UserMonetizationController {
         return ResponseEntity.ok(AD_VIEW_SUCCESS_MESSAGE + revenue);
       }
 
-      return ResponseEntity.badRequest().body(AD_VIEW_FAILED_MESSAGE);
-    } catch (ResponseStatusException exception) {
-      return ResponseEntity.status(exception.getStatusCode()).body(exception.getReason());
+      throw new NotFoundException(AD_VIEW_FAILED_MESSAGE);
+    } catch (NotFoundException exception) {
+      throw exception;
     } catch (Exception exception) {
-      return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(USER_NOT_AUTHORIZED_MESSAGE);
+      throw new UnauthorizedException(USER_NOT_AUTHORIZED_MESSAGE);
     }
   }
 }

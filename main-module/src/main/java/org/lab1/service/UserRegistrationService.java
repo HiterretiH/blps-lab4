@@ -2,16 +2,15 @@ package org.lab1.service;
 
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
+import org.lab1.exception.ConflictException;
 import org.lab1.json.Token;
 import org.lab1.model.Role;
 import org.lab1.model.User;
 import org.lab1.repository.UserRepository;
 import org.lab1.security.TokenManager;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class UserRegistrationService {
@@ -46,10 +45,10 @@ public class UserRegistrationService {
       final String username, final String email, final String password, final Role role) {
     try {
       if (userRepository.existsByUsername(username)) {
-        throw new ResponseStatusException(HttpStatus.CONFLICT, USERNAME_EXISTS_MSG);
+        throw new ConflictException(USERNAME_EXISTS_MSG);
       }
       if (userRepository.existsByEmail(email)) {
-        throw new ResponseStatusException(HttpStatus.CONFLICT, EMAIL_EXISTS_MSG);
+        throw new ConflictException(EMAIL_EXISTS_MSG);
       }
 
       String passwordHash = passwordEncoder.encode(password);
@@ -61,9 +60,9 @@ public class UserRegistrationService {
       newUser.setPasswordHash(passwordHash);
 
       return userRepository.save(newUser);
-    } catch (ResponseStatusException responseStatusException) {
+    } catch (ConflictException conflictException) {
       registerFailCounter.increment();
-      throw responseStatusException;
+      throw conflictException;
     }
   }
 

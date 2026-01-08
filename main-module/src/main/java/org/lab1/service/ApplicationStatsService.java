@@ -3,6 +3,7 @@ package org.lab1.service;
 import java.util.List;
 import java.util.Optional;
 import org.lab.logger.Logger;
+import org.lab1.exception.NotFoundException;
 import org.lab1.json.ApplicationStatsJson;
 import org.lab1.mapper.ApplicationStatsMapper;
 import org.lab1.model.Application;
@@ -10,9 +11,7 @@ import org.lab1.model.ApplicationStats;
 import org.lab1.repository.ApplicationRepository;
 import org.lab1.repository.ApplicationStatsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class ApplicationStatsService {
@@ -56,7 +55,8 @@ public class ApplicationStatsService {
             .orElseThrow(
                 () -> {
                   logger.error(APP_NOT_FOUND_LOG + applicationStatsJson.getApplicationId());
-                  return new ResponseStatusException(HttpStatus.NOT_FOUND, APP_NOT_FOUND_MSG);
+                  return new NotFoundException(
+                      "Application not found with ID: " + applicationStatsJson.getApplicationId());
                 });
 
     ApplicationStats applicationStats = applicationStatsMapper.toEntity(applicationStatsJson);

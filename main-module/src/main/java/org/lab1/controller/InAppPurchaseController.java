@@ -1,8 +1,9 @@
 package org.lab1.controller;
 
 import java.util.List;
-import java.util.Optional;
 import org.lab.logger.Logger;
+import org.lab1.exception.NotFoundException;
+import org.lab1.exception.ValidationException;
 import org.lab1.json.InAppPurchasesJson;
 import org.lab1.model.InAppPurchase;
 import org.lab1.service.InAppPurchaseService;
@@ -75,7 +76,7 @@ public class InAppPurchaseController {
       return ResponseEntity.ok(purchases);
     } catch (IllegalArgumentException exception) {
       logger.error(CREATE_ERROR_LOG + exception.getMessage());
-      return ResponseEntity.badRequest().body(null);
+      throw new ValidationException(exception.getMessage());
     }
   }
 
@@ -92,14 +93,12 @@ public class InAppPurchaseController {
   @GetMapping("/{id}")
   public ResponseEntity<InAppPurchase> getInAppPurchaseById(@PathVariable final int id) {
     logger.info(GET_REQUEST_LOG + id);
-    Optional<InAppPurchase> purchase = inAppPurchaseService.getInAppPurchaseById(id);
+    InAppPurchase purchase =
+        inAppPurchaseService
+            .getInAppPurchaseById(id)
+            .orElseThrow(() -> new NotFoundException("InAppPurchase not found with ID: " + id));
 
-    if (purchase.isPresent()) {
-      return ResponseEntity.ok(purchase.get());
-    }
-
-    logger.info(GET_NOT_FOUND_LOG + id);
-    return ResponseEntity.notFound().build();
+    return ResponseEntity.ok(purchase);
   }
 
   @PreAuthorize("hasAuthority('in_app_purchase.manage')")
@@ -116,7 +115,7 @@ public class InAppPurchaseController {
       return ResponseEntity.ok(linkedPurchases);
     } catch (RuntimeException exception) {
       logger.error(LINK_ERROR_LOG + monetizedApplicationId + REASON_LOG + exception.getMessage());
-      return ResponseEntity.badRequest().body(null);
+      throw new ValidationException(exception.getMessage());
     }
   }
 }

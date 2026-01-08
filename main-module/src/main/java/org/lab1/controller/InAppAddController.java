@@ -1,8 +1,9 @@
 package org.lab1.controller;
 
 import java.util.List;
-import java.util.Optional;
 import org.lab.logger.Logger;
+import org.lab1.exception.NotFoundException;
+import org.lab1.exception.ValidationException;
 import org.lab1.json.InAppAddJson;
 import org.lab1.model.InAppAdd;
 import org.lab1.service.InAppAddService;
@@ -74,7 +75,7 @@ public class InAppAddController {
       return ResponseEntity.status(HttpStatus.CREATED).body(inAppAdds);
     } catch (IllegalArgumentException exception) {
       logger.error(BULK_CREATE_ERROR_LOG + exception.getMessage());
-      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+      throw new ValidationException(exception.getMessage());
     }
   }
 
@@ -91,14 +92,12 @@ public class InAppAddController {
   @GetMapping("get/{id}")
   public ResponseEntity<InAppAdd> getInAppAddById(@PathVariable final int id) {
     logger.info(GET_REQUEST_LOG + id);
-    Optional<InAppAdd> inAppAdd = inAppAddService.getInAppAddById(id);
+    InAppAdd inAppAdd =
+        inAppAddService
+            .getInAppAddById(id)
+            .orElseThrow(() -> new NotFoundException("InAppAdd not found with ID: " + id));
 
-    if (inAppAdd.isPresent()) {
-      return ResponseEntity.ok(inAppAdd.get());
-    }
-
-    logger.info(GET_NOT_FOUND_LOG + id);
-    return ResponseEntity.notFound().build();
+    return ResponseEntity.ok(inAppAdd);
   }
 
   @PreAuthorize("hasAuthority('in_app_add.read')")

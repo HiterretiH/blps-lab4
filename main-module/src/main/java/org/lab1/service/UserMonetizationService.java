@@ -4,6 +4,8 @@ import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.DistributionSummary;
 import io.micrometer.core.instrument.MeterRegistry;
 import java.util.Optional;
+import org.lab1.exception.NotFoundException;
+import org.lab1.exception.ValidationException;
 import org.lab1.json.MonetizationEvent;
 import org.lab1.model.InAppAdd;
 import org.lab1.model.InAppPurchase;
@@ -14,13 +16,11 @@ import org.lab1.repository.InAppPurchaseRepository;
 import org.lab1.repository.MonetizedApplicationRepository;
 import org.lab1.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
-import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class UserMonetizationService {
@@ -104,23 +104,23 @@ public class UserMonetizationService {
     try {
       Optional<User> userOptional = userRepository.findById(userId);
       if (userOptional.isEmpty()) {
-        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, USER_NOT_FOUND_MSG);
+        throw new NotFoundException(USER_NOT_FOUND_MSG);
       }
 
       User user = userOptional.get();
 
       if (!isValidCard(cardNumber, cardHolderName, expiryDate, cvv)) {
-        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, INVALID_CARD_MSG);
+        throw new ValidationException(INVALID_CARD_MSG);
       }
 
       MonetizedApplication monetizedApplication =
           monetizedApplicationRepository.findByApplicationId(applicationId);
       if (monetizedApplication == null) {
-        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, APP_NOT_FOUND_MSG);
+        throw new NotFoundException(APP_NOT_FOUND_MSG);
       }
 
       if (Math.random() < INSUFFICIENT_BALANCE_PROBABILITY) {
-        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, INSUFFICIENT_BALANCE_MSG);
+        throw new ValidationException(INSUFFICIENT_BALANCE_MSG);
       }
 
       monetizedApplication.setCurrentBalance(
@@ -141,7 +141,7 @@ public class UserMonetizationService {
       return true;
     } catch (Exception exception) {
       transactionManager.rollback(status);
-      return false;
+      throw exception;
     }
   }
 
@@ -158,22 +158,22 @@ public class UserMonetizationService {
     try {
       Optional<User> userOptional = userRepository.findById(userId);
       if (userOptional.isEmpty()) {
-        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, USER_NOT_FOUND_MSG);
+        throw new NotFoundException(USER_NOT_FOUND_MSG);
       }
 
       User user = userOptional.get();
 
       if (!isValidCard(cardNumber, cardHolderName, expiryDate, cvv)) {
-        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, INVALID_CARD_MSG);
+        throw new ValidationException(INVALID_CARD_MSG);
       }
 
       Optional<InAppPurchase> purchaseOptional = inAppPurchaseRepository.findById(purchaseId);
       if (purchaseOptional.isEmpty()) {
-        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, IN_APP_PURCHASE_NOT_FOUND_MSG);
+        throw new NotFoundException(IN_APP_PURCHASE_NOT_FOUND_MSG);
       }
 
       if (Math.random() < INSUFFICIENT_BALANCE_PROBABILITY) {
-        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, INSUFFICIENT_BALANCE_MSG);
+        throw new ValidationException(INSUFFICIENT_BALANCE_MSG);
       }
 
       InAppPurchase purchase = purchaseOptional.get();
@@ -193,7 +193,7 @@ public class UserMonetizationService {
       return true;
     } catch (Exception exception) {
       transactionManager.rollback(status);
-      return false;
+      throw exception;
     }
   }
 
@@ -211,7 +211,7 @@ public class UserMonetizationService {
   public final boolean viewAdvertisement(final int adId) {
     Optional<InAppAdd> adOptional = inAppAddRepository.findById(adId);
     if (adOptional.isEmpty()) {
-      return false;
+      throw new NotFoundException("InAppAdd not found with ID: " + adId);
     }
 
     InAppAdd ad = adOptional.get();
@@ -230,14 +230,13 @@ public class UserMonetizationService {
   public final InAppPurchase getInAppPurchaseById(final int purchaseId) {
     return inAppPurchaseRepository
         .findById(purchaseId)
-        .orElseThrow(
-            () -> new ResponseStatusException(HttpStatus.NOT_FOUND, IN_APP_PURCHASE_NOT_FOUND_MSG));
+        .orElseThrow(() -> new NotFoundException(IN_APP_PURCHASE_NOT_FOUND_MSG));
   }
 
   public final InAppAdd getInAppAddById(final int adId) {
     return inAppAddRepository
         .findById(adId)
-        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "InAppAdd not found"));
+        .orElseThrow(() -> new NotFoundException("InAppAdd not found with ID: " + adId));
   }
 
   public final MonetizationEvent createPurchaseEvent(

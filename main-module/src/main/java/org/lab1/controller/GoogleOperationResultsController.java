@@ -2,6 +2,8 @@ package org.lab1.controller;
 
 import java.util.List;
 import org.lab.logger.Logger;
+import org.lab1.exception.NotFoundException;
+import org.lab1.exception.UnauthorizedException;
 import org.lab1.model.GoogleOperationResult;
 import org.lab1.model.User;
 import org.lab1.service.GoogleOperationResultService;
@@ -17,8 +19,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/google-results")
 public class GoogleOperationResultsController {
-  private static final int UNAUTHORIZED_STATUS_CODE = 401;
-
   private static final String GET_USER_RESULTS_LOG =
       "Received request to get Google operation results for current user";
   private static final String GET_USER_RESULTS_BY_ID_LOG =
@@ -62,7 +62,7 @@ public class GoogleOperationResultsController {
       return ResponseEntity.ok(results);
     } catch (Exception exception) {
       logger.error(USER_NOT_FOUND_LOG + exception.getMessage());
-      return ResponseEntity.status(UNAUTHORIZED_STATUS_CODE).build();
+      throw new UnauthorizedException("User not found: " + exception.getMessage());
     }
   }
 
@@ -76,7 +76,7 @@ public class GoogleOperationResultsController {
       userQueryService.getCurrentAuthenticatedUser();
     } catch (Exception exception) {
       logger.error(USER_NOT_FOUND_LOG + exception.getMessage());
-      return ResponseEntity.status(UNAUTHORIZED_STATUS_CODE).build();
+      throw new UnauthorizedException("User not found: " + exception.getMessage());
     }
 
     List<GoogleOperationResult> results = googleResultService.getResultsByUserId(userId);
@@ -105,7 +105,7 @@ public class GoogleOperationResultsController {
       return ResponseEntity.ok(results);
     } catch (Exception exception) {
       logger.error(USER_NOT_FOUND_LOG + exception.getMessage());
-      return ResponseEntity.status(UNAUTHORIZED_STATUS_CODE).build();
+      throw new UnauthorizedException("User not found: " + exception.getMessage());
     }
   }
 
@@ -132,14 +132,14 @@ public class GoogleOperationResultsController {
     GoogleOperationResult result = googleResultService.getResultById(id);
 
     if (result == null) {
-      return ResponseEntity.notFound().build();
+      throw new NotFoundException("GoogleOperationResult not found with ID: " + id);
     }
 
     try {
       userQueryService.getCurrentAuthenticatedUser();
     } catch (Exception exception) {
       logger.error(USER_NOT_FOUND_LOG + exception.getMessage());
-      return ResponseEntity.status(UNAUTHORIZED_STATUS_CODE).build();
+      throw new UnauthorizedException("User not found: " + exception.getMessage());
     }
 
     return ResponseEntity.ok(result);
@@ -158,7 +158,7 @@ public class GoogleOperationResultsController {
       return ResponseEntity.ok(results);
     } catch (Exception exception) {
       logger.error(USER_NOT_FOUND_LOG + exception.getMessage());
-      return ResponseEntity.status(UNAUTHORIZED_STATUS_CODE).build();
+      throw new UnauthorizedException("User not found: " + exception.getMessage());
     }
   }
 }

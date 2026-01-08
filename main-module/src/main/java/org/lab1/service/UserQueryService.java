@@ -3,17 +3,17 @@ package org.lab1.service;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import java.util.Optional;
+import org.lab1.exception.NotFoundException;
+import org.lab1.exception.UnauthorizedException;
 import org.lab1.json.Token;
 import org.lab1.model.User;
 import org.lab1.repository.UserRepository;
 import org.lab1.security.TokenManager;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class UserQueryService {
@@ -49,13 +49,13 @@ public class UserQueryService {
     try {
       Optional<User> userOptional = userRepository.findByUsername(username);
       if (userOptional.isEmpty()) {
-        throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, INVALID_CREDENTIALS_MSG);
+        throw new UnauthorizedException(INVALID_CREDENTIALS_MSG);
       }
 
       User user = userOptional.get();
 
       if (!passwordEncoder.matches(password, user.getPasswordHash())) {
-        throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, INVALID_CREDENTIALS_MSG);
+        throw new UnauthorizedException(INVALID_CREDENTIALS_MSG);
       }
 
       String tokenString =
@@ -68,16 +68,16 @@ public class UserQueryService {
       token.setRole(user.getRole());
       loginSuccessCounter.increment();
       return token;
-    } catch (ResponseStatusException responseStatusException) {
+    } catch (UnauthorizedException unauthorizedException) {
       loginFailCounter.increment();
-      throw responseStatusException;
+      throw unauthorizedException;
     }
   }
 
   public final User getUserById(final int userId) {
     return userRepository
         .findById(userId)
-        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, USER_NOT_FOUND_MSG));
+        .orElseThrow(() -> new NotFoundException(USER_NOT_FOUND_MSG));
   }
 
   public final User getCurrentAuthenticatedUser() {
@@ -86,14 +86,13 @@ public class UserQueryService {
 
     return userRepository
         .findByUsername(username)
-        .orElseThrow(
-            () -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, USER_NOT_FOUND_MSG));
+        .orElseThrow(() -> new UnauthorizedException(USER_NOT_FOUND_MSG));
   }
 
   public final User getUserByUsername(final String username) {
     return userRepository
         .findByUsername(username)
-        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, USER_NOT_FOUND_MSG));
+        .orElseThrow(() -> new NotFoundException(USER_NOT_FOUND_MSG));
   }
 
   public final boolean userExists(final int userId) {

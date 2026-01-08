@@ -3,6 +3,8 @@ package org.lab1.service;
 import java.util.List;
 import java.util.Optional;
 import org.lab.logger.Logger;
+import org.lab1.exception.ConflictException;
+import org.lab1.exception.NotFoundException;
 import org.lab1.json.ApplicationJson;
 import org.lab1.mapper.ApplicationMapper;
 import org.lab1.model.Application;
@@ -12,10 +14,8 @@ import org.lab1.model.Developer;
 import org.lab1.repository.ApplicationRepository;
 import org.lab1.repository.DeveloperRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class ApplicationService {
@@ -91,7 +91,8 @@ public class ApplicationService {
       return ResponseEntity.ok(savedApplication);
     } catch (Exception exception) {
       logger.error(SUBMIT_ERROR_LOG + exception.getMessage());
-      throw exception;
+      throw new ConflictException(
+          "Failed to submit application: " + exception.getMessage(), exception);
     }
   }
 
@@ -105,7 +106,8 @@ public class ApplicationService {
       return ResponseEntity.ok(applicationMapper.toDto(savedApplication));
     } catch (Exception exception) {
       logger.error(SUBMIT_ERROR_LOG + exception.getMessage());
-      throw exception;
+      throw new ConflictException(
+          "Failed to submit application: " + exception.getMessage(), exception);
     }
   }
 
@@ -120,7 +122,7 @@ public class ApplicationService {
     }
 
     logger.error(STATUS_NOT_FOUND_LOG + applicationId);
-    return ResponseEntity.notFound().build();
+    throw new NotFoundException("Application not found with ID: " + applicationId);
   }
 
   public final ResponseEntity<Application> getApplication(final int applicationId) {
@@ -133,7 +135,7 @@ public class ApplicationService {
     }
 
     logger.error(APP_NOT_FOUND_LOG + applicationId);
-    return ResponseEntity.notFound().build();
+    throw new NotFoundException("Application not found with ID: " + applicationId);
   }
 
   public final ResponseEntity<ApplicationJson> getApplicationAsJson(final int applicationId) {
@@ -146,7 +148,7 @@ public class ApplicationService {
     }
 
     logger.error(APP_NOT_FOUND_LOG + applicationId);
-    return ResponseEntity.notFound().build();
+    throw new NotFoundException("Application not found with ID: " + applicationId);
   }
 
   public final List<Application> getApplicationsByDeveloperId(final int developerId) {
@@ -172,7 +174,8 @@ public class ApplicationService {
             .orElseThrow(
                 () -> {
                   logger.error(DEV_NOT_FOUND_LOG + applicationJson.getDeveloperId());
-                  return new ResponseStatusException(HttpStatus.NOT_FOUND, DEV_NOT_FOUND_MSG);
+                  return new NotFoundException(
+                      "Developer not found with ID: " + applicationJson.getDeveloperId());
                 });
 
     Application application = applicationMapper.toEntity(applicationJson);
@@ -184,7 +187,8 @@ public class ApplicationService {
       return savedApplication;
     } catch (Exception exception) {
       logger.error(CREATE_ERROR_LOG + exception.getMessage());
-      throw exception;
+      throw new ConflictException(
+          "Failed to create application: " + exception.getMessage(), exception);
     }
   }
 
@@ -210,7 +214,7 @@ public class ApplicationService {
   public final Application getApplicationByIdOrThrow(final int id) {
     return applicationRepository
         .findById(id)
-        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, APP_NOT_FOUND_MSG));
+        .orElseThrow(() -> new NotFoundException("Application not found with ID: " + id));
   }
 
   public final Optional<ApplicationJson> getApplicationJsonById(final int id) {
@@ -233,7 +237,7 @@ public class ApplicationService {
             .orElseThrow(
                 () -> {
                   logger.error(APP_NOT_FOUND_LOG + id);
-                  return new ResponseStatusException(HttpStatus.NOT_FOUND, APP_NOT_FOUND_MSG);
+                  return new NotFoundException("Application not found with ID: " + id);
                 });
 
     application.setDeveloper(developer);
@@ -249,7 +253,7 @@ public class ApplicationService {
       return updatedApplication;
     } catch (Exception exception) {
       logger.error(UPDATE_ERROR_LOG + id + ERROR_LOG + exception.getMessage());
-      throw exception;
+      throw new ConflictException("Failed to update application with ID: " + id, exception);
     }
   }
 
@@ -263,7 +267,7 @@ public class ApplicationService {
             .orElseThrow(
                 () -> {
                   logger.error(APP_NOT_FOUND_LOG + id);
-                  return new ResponseStatusException(HttpStatus.NOT_FOUND, APP_NOT_FOUND_MSG);
+                  return new NotFoundException("Application not found with ID: " + id);
                 });
 
     if (applicationJson.getDeveloperId() > 0) {
@@ -273,7 +277,8 @@ public class ApplicationService {
               .orElseThrow(
                   () -> {
                     logger.error(DEV_NOT_FOUND_LOG + applicationJson.getDeveloperId());
-                    return new ResponseStatusException(HttpStatus.NOT_FOUND, DEV_NOT_FOUND_MSG);
+                    return new NotFoundException(
+                        "Developer not found with ID: " + applicationJson.getDeveloperId());
                   });
       application.setDeveloper(developer);
     }
@@ -286,7 +291,7 @@ public class ApplicationService {
       return applicationMapper.toDto(updatedApplication);
     } catch (Exception exception) {
       logger.error(UPDATE_ERROR_LOG + id + ERROR_LOG + exception.getMessage());
-      throw exception;
+      throw new ConflictException("Failed to update application with ID: " + id, exception);
     }
   }
 
@@ -298,11 +303,13 @@ public class ApplicationService {
         logger.info(DELETE_SUCCESS_LOG + id);
       } else {
         logger.error(DELETE_NOT_FOUND_LOG + id);
-        throw new ResponseStatusException(HttpStatus.NOT_FOUND, APP_NOT_FOUND_MSG);
+        throw new NotFoundException("Application not found with ID: " + id);
       }
+    } catch (NotFoundException notFoundException) {
+      throw notFoundException;
     } catch (Exception exception) {
       logger.error(DELETE_ERROR_LOG + id + ERROR_LOG + exception.getMessage());
-      throw exception;
+      throw new ConflictException("Failed to delete application with ID: " + id, exception);
     }
   }
 }

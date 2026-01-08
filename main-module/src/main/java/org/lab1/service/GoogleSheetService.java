@@ -4,7 +4,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.lab.logger.Logger;
+import org.lab1.exception.ForbiddenException;
+import org.lab1.exception.NotFoundException;
 import org.lab1.exception.OAuthException;
+import org.lab1.exception.UnauthorizedException;
 import org.lab1.json.GoogleSheetRequestWithData;
 import org.lab1.model.Application;
 import org.lab1.model.MonetizedApplication;
@@ -13,10 +16,8 @@ import org.lab1.model.User;
 import org.lab1.repository.ApplicationRepository;
 import org.lab1.repository.MonetizedApplicationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class GoogleSheetService {
@@ -84,7 +85,7 @@ public class GoogleSheetService {
 
     if (!googleOAuthQueryService.isGoogleConnected(userId)) {
       logger.error(NOT_CONNECTED_LOG + userId + NOT_CONNECTED_GOOGLE_LOG);
-      throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, NOT_CONNECTED_MSG);
+      throw new UnauthorizedException(NOT_CONNECTED_MSG);
     }
 
     String googleEmail = googleOAuthQueryService.getUserGoogleEmail(userId);
@@ -133,7 +134,7 @@ public class GoogleSheetService {
       User user = userQueryService.getUserById(userId);
       if (user.getRole() != Role.DEVELOPER) {
         logger.error(NOT_CONNECTED_LOG + userId + NOT_DEVELOPER_MSG);
-        throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, DEVELOPER_ONLY_MSG);
+        throw new ForbiddenException(DEVELOPER_ONLY_MSG);
       }
 
       Application app =
@@ -142,17 +143,17 @@ public class GoogleSheetService {
               .orElseThrow(
                   () -> {
                     logger.error(APP_NOT_FOUND_LOG + appId);
-                    return new ResponseStatusException(HttpStatus.NOT_FOUND, APP_NOT_FOUND_MSG);
+                    return new NotFoundException("Application not found with ID: " + appId);
                   });
 
       if (app.getDeveloper().getUser().getId() != userId) {
         logger.error(APP_NOT_BELONG_LOG + appId + NOT_BELONG_TO_DEV_LOG + userId);
-        throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, NOT_BELONG_MSG);
+        throw new ForbiddenException(NOT_BELONG_MSG);
       }
 
       if (!googleOAuthQueryService.isGoogleConnected(userId)) {
         logger.error(NOT_CONNECTED_LOG + userId + NOT_CONNECTED_GOOGLE_LOG);
-        throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, NOT_CONNECTED_MSG);
+        throw new UnauthorizedException(NOT_CONNECTED_MSG);
       }
 
       googleTaskSender.sendAddAppSheetsRequest(userId, app.getName());
@@ -162,7 +163,7 @@ public class GoogleSheetService {
     } catch (OAuthException oAuthException) {
       logger.error(
           GOOGLE_CONNECTION_FAILED_LOG + userId + REASON_LOG + oAuthException.getMessage());
-      throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, GOOGLE_CONNECTION_FAILED_MSG);
+      throw new UnauthorizedException(GOOGLE_CONNECTION_FAILED_MSG);
     }
   }
 

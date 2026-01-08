@@ -2,6 +2,7 @@ package org.lab1.service;
 
 import java.util.Optional;
 import org.lab.logger.Logger;
+import org.lab1.exception.NotFoundException;
 import org.lab1.json.MonetizedApplicationJson;
 import org.lab1.mapper.MonetizedApplicationMapper;
 import org.lab1.model.Application;
@@ -11,9 +12,7 @@ import org.lab1.repository.ApplicationRepository;
 import org.lab1.repository.DeveloperRepository;
 import org.lab1.repository.MonetizedApplicationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class MonetizedApplicationService {
@@ -64,7 +63,8 @@ public class MonetizedApplicationService {
             .orElseThrow(
                 () -> {
                   logger.error(DEV_NOT_FOUND_LOG + monetizedApplicationJson.getDeveloperId());
-                  return new ResponseStatusException(HttpStatus.NOT_FOUND, DEV_NOT_FOUND_MSG);
+                  return new NotFoundException(
+                      "Developer not found with ID: " + monetizedApplicationJson.getDeveloperId());
                 });
 
     Application application =
@@ -73,7 +73,9 @@ public class MonetizedApplicationService {
             .orElseThrow(
                 () -> {
                   logger.error(APP_NOT_FOUND_LOG + monetizedApplicationJson.getApplicationId());
-                  return new ResponseStatusException(HttpStatus.NOT_FOUND, APP_NOT_FOUND_MSG);
+                  return new NotFoundException(
+                      "Application not found with ID: "
+                          + monetizedApplicationJson.getApplicationId());
                 });
 
     MonetizedApplication monetizedApplication =
@@ -131,7 +133,8 @@ public class MonetizedApplicationService {
         monetizedApplicationRepository.findByApplicationId(applicationId);
 
     if (monetizedApp == null) {
-      throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Monetized application not found");
+      throw new NotFoundException(
+          "Monetized application not found for application ID: " + applicationId);
     }
 
     return monetizedApp;

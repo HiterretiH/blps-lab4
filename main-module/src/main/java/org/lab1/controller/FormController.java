@@ -5,11 +5,11 @@ import io.micrometer.core.instrument.MeterRegistry;
 import java.util.List;
 import java.util.Map;
 import org.lab.logger.Logger;
+import org.lab1.exception.ValidationException;
 import org.lab1.model.User;
 import org.lab1.service.FormGenerationService;
 import org.lab1.service.UserQueryService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -93,8 +93,7 @@ public class FormController {
       return ResponseEntity.ok(result);
     } catch (Exception exception) {
       logger.error(GENERATE_FORM_ERROR_LOG + exception.getMessage());
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-          .body("Error generating form: " + exception.getMessage());
+      throw new RuntimeException("Error generating form: " + exception.getMessage());
     }
   }
 
@@ -115,13 +114,13 @@ public class FormController {
 
     if (fieldName == null || fieldName.trim().isEmpty()) {
       logger.error(FIELD_NAME_REQUIRED_LOG);
-      return ResponseEntity.badRequest().body(FIELD_NAME_REQUIRED_MESSAGE);
+      throw new ValidationException(FIELD_NAME_REQUIRED_MESSAGE);
     }
 
     formGenerationService.addField(fieldName);
     fieldsAddedCounter.increment();
     logger.info(FIELD_ADDED_SUCCESS_LOG + fieldName + ADDED_SUCCESSFULLY_LOG);
-    return ResponseEntity.status(HttpStatus.CREATED).body(FIELD_ADDED_MESSAGE);
+    return ResponseEntity.ok(FIELD_ADDED_MESSAGE);
   }
 
   @PreAuthorize("hasAuthority('form.manage')")
@@ -132,7 +131,7 @@ public class FormController {
 
     if (fieldsRequest == null || fieldsRequest.isEmpty()) {
       logger.error(FIELDS_REQUIRED_LOG);
-      return ResponseEntity.badRequest().body(FIELDS_REQUIRED_LOG);
+      throw new ValidationException("Field names are required");
     }
 
     List<String> fieldNames =
@@ -143,12 +142,12 @@ public class FormController {
 
     if (fieldNames.isEmpty()) {
       logger.error(NO_VALID_FIELDS_LOG);
-      return ResponseEntity.badRequest().body(NO_VALID_FIELDS_MESSAGE);
+      throw new ValidationException(NO_VALID_FIELDS_MESSAGE);
     }
 
     formGenerationService.addFields(fieldNames);
     fieldsAddedCounter.increment(fieldNames.size());
     logger.info(FIELDS_ADDED_SUCCESS_LOG + fieldNames.size() + FIELDS_SUCCESSFULLY_LOG);
-    return ResponseEntity.status(HttpStatus.CREATED).body(FIELDS_ADDED_MESSAGE);
+    return ResponseEntity.ok(FIELDS_ADDED_MESSAGE);
   }
 }

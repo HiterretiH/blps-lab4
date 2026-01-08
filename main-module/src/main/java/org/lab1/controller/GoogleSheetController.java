@@ -5,7 +5,6 @@ import org.lab1.model.User;
 import org.lab1.service.GoogleSheetService;
 import org.lab1.service.UserQueryService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -62,8 +61,7 @@ public class GoogleSheetController {
       return ResponseEntity.ok(result);
     } catch (Exception exception) {
       logger.error(REVENUE_SHEET_ERROR_LOG + exception.getMessage());
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-          .body("Error creating revenue sheet: " + exception.getMessage());
+      throw new RuntimeException("Error creating revenue sheet: " + exception.getMessage());
     }
   }
 
@@ -81,8 +79,7 @@ public class GoogleSheetController {
       return ResponseEntity.ok(result);
     } catch (Exception exception) {
       logger.error(APP_SHEETS_ERROR_LOG + appId + USER_ID_LOG + exception.getMessage());
-      return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-          .body("Error adding app sheets: " + exception.getMessage());
+      throw new RuntimeException("Error adding app sheets: " + exception.getMessage());
     }
   }
 
