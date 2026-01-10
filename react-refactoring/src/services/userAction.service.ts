@@ -1,7 +1,6 @@
 import { api } from './api';
 import { Card } from '../types';
 
-// Добавить интерфейс для активности пользователя
 interface UserActivity {
   id: number;
   userId: number;

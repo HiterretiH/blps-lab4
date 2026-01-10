@@ -14,8 +14,13 @@ export const purchasesService = {
   },
 
   async getAllPurchases(): Promise<InAppPurchase[]> {
-    const response = await api.get<InAppPurchase[]>('/in-app-purchases/all');
-    return response.data;
+    try {
+      const response = await api.get<InAppPurchase[]>('/in-app-purchases/all');
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching all purchases:', error);
+      return [];
+    }
   },
 
   async getPurchaseById(id: number): Promise<InAppPurchase> {
@@ -31,9 +36,26 @@ export const purchasesService = {
   },
 
   async getPurchasesByApp(applicationId: number): Promise<InAppPurchase[]> {
-    const response = await api.get<InAppPurchase[]>(
-      `/in-app-purchases/application/${applicationId}`
-    );
-    return response.data;
+    try {
+      const response = await api.get<InAppPurchase[]>(
+        `/in-app-purchases/application/${applicationId}`
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching purchases by app:', error);
+      return [];
+    }
+  },
+
+  async getPurchasesByMonetizedApp(monetizedApplicationId: number): Promise<InAppPurchase[]> {
+    try {
+      const allPurchases = await this.getAllPurchases();
+      return allPurchases.filter(
+        purchase => purchase.monetizedApplicationId === monetizedApplicationId
+      );
+    } catch (error) {
+      console.error('Error filtering purchases:', error);
+      return [];
+    }
   },
 };

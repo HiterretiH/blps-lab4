@@ -6,17 +6,24 @@ import { Alert } from '../components/ui/Alert';
 import { useAuthStore } from '../store/auth.store';
 import { useApplicationsStore } from '../store/applications.store';
 import { useMonetizationStore } from '../store/monetization.store';
-import { 
-  BarChart3, DollarSign, Download, Users, Package, TrendingUp, 
-  Activity, Globe
+import {
+  BarChart3,
+  DollarSign,
+  Download,
+  Users,
+  Package,
+  TrendingUp,
+  Activity,
+  Globe,
 } from 'lucide-react';
 
 export const DashboardPage: React.FC = () => {
+  const { isLoading, error } = useApplicationsStore();
   const navigate = useNavigate();
   const { user, developerId } = useAuthStore();
   const { applications } = useApplicationsStore();
   const { stats } = useMonetizationStore();
-  
+
   const [dashboardStats, setDashboardStats] = useState({
     totalRevenue: 0,
     totalDownloads: 0,
@@ -35,12 +42,11 @@ export const DashboardPage: React.FC = () => {
     console.log('📊 Dashboard: using cached data');
   }, [user, navigate]);
 
-  // Calculate stats when data changes - исправить с использованием requestAnimationFrame
   useEffect(() => {
     const calculateAndSetStats = () => {
       if (applications.length === 0 && stats.length === 0) return;
 
-      const myApps = applications.filter(app => 
+      const myApps = applications.filter(app =>
         developerId ? app.developerId === developerId : true
       );
 
@@ -49,7 +55,6 @@ export const DashboardPage: React.FC = () => {
       const activeApps = myApps.filter(app => app.status === 1).length;
       const pendingApps = myApps.filter(app => app.status === 0).length;
 
-      // Использовать requestAnimationFrame для асинхронного обновления
       requestAnimationFrame(() => {
         setDashboardStats(prev => ({
           ...prev,

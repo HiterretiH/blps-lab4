@@ -88,6 +88,7 @@ public class TokenManager {
         new SimpleGrantedAuthority(ROLE_USER_AUTHORITY),
         new SimpleGrantedAuthority("application.read"),
         new SimpleGrantedAuthority("application_stats.read"),
+        new SimpleGrantedAuthority("monetization.read"),
         new SimpleGrantedAuthority("in_app_add.read"),
         new SimpleGrantedAuthority("in_app_purchase.read"),
         new SimpleGrantedAuthority("user.download_application"),

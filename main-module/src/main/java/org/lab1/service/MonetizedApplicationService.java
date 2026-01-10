@@ -1,5 +1,6 @@
 package org.lab1.service;
 
+import java.util.List;
 import java.util.Optional;
 import org.lab.logger.Logger;
 import org.lab1.exception.NotFoundException;
@@ -138,5 +139,31 @@ public class MonetizedApplicationService {
     }
 
     return monetizedApp;
+  }
+
+  public final List<MonetizedApplication> getMonetizedApplicationsByDeveloperId(final int developerId) {
+    logger.info("Fetching MonetizedApplications for developer ID: " + developerId);
+
+    List<MonetizedApplication> apps = monetizedApplicationRepository.findByDeveloper_Id(developerId);
+
+    logger.info("Found " + apps.size() + " MonetizedApplications for developer ID: " + developerId);
+    return apps;
+  }
+
+  // Или если хотите по developer.id (а не developer.userId):
+  public final List<MonetizedApplication> getMonetizedApplicationsByDeveloperUserId(final int userId) {
+    logger.info("Fetching MonetizedApplications for user ID: " + userId);
+
+    // Находим developer по userId
+    Optional<Developer> developer = developerRepository.findByUserId(userId);
+    if (developer.isEmpty()) {
+      return List.of();
+    }
+
+    // Ищем монетизированные приложения по developer.id
+    // Добавьте этот метод в репозиторий:
+    // List<MonetizedApplication> findByDeveloperId(int developerId);
+
+    return monetizedApplicationRepository.findByDeveloper_Id(developer.get().getId());
   }
 }

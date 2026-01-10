@@ -1,7 +1,6 @@
 import { api } from './api';
 
 export const googleService = {
-  // Google Forms
   async createGoogleForm(): Promise<{ formId: string; url: string }> {
     const response = await api.post('/forms/create');
     return response.data;
@@ -16,7 +15,6 @@ export const googleService = {
     await api.post('/forms/addFields', fields);
   },
 
-  // Google Sheets
   async createRevenueSheet(applicationId: number): Promise<{ sheetId: string; url: string }> {
     const response = await api.post('/sheets/create-revenue-sheet', { applicationId });
     return response.data;

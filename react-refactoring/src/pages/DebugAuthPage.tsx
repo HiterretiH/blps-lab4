@@ -35,7 +35,6 @@ interface ApiError {
   };
 }
 
-// Вспомогательная функция для безопасного рендеринга
 const renderJsonSafe = (data: unknown): string => {
   if (data === null || data === undefined) {
     return '';

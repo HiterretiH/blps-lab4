@@ -7,7 +7,7 @@ import { Alert } from '../components/ui/Alert';
 import { Card, CardContent } from '../components/ui/Card';
 import { useAuthStore } from '../store/auth.store';
 import { useApplicationsStore } from '../store/applications.store';
-import { Loader2, Package, User, Filter } from 'lucide-react';
+import { Loader2, Package, User, Filter, Download, DollarSign } from 'lucide-react';
 
 interface AppData {
   name: string;
@@ -19,14 +19,16 @@ interface AppData {
 export const ApplicationsPage: React.FC = () => {
   const navigate = useNavigate();
   const { user, developerId } = useAuthStore();
-  const { 
-    applications, 
-    isLoading, 
-    error, 
-    fetchMyApplications, 
-    createApplication, 
+  const {
+    applications,
+    monetizedApplications,
+    isLoading,
+    error,
+    fetchMyApplications,
+    fetchMonetizedApplications,
+    createApplication,
     deleteApplication,
-    clearError 
+    clearError,
   } = useApplicationsStore();
 
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -35,14 +37,18 @@ export const ApplicationsPage: React.FC = () => {
 
   const loadApplications = useCallback(async () => {
     if (hasFetched || isLoading) return;
-    
+
     try {
-      await fetchMyApplications();
+      if (isDeveloper) {
+        await fetchMyApplications();
+      } else {
+        await fetchMonetizedApplications();
+      }
       setHasFetched(true);
     } catch (err) {
       console.error('Failed to load applications:', err);
     }
-  }, [fetchMyApplications, hasFetched, isLoading]);
+  }, [isDeveloper, fetchMyApplications, fetchMonetizedApplications, hasFetched, isLoading]);
 
   useEffect(() => {
     if (!user) {
@@ -50,15 +56,7 @@ export const ApplicationsPage: React.FC = () => {
       return;
     }
 
-    // Исправить: использовать setTimeout или requestAnimationFrame
-    // чтобы избежать синхронного вызова setState в useEffect
-    const loadData = () => {
-      requestAnimationFrame(() => {
-        loadApplications();
-      });
-    };
-
-    loadData();
+    loadApplications();
   }, [user, navigate, loadApplications]);
 
   useEffect(() => {
@@ -87,6 +85,8 @@ export const ApplicationsPage: React.FC = () => {
     }
   };
 
+  const appsToShow = isDeveloper ? applications : monetizedApplications;
+
   if (!user) {
     navigate('/login');
     return null;
@@ -97,23 +97,33 @@ export const ApplicationsPage: React.FC = () => {
       <div className="flex items-start justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">
-            {isDeveloper ? 'My Applications' : 'Application Catalog'}
+            {isDeveloper ? 'My Applications' : 'Available Applications'}
           </h1>
           <p className="mt-1 text-gray-600">
-            {isDeveloper
-              ? 'Manage your applications and track statistics'
-              : 'Find and download interesting applications'}
+            {isDeveloper ? 'Manage your applications' : 'Browse and purchase applications'}
           </p>
         </div>
 
-        {isDeveloper && (
-          <Button onClick={() => setIsCreateModalOpen(true)} className="flex items-center gap-2">
-            <Package className="h-4 w-4" />
-            Create Application
-          </Button>
-        )}
+        <div className="flex items-center gap-3">
+          {isDeveloper ? (
+            <Button onClick={() => setIsCreateModalOpen(true)} className="flex items-center gap-2">
+              <Package className="h-4 w-4" />
+              Create Application
+            </Button>
+          ) : (
+            <Button
+              variant="outline"
+              onClick={() => navigate('/my-downloads')}
+              className="flex items-center gap-2"
+            >
+              <Download className="h-4 w-4" />
+              My Downloads
+            </Button>
+          )}
+        </div>
       </div>
 
+      {/* Статистика */}
       <Card className="bg-gradient-to-r from-primary-50 to-blue-50">
         <CardContent className="p-6">
           <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
@@ -127,7 +137,7 @@ export const ApplicationsPage: React.FC = () => {
               </div>
               <div>
                 <h3 className="font-medium text-gray-900">
-                  {isDeveloper ? 'Developer Statistics' : 'User Statistics'}
+                  {isDeveloper ? 'Developer Dashboard' : 'User Dashboard'}
                 </h3>
                 <div className="mt-1 flex items-center gap-4">
                   <span className="text-sm text-gray-600">
@@ -148,8 +158,21 @@ export const ApplicationsPage: React.FC = () => {
             <div className="flex items-center gap-2 rounded-lg border bg-white px-3 py-2">
               <Filter className="h-4 w-4 text-gray-500" />
               <span className="text-sm text-gray-700">
-                Applications: <span className="font-semibold">{applications.length}</span>
+                {isDeveloper ? 'Your Apps' : 'Available Apps'}:{' '}
+                <span className="font-semibold">{appsToShow.length}</span>
               </span>
+              {!isDeveloper && appsToShow.length > 0 && (
+                <>
+                  <span className="text-gray-400">|</span>
+                  <DollarSign className="h-4 w-4 text-green-500" />
+                  <span className="text-sm text-gray-700">
+                    Total Value:{' '}
+                    <span className="font-semibold text-green-600">
+                      ${appsToShow.reduce((sum, app) => sum + app.price, 0).toFixed(2)}
+                    </span>
+                  </span>
+                </>
+              )}
             </div>
           </div>
         </CardContent>
@@ -163,7 +186,7 @@ export const ApplicationsPage: React.FC = () => {
               <p>Possible API endpoint issues. Check:</p>
               <ul className="mt-1 list-disc pl-5">
                 <li>Is backend running on port 727</li>
-                <li>Is endpoint /api/applications/developer/{developerId} accessible</li>
+                <li>Is endpoint /api/applications accessible</li>
                 <li>Do you have correct access rights with your token</li>
               </ul>
             </div>
@@ -174,12 +197,11 @@ export const ApplicationsPage: React.FC = () => {
       {isLoading ? (
         <div className="flex flex-col items-center justify-center py-12">
           <Loader2 className="mb-4 h-12 w-12 animate-spin text-primary-600" />
-          <p className="text-gray-600">Loading applications...</p>
-          <p className="mt-1 text-sm text-gray-500">
-            Request to: /api/applications/developer/{developerId}
+          <p className="text-gray-600">
+            {isDeveloper ? 'Loading your applications...' : 'Loading available applications...'}
           </p>
         </div>
-      ) : applications.length === 0 ? (
+      ) : appsToShow.length === 0 ? (
         <Card>
           <CardContent className="py-12">
             <div className="mx-auto max-w-md text-center">
@@ -192,13 +214,13 @@ export const ApplicationsPage: React.FC = () => {
               </div>
 
               <h3 className="mb-2 text-lg font-medium text-gray-900">
-                {isDeveloper ? 'You have no applications yet' : 'No applications found'}
+                {isDeveloper ? 'You have no applications yet' : 'No applications available'}
               </h3>
 
               <p className="mb-6 text-gray-600">
                 {isDeveloper
-                  ? 'Create your first application to start monetization!'
-                  : 'There are no available applications in the system yet. Try again later.'}
+                  ? 'Create your first application!'
+                  : 'There are no applications available yet. Check back later!'}
               </p>
 
               {isDeveloper ? (
@@ -207,7 +229,7 @@ export const ApplicationsPage: React.FC = () => {
                 </Button>
               ) : (
                 <div className="space-y-3">
-                  <p className="text-sm text-gray-500">Want to become a developer?</p>
+                  <p className="text-sm text-gray-500">Want to create applications?</p>
                   <Button variant="outline" onClick={() => navigate('/register')}>
                     Register as Developer
                   </Button>
@@ -225,19 +247,17 @@ export const ApplicationsPage: React.FC = () => {
                 {isDeveloper ? 'Your Applications' : 'Available Applications'}
               </span>
               <span className="rounded-full bg-gray-100 px-2 py-1 text-xs text-gray-600">
-                {applications.length}
+                {appsToShow.length}
               </span>
             </div>
 
-            {isDeveloper && (
-              <div className="text-sm text-gray-600">
-                Sort by: <span className="font-medium">Creation Date</span>
-              </div>
+            {!isDeveloper && appsToShow.length > 0 && (
+              <div className="text-sm text-gray-600">Showing {appsToShow.length} applications</div>
             )}
           </div>
 
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {applications.map(app => (
+            {appsToShow.map(app => (
               <AppCard
                 key={app.id}
                 application={app}
@@ -249,12 +269,14 @@ export const ApplicationsPage: React.FC = () => {
         </>
       )}
 
-      <CreateAppForm
-        isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
-        onSubmit={handleCreateApp}
-        developerId={developerId}
-      />
+      {isDeveloper && (
+        <CreateAppForm
+          isOpen={isCreateModalOpen}
+          onClose={() => setIsCreateModalOpen(false)}
+          onSubmit={handleCreateApp}
+          developerId={developerId}
+        />
+      )}
     </div>
   );
 };

@@ -10,7 +10,7 @@
     "plugin:react/recommended",
     "plugin:react-hooks/recommended",
     "plugin:jsx-a11y/recommended",
-    "prettier" // Должен быть последним, чтобы переопределить другие правила
+    "prettier"
   ],
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
@@ -22,7 +22,6 @@
   },
   "plugins": ["@typescript-eslint", "react", "react-hooks", "jsx-a11y", "prettier"],
   "rules": {
-    // Strict TypeScript правила
     "@typescript-eslint/no-explicit-any": "error",
     "@typescript-eslint/explicit-function-return-type": [
       "warn",
@@ -47,13 +46,11 @@
       }
     ],
 
-    // React правила
     "react/react-in-jsx-scope": "off",
     "react/prop-types": "off",
     "react-hooks/rules-of-hooks": "error",
     "react-hooks/exhaustive-deps": "warn",
 
-    // Prettier интеграция
     "prettier/prettier": [
       "error",
       {
@@ -61,7 +58,6 @@
       }
     ],
 
-    // Общие правила
     "no-console": ["warn", { "allow": ["warn", "error"] }],
     "no-debugger": "error",
     "no-alert": "warn",

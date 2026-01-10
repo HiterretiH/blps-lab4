@@ -9,19 +9,25 @@ export interface Application {
   id: number;
   developerId: number;
   name: string;
-  type: string; // В базе это строка, а не enum
+  type: string;
   price: number;
   description: string;
-  status: number; // В базе это число: 0, 1, 2
+  status: number;
   createdAt?: string;
   updatedAt?: string;
 }
 
 export interface Developer {
   id: number;
-  userId: number;
   name: string;
   description: string;
+  user: {
+    id: number;
+    username: string;
+    email: string;
+    role: string;
+    passwordHash: string;
+  };
 }
 
 export interface MonetizedApplication {
@@ -77,7 +83,6 @@ export interface PaymentRequest {
   requestTime: string;
 }
 
-// Вспомогательные типы для преобразования
 export interface ApiApplication {
   id: number;
   developerId: number;
@@ -137,7 +142,6 @@ export interface MonetizationEvent {
   amount: number;
 }
 
-// Функции для преобразования статусов
 export const ApplicationStatus = {
   PENDING: 0,
   ACCEPTED: 1,

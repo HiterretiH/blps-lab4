@@ -14,9 +14,9 @@ export const paymentService = {
     return response.data;
   },
 
-  async validateCard(applicationId: number): Promise<boolean> {
+  async validateCard(paymentRequestId: number): Promise<boolean> {
     try {
-      const response = await api.get<string>(`/payment-requests/validate/${applicationId}`);
+      const response = await api.get<string>(`/payment-requests/validate/${paymentRequestId}`);
       return response.data === 'Card is valid';
     } catch {
       return false;

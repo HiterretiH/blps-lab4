@@ -11,4 +11,6 @@ export interface Token {
   token: string;
   expirationDate: number;
   role: string;
+  userId: number;
+  username: string;
 }

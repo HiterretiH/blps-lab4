@@ -3,7 +3,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../../store/auth.store';
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
-import { Home, Package, BarChart3, Shield, LogOut, User, DollarSign } from 'lucide-react';
+import { Home, Package, BarChart3, Shield, LogOut, User, DollarSign, Download } from 'lucide-react';
 
 export const Header: React.FC = () => {
   const navigate = useNavigate();
@@ -48,17 +48,6 @@ export const Header: React.FC = () => {
           {/* Navigation */}
           {isAuthenticated && user && (
             <nav className="hidden items-center space-x-1 md:flex">
-              <Link to="/dashboard">
-                <Button
-                  variant={isActive('/dashboard') ? 'primary' : 'outline'}
-                  size="sm"
-                  className="flex items-center space-x-2"
-                >
-                  <Home className="h-4 w-4" />
-                  <span>Dashboard</span>
-                </Button>
-              </Link>
-
               <Link to="/applications">
                 <Button
                   variant={isActive('/applications') ? 'primary' : 'outline'}
@@ -69,18 +58,19 @@ export const Header: React.FC = () => {
                   <span>Applications</span>
                 </Button>
               </Link>
-
-              <Link to="/analytics">
-                <Button
-                  variant={isActive('/analytics') ? 'primary' : 'outline'}
-                  size="sm"
-                  className="flex items-center space-x-2"
-                >
-                  <BarChart3 className="h-4 w-4" />
-                  <span>Analytics</span>
-                </Button>
-              </Link>
-
+              {user.role === 'USER' && (
+                <Link to="/my-downloads">
+                  <Button
+                    variant={isActive('/my-downloads') ? 'primary' : 'outline'}
+                    size="sm"
+                    className="flex items-center space-x-2"
+                  >
+                    <Download className="h-4 w-4" />
+                    <span>My Downloads</span>
+                  </Button>
+                </Link>
+              )}
+              ,
               {user.role === 'DEVELOPER' && (
                 <>
                   <Link to="/developer/profile">
@@ -95,7 +85,6 @@ export const Header: React.FC = () => {
                   </Link>
                 </>
               )}
-
               {user.role === 'PRIVACY_POLICY' && (
                 <Link to="/admin">
                   <Button
@@ -184,6 +173,18 @@ export const Header: React.FC = () => {
                 </span>
               </Link>
 
+              {/* Добавляем в мобильное меню */}
+              <Link to="/my-downloads" className="flex flex-col items-center">
+                <Download
+                  className={`h-5 w-5 ${isActive('/my-downloads') ? 'text-primary-600' : 'text-gray-500'}`}
+                />
+                <span
+                  className={`mt-1 text-xs ${isActive('/my-downloads') ? 'font-medium text-primary-600' : 'text-gray-600'}`}
+                >
+                  Downloads
+                </span>
+              </Link>
+
               <Link to="/analytics" className="flex flex-col items-center">
                 <BarChart3
                   className={`h-5 w-5 ${isActive('/analytics') ? 'text-primary-600' : 'text-gray-500'}`}
@@ -204,19 +205,6 @@ export const Header: React.FC = () => {
                     className={`mt-1 text-xs ${isActive('/developer/profile') ? 'font-medium text-primary-600' : 'text-gray-600'}`}
                   >
                     Dev
-                  </span>
-                </Link>
-              )}
-
-              {user.role === 'PRIVACY_POLICY' && (
-                <Link to="/admin" className="flex flex-col items-center">
-                  <Shield
-                    className={`h-5 w-5 ${isActive('/admin') ? 'text-primary-600' : 'text-gray-500'}`}
-                  />
-                  <span
-                    className={`mt-1 text-xs ${isActive('/admin') ? 'font-medium text-primary-600' : 'text-gray-600'}`}
-                  >
-                    Admin
                   </span>
                 </Link>
               )}

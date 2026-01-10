@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/monetized-applications")
 public class MonetizedApplicationController {
@@ -59,7 +61,7 @@ public class MonetizedApplicationController {
     return ResponseEntity.ok(monetizedApplication);
   }
 
-  @PreAuthorize("hasAuthority('monetized_application.read')")
+  @PreAuthorize("hasAuthority('monetized_application.manage')")
   @GetMapping("/{id}")
   public ResponseEntity<MonetizedApplication> getMonetizedApplicationById(
       @PathVariable final int id) {
@@ -71,5 +73,19 @@ public class MonetizedApplicationController {
                 () -> new NotFoundException("MonetizedApplication not found with ID: " + id));
 
     return ResponseEntity.ok(monetizedApplication);
+  }
+
+  @PreAuthorize("hasAuthority('monetized_application.manage')")
+  @GetMapping("/developer/{developerId}")
+  public ResponseEntity<List<MonetizedApplication>> getMonetizedApplicationsByDeveloper(
+      @PathVariable final int developerId) {
+
+    logger.info("Received request to get MonetizedApplications for developer ID: " + developerId);
+
+    List<MonetizedApplication> monetizedApplications =
+        monetizedApplicationService.getMonetizedApplicationsByDeveloperId(developerId);
+
+    logger.info("Found " + monetizedApplications.size() + " MonetizedApplications for developer ID: " + developerId);
+    return ResponseEntity.ok(monetizedApplications);
   }
 }

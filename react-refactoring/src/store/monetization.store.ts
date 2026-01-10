@@ -5,7 +5,6 @@ import { purchasesService } from '../services/purchases.service';
 import { adsService } from '../services/ads.service';
 import { statsService } from '../services/stats.service';
 
-// Добавить интерфейсы для параметров функций
 interface CreateMonetizedAppData {
   developerId: number;
   applicationId: number;
@@ -17,7 +16,6 @@ interface CreateMonetizedAppData {
 }
 
 interface CreatePurchaseData {
-  // добавьте поля
   [key: string]: unknown;
 }
 
@@ -65,7 +63,7 @@ interface MonetizationState {
   clearError: () => void;
 }
 
-export const useMonetizationStore = create<MonetizationState>((set) => ({
+export const useMonetizationStore = create<MonetizationState>(set => ({
   monetizedApps: [],
   purchases: [],
   ads: [],

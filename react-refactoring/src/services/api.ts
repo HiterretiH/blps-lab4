@@ -10,26 +10,12 @@ export const api = axios.create({
   timeout: 10000,
 });
 
-let requestCounter = 0;
-console.log(requestCounter);
+const requestCache = new Map<string, { data: any; timestamp: number }>();
+const CACHE_DURATION = 30000;
 
-// Флаг для отладки
-const DEBUG_MODE = true;
-
-// Request interceptor
 api.interceptors.request.use(
   config => {
     const token = localStorage.getItem('auth_token');
-    requestCounter++;
-
-    if (DEBUG_MODE) {
-      console.group('📤 API Request');
-      console.log('URL:', config.url);
-      console.log('Method:', config.method?.toUpperCase());
-      console.log('Token exists:', !!token);
-      console.log('Headers:', config.headers);
-      console.groupEnd();
-    }
 
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -38,41 +24,53 @@ api.interceptors.request.use(
     return config;
   },
   error => {
-    if (DEBUG_MODE) {
-      console.error('❌ API Request Error:', error);
-    }
     return Promise.reject(error);
   }
 );
 
-// Response interceptor
 api.interceptors.response.use(
   response => {
-    if (DEBUG_MODE) {
-      console.group('📥 API Response Success');
-      console.log('URL:', response.config.url);
-      console.log('Status:', response.status);
-      console.log('Data:', response.data);
-      console.groupEnd();
-    }
     return response;
   },
   error => {
-    if (DEBUG_MODE) {
-      requestCounter--;
-      console.group('❌ API Response Error');
-      console.log('URL:', error.config?.url);
-      console.log('Method:', error.config?.method?.toUpperCase());
-      console.log('Status:', error.response?.status);
-      console.log('Status Text:', error.response?.statusText);
-      console.log('Data:', error.response?.data);
-      console.log('Headers:', error.response?.headers);
-      console.log('Token in localStorage:', localStorage.getItem('auth_token'));
-      console.groupEnd();
+    if (error.response?.status === 401) {
+      localStorage.removeItem('auth_token');
+      localStorage.removeItem('user');
+      window.location.href = '/login';
     }
-
-    // НЕ делаем автоматический редирект при 401
-    // Пусть компоненты сами решают что делать
     return Promise.reject(error);
   }
 );
+
+export const cachedApi = {
+  get: async (url: string, config?: any): Promise<any> => {
+    const cacheKey = JSON.stringify({ url, config });
+    const cached = requestCache.get(cacheKey);
+
+    if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+      console.log('📦 Using cached data for:', url);
+      return Promise.resolve({ data: cached.data });
+    }
+
+    const response = await api.get(url, config);
+    requestCache.set(cacheKey, { data: response.data, timestamp: Date.now() });
+    return response;
+  },
+
+  post: api.post,
+  put: api.put,
+  delete: api.delete,
+
+  clearCache: (urlPattern: string) => {
+    for (const key of requestCache.keys()) {
+      const { url } = JSON.parse(key);
+      if (url.includes(urlPattern)) {
+        requestCache.delete(key);
+      }
+    }
+  },
+
+  clearAllCache: () => {
+    requestCache.clear();
+  },
+};

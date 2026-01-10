@@ -39,6 +39,18 @@ public class DeveloperController {
     this.logger = loggerParam;
   }
 
+  @PreAuthorize("hasAuthority('developer.read')")
+  @GetMapping("/by-user/{userId}")
+  public ResponseEntity<Developer> getDeveloperByUserId(@PathVariable final int userId) {
+    logger.info("Received request to get developer by user ID: " + userId);
+    Developer developer =
+        developerService
+            .getDeveloperByUserId(userId)
+            .orElseThrow(() -> new NotFoundException("Developer not found for user ID: " + userId));
+
+    return ResponseEntity.ok(developer);
+  }
+
   @PreAuthorize("hasAuthority('developer.manage')")
   @PostMapping
   public ResponseEntity<Developer> createDeveloper(@RequestBody final Developer param) {

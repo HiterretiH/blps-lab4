@@ -120,8 +120,8 @@ export const useApplications = () => {
     setSelectedApp,
     isLoading,
     error,
-    fetchMyApplications, // Для разработчиков - их приложения
-    fetchAllApplications, // Для всех - все приложения
+    fetchMyApplications,
+    fetchAllApplications,
     createApplication,
     deleteApplication,
   };

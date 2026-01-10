@@ -14,6 +14,8 @@ import { DeveloperProfilePage } from './pages/DeveloperProfilePage.tsx';
 import { MonetizationPage } from './pages/MonetizationPage';
 import { useEffect } from 'react';
 import { useAuthStore } from './store/auth.store';
+import { UserDownloadsPage } from './pages/UserDownloadsPage.tsx';
+import { DownloadAppPage } from './pages/DownloadAppPage.tsx';
 
 function App() {
   const { checkAuth } = useAuthStore();
@@ -125,6 +127,24 @@ function App() {
               element={
                 <ProtectedRoute>
                   <UiKitDemoPage />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/my-downloads"
+              element={
+                <ProtectedRoute>
+                  <UserDownloadsPage />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/download-app/:id"
+              element={
+                <ProtectedRoute>
+                  <DownloadAppPage />
                 </ProtectedRoute>
               }
             />

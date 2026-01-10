@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
-import { authService } from '../../services/auth.service';
+import { useAuthStore } from '../../store/auth.store';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -8,42 +8,56 @@ interface ProtectedRouteProps {
 }
 
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requiredRoles = [] }) => {
+  const { isAuthenticated, user, checkAuth } = useAuthStore();
   const [isChecking, setIsChecking] = useState(true);
   const [shouldRedirect, setShouldRedirect] = useState(false);
 
   useEffect(() => {
-    const checkAuth = async () => {
-      const isAuthenticated = authService.isAuthenticated();
-      const currentUser = authService.getCurrentUser();
-
+    const checkAccess = async () => {
       console.log('🔐 ProtectedRoute проверка:', {
         isAuthenticated,
-        currentUser,
+        user,
         requiredRoles,
       });
 
-      if (!isAuthenticated) {
-        console.log('❌ Не авторизован, редирект на /login');
-        setShouldRedirect(true);
-      } else if (requiredRoles.length > 0 && currentUser) {
-        const hasRequiredRole = requiredRoles.includes(currentUser.role);
-        console.log('👤 Проверка роли:', {
-          userRole: currentUser.role,
-          requiredRoles,
-          hasRequiredRole,
-        });
+      if (!isAuthenticated || !user) {
+        console.log('⚠️ Store не авторизован, проверяем localStorage...');
 
-        if (!hasRequiredRole) {
-          console.log('🚫 Нет прав, редирект на /dashboard');
+        const token = localStorage.getItem('auth_token');
+        const userStr = localStorage.getItem('user');
+
+        if (token && userStr) {
+          try {
+            console.log('🔄 Найдены данные в localStorage, синхронизируем store...');
+            await checkAuth();
+          } catch (error) {
+            console.error('Ошибка синхронизации:', error);
+          }
+        } else {
+          console.log('❌ Нет данных в localStorage, редирект на /login');
           setShouldRedirect(true);
+        }
+      } else {
+        if (requiredRoles.length > 0 && user) {
+          const hasRequiredRole = requiredRoles.includes(user.role);
+          console.log('👤 Проверка роли:', {
+            userRole: user.role,
+            requiredRoles,
+            hasRequiredRole,
+          });
+
+          if (!hasRequiredRole) {
+            console.log('🚫 Нет прав, редирект на /dashboard');
+            setShouldRedirect(true);
+          }
         }
       }
 
       setIsChecking(false);
     };
 
-    checkAuth();
-  }, [requiredRoles]);
+    checkAccess();
+  }, [isAuthenticated, user, requiredRoles, checkAuth]);
 
   if (isChecking) {
     return (
@@ -54,7 +68,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requir
   }
 
   if (shouldRedirect) {
-    const redirectTo = authService.isAuthenticated() ? '/dashboard' : '/login';
+    const redirectTo = isAuthenticated ? '/dashboard' : '/login';
     console.log(`🔄 Редирект на: ${redirectTo}`);
     return <Navigate to={redirectTo} replace />;
   }

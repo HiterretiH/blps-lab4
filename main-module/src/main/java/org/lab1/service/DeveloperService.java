@@ -131,6 +131,10 @@ public class DeveloperService {
     return developerMapper.toDto(updatedDeveloper);
   }
 
+  public Optional<Developer> getDeveloperByUserId(int userId) {
+    return developerRepository.findByUserId(userId);
+  }
+
   public final void deleteDeveloper(final int id) {
     logger.info(DELETE_DEV_LOG + id);
     developerRepository.deleteById(id);

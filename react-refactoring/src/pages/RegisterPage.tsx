@@ -3,10 +3,12 @@ import { useNavigate, Link } from 'react-router-dom';
 import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
 import { authService } from '../services/auth.service';
+import { useAuthStore } from '../store/auth.store';
 import { RegisterCredentials } from '../types';
 
 export const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
+  const { login } = useAuthStore();
   const [credentials, setCredentials] = useState<RegisterCredentials>({
     username: '',
     email: '',
@@ -26,19 +28,18 @@ export const RegisterPage: React.FC = () => {
         ? await authService.registerDeveloper(credentials)
         : await authService.register(credentials);
 
-      localStorage.setItem('auth_token', response.token);
-      localStorage.setItem(
-        'user',
-        JSON.stringify({
-          username: credentials.username,
-          role: response.role,
-        })
+      await login(
+        response.username || credentials.username,
+        response.token,
+        response.role,
+        response.email,
+        response.userId
       );
-      navigate('/dashboard');
-    } catch (err) {
-      const error = err as Error;
-      setError('Invalid username or password');
-      console.error('Login error:', error);
+
+      navigate('/applications');
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Registration failed');
+      console.error('Registration error:', err);
     } finally {
       setIsLoading(false);
     }

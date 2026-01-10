@@ -1,121 +1,191 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Alert } from '../components/ui/Alert';
-import { Input } from '../components/ui/Input';
 import { Badge } from '../components/ui/Badge';
-import { Tabs, TabPanel } from '../components/ui/Tabs';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '../components/ui/Table';
 import { useAuthStore } from '../store/auth.store';
 import { useApplicationsStore } from '../store/applications.store';
 import { useMonetizationStore } from '../store/monetization.store';
-import { developersService } from '../services/developers.service';
 import { monetizationService } from '../services/monetization.service';
-import { 
-  User, Settings, DollarSign, Download, BarChart3, Package, 
-  CreditCard, Users, Globe, Shield, Edit3 // Убрать TrendingUp
+import { statsService } from '../services/stats.service';
+import {
+  User,
+  DollarSign,
+  Download,
+  Package,
+  CreditCard,
+  Users,
+  Globe,
+  Shield,
+  BarChart3,
+  TrendingUp,
+  Calendar,
+  CheckCircle,
+  Clock,
+  XCircle,
 } from 'lucide-react';
-
-interface Developer {
-  id: number;
-  name: string;
-  description: string;
-  // добавьте другие поля по необходимости
-}
-
-interface MonetizationData {
-  id: number;
-  applicationId: number;
-  revenue?: number;
-  downloadRevenue?: number;
-  purchasesRevenue?: number;
-  adsRevenue?: number;
-  currentBalance?: number;
-}
-
 export const DeveloperProfilePage: React.FC = () => {
   const navigate = useNavigate();
   const { user, developerId } = useAuthStore();
-  const { applications } = useApplicationsStore();
-  const { stats } = useMonetizationStore();
-  
-  const [developer, setDeveloper] = useState<Developer | null>(null);
-  const [monetizationData, setMonetizationData] = useState<MonetizationData[]>([]);
+  const { applications, fetchMyApplications } = useApplicationsStore();
+  const { stats, fetchStats } = useMonetizationStore();
   const [totalRevenue, setTotalRevenue] = useState(0);
   const [totalDownloads, setTotalDownloads] = useState(0);
+  const [monetizedAppsData, setMonetizedAppsData] = useState<any[]>([]);
+  const [developerStats, setDeveloperStats] = useState<any[]>([]);
+  const [appDetails, setAppDetails] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab] = useState('overview');
-  const [hasLoaded, setHasLoaded] = useState(false);
-
+  const isMounted = useRef(true);
+  const isLoadingRef = useRef(false);
+  useEffect(() => {
+    isMounted.current = true;
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
   const loadDeveloperData = useCallback(async () => {
-    if (!developerId || hasLoaded) {
-      return;
-    }
-
+    if (!developerId || isLoadingRef.current) return;
+    isLoadingRef.current = true;
     setIsLoading(true);
     setError(null);
-
     try {
-      console.log('👨‍💻 Loading developer data...');
-      
-      const devData = await developersService.getDeveloper(developerId);
-      setDeveloper(devData);
-
-      const monetizationPromises = applications.map(app =>
-        monetizationService.getMonetizationInfo(app.id).catch(() => null)
-      );
-      
-      const monetizationResults = await Promise.all(monetizationPromises);
-      const validMonetization = monetizationResults.filter(Boolean) as MonetizationData[];
-      setMonetizationData(validMonetization);
-
-      const revenue = validMonetization.reduce((sum, item) => sum + (item.revenue || 0), 0);
-      const downloads = stats.reduce((sum, stat) => sum + stat.downloads, 0);
-
-      setTotalRevenue(revenue);
-      setTotalDownloads(downloads);
-
-      setHasLoaded(true);
-    } catch (err: unknown) { // Добавить тип для ошибки
-      console.error('❌ Developer profile error:', err);
-      setError('Failed to load developer data');
+      console.log('🔄 Loading developer statistics for ID:', developerId);
+      const [apps, appStats, monetizedApps, devStats] = await Promise.all([
+        fetchMyApplications(),
+        fetchStats(),
+        monetizationService.getAllMonetizedAppsByDeveloper(developerId),
+        statsService.getStatsByDeveloper(developerId),
+      ]);
+      if (!isMounted.current) return;
+      setMonetizedAppsData(monetizedApps);
+      setDeveloperStats(devStats);
+      const appDetailsData = apps.map(app => {
+        const appStats = devStats.find((stat: any) => stat.application.id === app.id);
+        const monetization = monetizedApps.find((m: any) => m.application.id === app.id);
+        return {
+          ...app,
+          downloads: appStats?.downloads || 0,
+          rating: appStats?.rating || 0,
+          revenue: monetization?.revenue || 0,
+          downloadRevenue: monetization?.downloadRevenue || 0,
+          adsRevenue: monetization?.adsRevenue || 0,
+          purchasesRevenue: monetization?.purchasesRevenue || 0,
+          currentBalance: monetization?.currentBalance || 0,
+          isMonetized: !!monetization,
+        };
+      });
+      setAppDetails(appDetailsData);
+      let totalRev = 0;
+      let totalDls = 0;
+      monetizedApps.forEach((app: any) => {
+        totalRev += app.revenue || 0;
+      });
+      devStats.forEach((stat: any) => {
+        totalDls += stat.downloads || 0;
+      });
+      setTotalRevenue(totalRev);
+      setTotalDownloads(totalDls);
+    } catch (err) {
+      console.error('❌ Error loading developer data:', err);
+      if (isMounted.current) {
+        setError('Failed to load developer data');
+      }
     } finally {
-      setIsLoading(false);
+      if (isMounted.current) {
+        setIsLoading(false);
+      }
+      isLoadingRef.current = false;
     }
-  }, [developerId, applications, stats, hasLoaded]);
-
+  }, [developerId, fetchMyApplications, fetchStats]);
   useEffect(() => {
     if (!user || user.role !== 'DEVELOPER') {
       navigate('/dashboard');
       return;
     }
-
-    loadDeveloperData();
-  }, [user, navigate, loadDeveloperData]);
-
-  const monetizedAppsCount = monetizationData.length;
-  const activeAppsCount = applications.filter(app => app.status === 1).length;
-  const pendingAppsCount = applications.filter(app => app.status === 0).length;
-
-  // Рассчитываем общую статистику по монетизации
-  const totalDownloadRevenue = monetizationData.reduce((sum, item) => sum + (item.downloadRevenue || 0), 0);
-  const totalPurchaseRevenue = monetizationData.reduce((sum, item) => sum + (item.purchasesRevenue || 0), 0);
-  const totalAdRevenue = monetizationData.reduce((sum, item) => sum + (item.adsRevenue || 0), 0);
-
-  const tabs = [
-    { id: 'overview', label: 'Overview' },
-    { id: 'apps', label: 'Applications' },
-    { id: 'monetization', label: 'Monetization' },
-    { id: 'analytics', label: 'Analytics' },
-    { id: 'settings', label: 'Settings' },
-  ];
-
+    if (developerId) {
+      loadDeveloperData();
+    }
+  }, [user, navigate, developerId, loadDeveloperData]);
+  const { monetizedAppsCount, activeAppsCount, pendingAppsCount, rejectedAppsCount } =
+    React.useMemo(() => {
+      return {
+        monetizedAppsCount: appDetails.filter(app => app.isMonetized).length,
+        activeAppsCount: appDetails.filter(app => app.status === 1).length,
+        pendingAppsCount: appDetails.filter(app => app.status === 0).length,
+        rejectedAppsCount: appDetails.filter(app => app.status === 2).length,
+      };
+    }, [appDetails]);
+  const { totalDownloadRevenue, totalPurchaseRevenue, totalAdRevenue, avgRating } =
+    React.useMemo(() => {
+      return {
+        totalDownloadRevenue: appDetails.reduce((sum, app) => sum + (app.downloadRevenue || 0), 0),
+        totalPurchaseRevenue: appDetails.reduce((sum, app) => sum + (app.purchasesRevenue || 0), 0),
+        totalAdRevenue: appDetails.reduce((sum, app) => sum + (app.adsRevenue || 0), 0),
+        avgRating:
+          appDetails.length > 0
+            ? (
+                appDetails.reduce((sum, app) => sum + (app.rating || 0), 0) / appDetails.length
+              ).toFixed(1)
+            : '0.0',
+      };
+    }, [appDetails]);
   if (!user || user.role !== 'DEVELOPER') {
     navigate('/dashboard');
     return null;
   }
-
+  const getStatusBadge = (status: number) => {
+    switch (status) {
+      case 1:
+        return (
+          <Badge variant="success" className="flex items-center gap-1">
+            <CheckCircle className="h-3 w-3" />
+            ACTIVE
+          </Badge>
+        );
+      case 0:
+        return (
+          <Badge variant="warning" className="flex items-center gap-1">
+            <Clock className="h-3 w-3" />
+            PENDING
+          </Badge>
+        );
+      case 2:
+        return (
+          <Badge variant="danger" className="flex items-center gap-1">
+            <XCircle className="h-3 w-3" />
+            REJECTED
+          </Badge>
+        );
+      default:
+        return <Badge variant="secondary">UNKNOWN</Badge>;
+    }
+  };
+  const getTypeBadge = (type: string) => {
+    const colors: Record<string, string> = {
+      GAME: 'bg-purple-100 text-purple-800',
+      UTILITY: 'bg-blue-100 text-blue-800',
+      EDUCATION: 'bg-green-100 text-green-800',
+      HEALTH: 'bg-red-100 text-red-800',
+      FINANCE: 'bg-yellow-100 text-yellow-800',
+      SOCIAL: 'bg-pink-100 text-pink-800',
+      PRODUCTIVITY: 'bg-indigo-100 text-indigo-800',
+      ENTERTAINMENT: 'bg-orange-100 text-orange-800',
+    };
+    const colorClass = colors[type] || 'bg-gray-100 text-gray-800';
+    return (
+      <span className={`px-2 py-1 rounded-full text-xs font-medium ${colorClass}`}>{type}</span>
+    );
+  };
   return (
     <div className="space-y-6">
       <div className="flex items-start justify-between">
@@ -131,21 +201,27 @@ export const DeveloperProfilePage: React.FC = () => {
                 DEVELOPER
               </Badge>
               <span className="text-sm text-gray-600">ID: #{developerId}</span>
+              <Badge variant="outline" className="flex items-center gap-1">
+                <Users className="h-3 w-3" />
+                {applications.length} Apps
+              </Badge>
             </div>
           </div>
         </div>
-        <Button variant="outline" className="flex items-center gap-2">
-          <Edit3 className="h-4 w-4" />
-          Edit Profile
+        <Button
+          variant="outline"
+          onClick={() => navigate('/developer/apps?create=true')}
+          className="flex items-center gap-2"
+        >
+          <Package className="h-4 w-4" />
+          New Application
         </Button>
       </div>
-
       {error && (
         <Alert variant="danger" title="Error">
           {error}
         </Alert>
       )}
-
       {isLoading ? (
         <div className="flex flex-col items-center justify-center py-12">
           <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-primary-600"></div>
@@ -153,515 +229,283 @@ export const DeveloperProfilePage: React.FC = () => {
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
-            <Card className="bg-gradient-to-br from-blue-50 to-white">
+          {}
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <StatCard
+              title="Total Revenue"
+              value={`$${totalRevenue.toFixed(2)}`}
+              icon={<DollarSign className="h-6 w-6" />}
+              color="blue"
+              description="All-time revenue"
+            />
+            <StatCard
+              title="Total Downloads"
+              value={totalDownloads.toLocaleString()}
+              icon={<Download className="h-6 w-6" />}
+              color="green"
+              description="Lifetime downloads"
+            />
+            <Card>
               <CardContent className="p-6">
-                <div className="flex items-center">
-                  <div className="mr-4 rounded-lg bg-blue-100 p-3">
-                    <DollarSign className="h-6 w-6 text-blue-600" />
-                  </div>
+                <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">Total Revenue</p>
-                    <p className="mt-1 text-2xl font-bold text-gray-900">
-                      ${totalRevenue.toFixed(2)}
+                    <p className="text-sm font-medium text-gray-600">Monetized Apps</p>
+                    <p className="mt-2 text-2xl font-bold text-gray-900">{monetizedAppsCount}</p>
+                    <p className="mt-1 text-sm text-gray-500">
+                      {applications.length > 0
+                        ? `${Math.round((monetizedAppsCount / applications.length) * 100)}% of total`
+                        : '0%'}
                     </p>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-gradient-to-br from-green-50 to-white">
-              <CardContent className="p-6">
-                <div className="flex items-center">
-                  <div className="mr-4 rounded-lg bg-green-100 p-3">
-                    <Download className="h-6 w-6 text-green-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">Total Downloads</p>
-                    <p className="mt-1 text-2xl font-bold text-gray-900">
-                      {totalDownloads.toLocaleString()}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-gradient-to-br from-purple-50 to-white">
-              <CardContent className="p-6">
-                <div className="flex items-center">
-                  <div className="mr-4 rounded-lg bg-purple-100 p-3">
-                    <Package className="h-6 w-6 text-purple-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">Active Apps</p>
-                    <p className="mt-1 text-2xl font-bold text-gray-900">
-                      {activeAppsCount}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-gradient-to-br from-orange-50 to-white">
-              <CardContent className="p-6">
-                <div className="flex items-center">
-                  <div className="mr-4 rounded-lg bg-orange-100 p-3">
-                    <Users className="h-6 w-6 text-orange-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">Active Users</p>
-                    <p className="mt-1 text-2xl font-bold text-gray-900">
-                      {(totalDownloads * 0.1).toFixed(0)}
-                    </p>
+                  <div className="rounded-lg bg-blue-100 p-3">
+                    <TrendingUp className="h-6 w-6 text-blue-600" />
                   </div>
                 </div>
               </CardContent>
             </Card>
           </div>
-
+          {}
           <Card>
-            <CardContent className="p-0">
-              <Tabs tabs={tabs} defaultTab={activeTab}>
-                <TabPanel id="overview">
-                  <div className="p-6">
-                    <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                      <div>
-                        <h3 className="mb-4 text-lg font-medium text-gray-900">Developer Information</h3>
-                        <div className="space-y-4">
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700">
-                              Username
-                            </label>
-                            <p className="mt-1 text-gray-900">{user.username}</p>
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700">
-                              Email
-                            </label>
-                            <p className="mt-1 text-gray-900">{user.email || 'Not provided'}</p>
-                          </div>
-                          {developer && (
-                            <>
-                              <div>
-                                <label className="block text-sm font-medium text-gray-700">
-                                  Developer Name
-                                </label>
-                                <p className="mt-1 text-gray-900">{developer.name}</p>
-                              </div>
-                              <div>
-                                <label className="block text-sm font-medium text-gray-700">
-                                  Description
-                                </label>
-                                <p className="mt-1 text-gray-900">{developer.description}</p>
-                              </div>
-                            </>
-                          )}
-                        </div>
-                      </div>
-
-                      <div>
-                        <h3 className="mb-4 text-lg font-medium text-gray-900">Quick Stats</h3>
-                        <div className="space-y-3">
-                          <div className="flex items-center justify-between rounded-lg border p-3">
-                            <span className="text-sm text-gray-600">Applications Created</span>
-                            <span className="font-semibold">{applications.length}</span>
-                          </div>
-                          <div className="flex items-center justify-between rounded-lg border p-3">
-                            <span className="text-sm text-gray-600">Pending Reviews</span>
-                            <span className="font-semibold">{pendingAppsCount}</span>
-                          </div>
-                          <div className="flex items-center justify-between rounded-lg border p-3">
-                            <span className="text-sm text-gray-600">Monetized Apps</span>
-                            <span className="font-semibold">{monetizedAppsCount}</span>
-                          </div>
-                          <div className="flex items-center justify-between rounded-lg border p-3">
-                            <span className="text-sm text-gray-600">Average Rating</span>
-                            <span className="font-semibold">
-                              {stats.length > 0 
-                                ? (stats.reduce((sum, s) => sum + s.rating, 0) / stats.length).toFixed(1)
-                                : 'N/A'
-                              }
-                            </span>
-                          </div>
-                        </div>
-                      </div>
+            <CardHeader>
+              <CardTitle>Revenue Breakdown</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                <div className="rounded-lg border p-4">
+                  <div className="flex items-center">
+                    <div className="mr-4 rounded-lg bg-blue-100 p-3">
+                      <Download className="h-6 w-6 text-blue-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">Download Revenue</p>
+                      <p className="mt-1 text-2xl font-bold text-gray-900">
+                        ${totalDownloadRevenue.toFixed(2)}
+                      </p>
+                      <p className="mt-1 text-sm text-gray-500">
+                        {totalRevenue > 0
+                          ? `${Math.round((totalDownloadRevenue / totalRevenue) * 100)}% of total`
+                          : '0%'}
+                      </p>
                     </div>
                   </div>
-                </TabPanel>
-
-                <TabPanel id="apps">
-                  <div className="p-6">
-                    <div className="mb-6 flex items-center justify-between">
-                      <h3 className="text-lg font-medium text-gray-900">Your Applications</h3>
-                      <Button onClick={() => navigate('/developer/apps?create=true')}>
-                        <Package className="mr-2 h-4 w-4" />
-                        Create New App
-                      </Button>
+                </div>
+                <div className="rounded-lg border p-4">
+                  <div className="flex items-center">
+                    <div className="mr-4 rounded-lg bg-green-100 p-3">
+                      <CreditCard className="h-6 w-6 text-green-600" />
                     </div>
-
-                    {applications.length === 0 ? (
-                      <div className="py-12 text-center">
-                        <Package className="mx-auto h-12 w-12 text-gray-400" />
-                        <h3 className="mt-4 text-lg font-medium text-gray-900">No applications yet</h3>
-                        <p className="mt-1 text-gray-600">
-                          Create your first application to start monetizing!
-                        </p>
-                        <Button className="mt-6" onClick={() => navigate('/developer/apps?create=true')}>
-                          Create Your First App
-                        </Button>
-                      </div>
-                    ) : (
-                      <div className="overflow-x-auto">
-                        <table className="w-full">
-                          <thead>
-                            <tr className="border-b">
-                              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">
-                                Name
-                              </th>
-                              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">
-                                Type
-                              </th>
-                              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">
-                                Price
-                              </th>
-                              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">
-                                Status
-                              </th>
-                              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">
-                                Revenue
-                              </th>
-                              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">
-                                Actions
-                              </th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {applications.map((app) => {
-                              const appMonetization = monetizationData.find(m => m.applicationId === app.id);
-                              return (
-                                <tr key={app.id} className="border-b hover:bg-gray-50">
-                                  <td className="px-4 py-3">
-                                    <div>
-                                      <p className="font-medium text-gray-900">{app.name}</p>
-                                      <p className="text-sm text-gray-500">ID: #{app.id}</p>
-                                    </div>
-                                  </td>
-                                  <td className="px-4 py-3">
-                                    <Badge variant="info" className="text-xs">
-                                      {app.type}
-                                    </Badge>
-                                  </td>
-                                  <td className="px-4 py-3 font-medium text-gray-900">
-                                    ${app.price.toFixed(2)}
-                                  </td>
-                                  <td className="px-4 py-3">
-                                    <Badge
-                                      variant={
-                                        app.status === 1
-                                          ? 'success'
-                                          : app.status === 0
-                                          ? 'warning'
-                                          : 'danger'
-                                      }
-                                      className="text-xs"
-                                    >
-                                      {app.status === 1
-                                        ? 'ACTIVE'
-                                        : app.status === 0
-                                        ? 'PENDING'
-                                        : 'REJECTED'}
-                                    </Badge>
-                                  </td>
-                                  <td className="px-4 py-3 font-medium text-gray-900">
-                                    ${appMonetization?.revenue?.toFixed(2) || '0.00'}
-                                  </td>
-                                  <td className="px-4 py-3">
-                                    <div className="flex space-x-2">
-                                      <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => navigate(`/applications/${app.id}`)}
-                                      >
-                                        View
-                                      </Button>
-                                      <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => navigate(`/developer/monetization/${app.id}`)}
-                                      >
-                                        Monetize
-                                      </Button>
-                                    </div>
-                                  </td>
-                                </tr>
-                              );
-                            })}
-                          </tbody>
-                        </table>
-                      </div>
-                    )}
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">In-App Purchases</p>
+                      <p className="mt-1 text-2xl font-bold text-gray-900">
+                        ${totalPurchaseRevenue.toFixed(2)}
+                      </p>
+                      <p className="mt-1 text-sm text-gray-500">
+                        {totalRevenue > 0
+                          ? `${Math.round((totalPurchaseRevenue / totalRevenue) * 100)}% of total`
+                          : '0%'}
+                      </p>
+                    </div>
                   </div>
-                </TabPanel>
-
-                <TabPanel id="monetization">
-                  <div className="p-6">
-                    <h3 className="mb-6 text-lg font-medium text-gray-900">Monetization Overview</h3>
-                    
-                    {monetizationData.length === 0 ? (
-                      <div className="py-12 text-center">
-                        <DollarSign className="mx-auto h-12 w-12 text-gray-400" />
-                        <h3 className="mt-4 text-lg font-medium text-gray-900">No monetization data</h3>
-                        <p className="mt-1 text-gray-600">
-                          Monetize your applications to see revenue statistics
-                        </p>
-                        <Button 
-                          className="mt-6" 
-                          onClick={() => navigate('/developer/apps')}
-                        >
-                          Monetize Applications
-                        </Button>
-                      </div>
-                    ) : (
-                      <div className="space-y-6">
-                        <div className="rounded-lg border p-6">
-                          <h4 className="mb-4 font-medium text-gray-900">Revenue Breakdown</h4>
-                          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                            <div className="rounded-lg bg-blue-50 p-4">
-                              <div className="flex items-center">
-                                <Download className="mr-3 h-5 w-5 text-blue-600" />
-                                <div>
-                                  <p className="text-sm text-gray-600">Download Revenue</p>
-                                  <p className="text-xl font-bold text-gray-900">
-                                    ${totalDownloadRevenue.toFixed(2)}
-                                  </p>
-                                </div>
-                              </div>
+                </div>
+                <div className="rounded-lg border p-4">
+                  <div className="flex items-center">
+                    <div className="mr-4 rounded-lg bg-purple-100 p-3">
+                      <Globe className="h-6 w-6 text-purple-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">Ad Revenue</p>
+                      <p className="mt-1 text-2xl font-bold text-gray-900">
+                        ${totalAdRevenue.toFixed(2)}
+                      </p>
+                      <p className="mt-1 text-sm text-gray-500">
+                        {totalRevenue > 0
+                          ? `${Math.round((totalAdRevenue / totalRevenue) * 100)}% of total`
+                          : '0%'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          {}
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle>All Applications ({appDetails.length})</CardTitle>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => navigate('/developer/apps?create=true')}
+                >
+                  <Package className="mr-2 h-4 w-4" />
+                  Create New
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => loadDeveloperData()}>
+                  <Calendar className="mr-2 h-4 w-4" />
+                  Refresh
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {appDetails.length === 0 ? (
+                <div className="py-12 text-center">
+                  <Package className="mx-auto h-12 w-12 text-gray-400" />
+                  <h3 className="mt-4 text-lg font-medium text-gray-900">No applications yet</h3>
+                  <p className="mt-1 text-gray-600">Create your first application to get started</p>
+                  <Button className="mt-4" onClick={() => navigate('/developer/apps?create=true')}>
+                    Create Your First App
+                  </Button>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Application</TableHead>
+                        <TableHead>Type</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead className="text-right">Downloads</TableHead>
+                        <TableHead className="text-right">Rating</TableHead>
+                        <TableHead className="text-right">Price</TableHead>
+                        <TableHead className="text-right">Revenue</TableHead>
+                        <TableHead className="text-right">Balance</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {appDetails.map(app => (
+                        <TableRow key={app.id}>
+                          <TableCell className="font-medium">
+                            <div>
+                              <p className="font-semibold">{app.name}</p>
+                              <p className="text-sm text-gray-500 truncate max-w-xs">
+                                {app.description}
+                              </p>
                             </div>
-                            <div className="rounded-lg bg-green-50 p-4">
-                              <div className="flex items-center">
-                                <CreditCard className="mr-3 h-5 w-5 text-green-600" />
-                                <div>
-                                  <p className="text-sm text-gray-600">In-App Purchases</p>
-                                  <p className="text-xl font-bold text-gray-900">
-                                    ${totalPurchaseRevenue.toFixed(2)}
-                                  </p>
-                                </div>
-                              </div>
+                          </TableCell>
+                          <TableCell>{getTypeBadge(app.type)}</TableCell>
+                          <TableCell>{getStatusBadge(app.status)}</TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex items-center justify-end gap-1">
+                              <Download className="h-4 w-4 text-gray-500" />
+                              {app.downloads.toLocaleString()}
                             </div>
-                            <div className="rounded-lg bg-purple-50 p-4">
-                              <div className="flex items-center">
-                                <Globe className="mr-3 h-5 w-5 text-purple-600" />
-                                <div>
-                                  <p className="text-sm text-gray-600">Ad Revenue</p>
-                                  <p className="text-xl font-bold text-gray-900">
-                                    ${totalAdRevenue.toFixed(2)}
-                                  </p>
-                                </div>
-                              </div>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex items-center justify-end gap-1">
+                              <BarChart3 className="h-4 w-4 text-yellow-500" />
+                              {app.rating || 0}/5
                             </div>
-                          </div>
-                        </div>
-
-                        <div>
-                          <h4 className="mb-4 font-medium text-gray-900">Monetized Applications</h4>
-                          <div className="space-y-3">
-                            {monetizationData.map((item) => {
-                              const app = applications.find(a => a.id === item.applicationId);
-                              if (!app) return null;
-                              
-                              return (
-                                <div
-                                  key={item.id}
-                                  className="flex items-center justify-between rounded-lg border p-4"
+                          </TableCell>
+                          <TableCell className="text-right font-semibold">
+                            ${app.price?.toFixed(2) || '0.00'}
+                          </TableCell>
+                          <TableCell className="text-right font-semibold text-green-600">
+                            ${app.revenue?.toFixed(2) || '0.00'}
+                          </TableCell>
+                          <TableCell className="text-right font-semibold text-blue-600">
+                            ${app.currentBalance?.toFixed(2) || '0.00'}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex gap-2 justify-end">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => navigate(`/applications/${app.id}`)}
+                              >
+                                View
+                              </Button>
+                              {app.isMonetized ? (
+                                <Button
+                                  variant="secondary"
+                                  size="sm"
+                                  onClick={() => navigate(`/monetization/${app.id}`)}
                                 >
-                                  <div>
-                                    <p className="font-medium text-gray-900">{app.name}</p>
-                                    <div className="mt-1 flex items-center space-x-4">
-                                      <span className="text-sm text-gray-600">
-                                        Balance: ${item.currentBalance?.toFixed(2) || '0.00'}
-                                      </span>
-                                      <span className="text-sm text-gray-600">
-                                        Total Revenue: ${item.revenue?.toFixed(2) || '0.00'}
-                                      </span>
-                                    </div>
-                                  </div>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => navigate(`/monetization/${item.id}`)}
-                                  >
-                                    Manage
-                                  </Button>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </TabPanel>
-
-                <TabPanel id="analytics">
-                  <div className="p-6">
-                    <h3 className="mb-6 text-lg font-medium text-gray-900">Analytics Dashboard</h3>
-                    
-                    {stats.length === 0 ? (
-                      <div className="py-12 text-center">
-                        <BarChart3 className="mx-auto h-12 w-12 text-gray-400" />
-                        <h3 className="mt-4 text-lg font-medium text-gray-900">No analytics data</h3>
-                        <p className="mt-1 text-gray-600">
-                          Analytics will appear once your apps get downloads
-                        </p>
-                      </div>
-                    ) : (
-                      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                        <Card>
-                          <CardHeader>
-                            <CardTitle>Downloads by Application</CardTitle>
-                          </CardHeader>
-                          <CardContent>
-                            <div className="space-y-4">
-                              {stats.map((stat) => {
-                                const app = applications.find(a => a.id === stat.applicationId);
-                                return (
-                                  <div key={stat.id} className="flex items-center justify-between">
-                                    <span className="text-sm text-gray-600">
-                                      {app?.name || `App #${stat.applicationId}`}
-                                    </span>
-                                    <div className="flex items-center space-x-2">
-                                      <span className="font-medium">{stat.downloads}</span>
-                                      <div className="h-2 w-24 rounded-full bg-gray-200">
-                                        <div
-                                          className="h-full rounded-full bg-primary-600"
-                                          style={{
-                                            width: `${Math.min((stat.downloads / 1000) * 100, 100)}%`,
-                                          }}
-                                        />
-                                      </div>
-                                    </div>
-                                  </div>
-                                );
-                              })}
+                                  <DollarSign className="h-4 w-4 mr-1" />
+                                  Monetize
+                                </Button>
+                              ) : (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => navigate(`/monetization/setup/${app.id}`)}
+                                >
+                                  <TrendingUp className="h-4 w-4 mr-1" />
+                                  Setup Monetization
+                                </Button>
+                              )}
                             </div>
-                          </CardContent>
-                        </Card>
-
-                        <Card>
-                          <CardHeader>
-                            <CardTitle>Performance Metrics</CardTitle>
-                          </CardHeader>
-                          <CardContent>
-                            <div className="space-y-4">
-                              <div className="flex items-center justify-between">
-                                <span className="text-sm text-gray-600">Average Downloads per App</span>
-                                <span className="font-medium">
-                                  {stats.length > 0
-                                    ? Math.round(stats.reduce((sum, s) => sum + s.downloads, 0) / stats.length)
-                                    : 0}
-                                </span>
-                              </div>
-                              <div className="flex items-center justify-between">
-                                <span className="text-sm text-gray-600">Conversion Rate</span>
-                                <span className="font-medium">
-                                  {monetizedAppsCount > 0
-                                    ? `${((monetizedAppsCount / applications.length) * 100).toFixed(1)}%`
-                                    : '0%'}
-                                </span>
-                              </div>
-                              <div className="flex items-center justify-between">
-                                <span className="text-sm text-gray-600">User Retention</span>
-                                <span className="font-medium">
-                                  {stats.length > 0 ? '85.2%' : 'N/A'}
-                                </span>
-                              </div>
-                              <div className="flex items-center justify-between">
-                                <span className="text-sm text-gray-600">Avg. Revenue per User</span>
-                                <span className="font-medium">
-                                  ${(totalRevenue / (totalDownloads || 1)).toFixed(2)}
-                                </span>
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      </div>
-                    )}
-                  </div>
-                </TabPanel>
-
-                <TabPanel id="settings">
-                  <div className="p-6">
-                    <h3 className="mb-6 text-lg font-medium text-gray-900">Developer Settings</h3>
-                    
-                    <div className="space-y-6">
-                      <div className="rounded-lg border p-6">
-                        <h4 className="mb-4 font-medium text-gray-900">Profile Information</h4>
-                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                          <Input label="Developer Name" defaultValue={developer?.name || ''} />
-                          <Input label="Contact Email" defaultValue={user.email || ''} />
-                          <div className="md:col-span-2">
-                            <label className="block text-sm font-medium text-gray-700">
-                              Description
-                            </label>
-                            <textarea
-                              className="mt-1 w-full rounded-lg border border-gray-300 p-3"
-                              rows={4}
-                              defaultValue={developer?.description || ''}
-                              placeholder="Describe your development work..."
-                            />
-                          </div>
-                        </div>
-                        <div className="mt-4 flex justify-end">
-                          <Button>Save Changes</Button>
-                        </div>
-                      </div>
-
-                      <div className="rounded-lg border p-6">
-                        <h4 className="mb-4 font-medium text-gray-900">Payment Settings</h4>
-                        <div className="space-y-3">
-                          <div className="flex items-center justify-between">
-                            <span className="text-sm text-gray-600">Payout Method</span>
-                            <span className="font-medium">Bank Transfer</span>
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <span className="text-sm text-gray-600">Payout Threshold</span>
-                            <span className="font-medium">$50.00</span>
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <span className="text-sm text-gray-600">Next Payout Date</span>
-                            <span className="font-medium">15th of each month</span>
-                          </div>
-                        </div>
-                        <div className="mt-4">
-                          <Button variant="outline">Update Payment Settings</Button>
-                        </div>
-                      </div>
-
-                      <div className="rounded-lg border p-6">
-                        <h4 className="mb-4 font-medium text-gray-900">Account Security</h4>
-                        <div className="space-y-4">
-                          <Button variant="outline" className="w-full justify-start">
-                            <Settings className="mr-2 h-4 w-4" />
-                            Change Password
-                          </Button>
-                          <Button variant="outline" className="w-full justify-start">
-                            <Shield className="mr-2 h-4 w-4" />
-                            Two-Factor Authentication
-                          </Button>
-                          <Button variant="outline" className="w-full justify-start">
-                            <Globe className="mr-2 h-4 w-4" />
-                            Connected Accounts
-                          </Button>
-                        </div>
-                      </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                  {}
+                  <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4 border-t pt-6">
+                    <div className="text-center">
+                      <p className="text-sm text-gray-600">Total Applications Value</p>
+                      <p className="text-2xl font-bold text-gray-900">
+                        ${appDetails.reduce((sum, app) => sum + (app.price || 0), 0).toFixed(2)}
+                      </p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-sm text-gray-600">Total Downloads</p>
+                      <p className="text-2xl font-bold text-gray-900">
+                        {appDetails
+                          .reduce((sum, app) => sum + (app.downloads || 0), 0)
+                          .toLocaleString()}
+                      </p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-sm text-gray-600">Average Rating</p>
+                      <p className="text-2xl font-bold text-gray-900">{avgRating}/5</p>
                     </div>
                   </div>
-                </TabPanel>
-              </Tabs>
+                </div>
+              )}
             </CardContent>
           </Card>
         </>
       )}
     </div>
+  );
+};
+
+const StatCard: React.FC<{
+  title: string;
+  value: string;
+  icon: React.ReactNode;
+  color: 'blue' | 'green' | 'purple' | 'orange';
+  description?: string;
+  trend?: string;
+}> = ({ title, value, icon, color, description, trend }) => {
+  const colors = {
+    blue: { bg: 'bg-blue-100', text: 'text-blue-600', trend: 'text-blue-700' },
+    green: { bg: 'bg-green-100', text: 'text-green-600', trend: 'text-green-700' },
+    purple: { bg: 'bg-purple-100', text: 'text-purple-600', trend: 'text-purple-700' },
+    orange: { bg: 'bg-orange-100', text: 'text-orange-600', trend: 'text-orange-700' },
+  };
+  return (
+    <Card>
+      <CardContent className="p-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm font-medium text-gray-600">{title}</p>
+            <p className="mt-2 text-2xl font-bold text-gray-900">{value}</p>
+            {description && <p className="mt-1 text-sm text-gray-500">{description}</p>}
+            {trend && (
+              <p className={`mt-1 text-sm font-medium ${colors[color].trend}`}>
+                <TrendingUp className="inline h-3 w-3 mr-1" />
+                {trend}
+              </p>
+            )}
+          </div>
+          <div className={`rounded-lg ${colors[color].bg} p-3`}>
+            {React.cloneElement(icon as any, { className: `h-6 w-6 ${colors[color].text}` })}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 };

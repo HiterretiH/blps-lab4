@@ -56,8 +56,6 @@ export const CreateAppForm: React.FC<CreateAppFormProps> = ({
         throw new Error('Не удалось определить ID разработчика. Пожалуйста, войдите заново.');
       }
 
-      // Валидация остается прежней
-
       const price = parseFloat(formData.price);
 
       await onSubmit({
@@ -69,7 +67,6 @@ export const CreateAppForm: React.FC<CreateAppFormProps> = ({
         developerId: developerId,
       });
 
-      // Сброс формы
       setFormData({
         name: '',
         type: 'GAME',

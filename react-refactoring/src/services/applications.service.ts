@@ -13,10 +13,9 @@ interface ApiError {
 }
 
 export const applicationsService = {
-  // Получить все приложения текущего разработчика
   async getMyApplications(): Promise<Application[]> {
     try {
-      const developerId = authService.getDeveloperId();
+      const developerId = await authService.getDeveloperId();
 
       if (!developerId) {
         console.error('❌ Не удалось определить developerId');
@@ -24,6 +23,7 @@ export const applicationsService = {
       }
 
       console.log(`🔄 Получение приложений для developerId: ${developerId}`);
+
       const response = await api.get<ApiApplication[]>(`/applications/developer/${developerId}`);
 
       console.log(`✅ Получено ${response.data.length} приложений`);
@@ -40,16 +40,10 @@ export const applicationsService = {
         data: apiError.response?.data,
       });
 
-      if (apiError.response?.status === 404) {
-        console.warn('⚠️ Эндпоинт /applications/developer/{id} не найден');
-        console.warn('Проверьте наличие метода в ApplicationController');
-      }
-
       return [];
     }
   },
 
-  // Получить все приложения (для админов и обычных пользователей)
   async getAllApplications(): Promise<Application[]> {
     try {
       console.log('🔄 Получение всех приложений');
@@ -73,7 +67,6 @@ export const applicationsService = {
     }
   },
 
-  // Получить приложения по developerId (для админов)
   async getApplicationsByDeveloper(developerId: number): Promise<Application[]> {
     try {
       const response = await api.get<ApiApplication[]>(`/applications/developer/${developerId}`);
