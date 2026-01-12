@@ -6,6 +6,7 @@ import org.lab1.exception.NotFoundException;
 import org.lab1.model.PayoutLog;
 import org.lab1.service.PayoutLogService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -30,7 +31,8 @@ public class PayoutLogController {
 
   @Autowired
   public PayoutLogController(
-      final PayoutLogService payoutLogServiceParam, final Logger loggerParam) {
+      final PayoutLogService payoutLogServiceParam,
+      @Qualifier("correlationLogger") final Logger loggerParam) {
     this.payoutLogService = payoutLogServiceParam;
     this.logger = loggerParam;
   }

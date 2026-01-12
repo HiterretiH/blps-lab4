@@ -9,6 +9,7 @@ import org.lab1.model.User;
 import org.lab1.service.GoogleOperationResultService;
 import org.lab1.service.UserQueryService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -45,7 +46,7 @@ public class GoogleOperationResultsController {
   public GoogleOperationResultsController(
       final GoogleOperationResultService googleResultServiceParam,
       final UserQueryService userQueryServiceParam,
-      final Logger loggerParam) {
+      @Qualifier("correlationLogger") final Logger loggerParam) {
     this.googleResultService = googleResultServiceParam;
     this.userQueryService = userQueryServiceParam;
     this.logger = loggerParam;

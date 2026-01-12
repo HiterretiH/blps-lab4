@@ -20,6 +20,7 @@ import org.lab1.service.GoogleOAuthRegistrationService;
 import org.lab1.service.UserQueryService;
 import org.lab1.service.UserRegistrationService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -85,7 +86,10 @@ public class AuthorizationController {
   @Autowired private GoogleOAuthRegistrationService googleOAuthRegistrationService;
   @Autowired private TokenManager tokenManager;
   @Autowired private MeterRegistry meterRegistry;
-  @Autowired private Logger logger;
+
+  @Autowired
+  @Qualifier("correlationLogger")
+  private Logger logger;
 
   @PostMapping("/login")
   public ResponseEntity<Token> login(@RequestBody final LoginCredentials credentials) {

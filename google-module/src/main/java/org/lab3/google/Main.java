@@ -9,6 +9,7 @@ import com.rabbitmq.client.Delivery;
 import io.prometheus.client.Histogram;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import org.lab.logger.FileLogger;
 import org.lab.logger.Logger;
 import org.lab3.google.config.EnvConfig;
 import org.lab3.google.config.GoogleConfig;
@@ -52,7 +53,7 @@ public final class Main {
 
   private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
   private static final MetricsManager METRICS = MetricsManager.getInstance();
-  private static final Logger LOGGER = Logger.getInstance("google-module");
+  private static final Logger LOGGER = FileLogger.getInstance("google-module");
   private static OperationResultRepository repository;
 
   private Main() {

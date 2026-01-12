@@ -10,6 +10,7 @@ import org.lab1.model.MonetizedApplication;
 import org.lab1.model.PaymentRequest;
 import org.lab1.repository.MonetizedApplicationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -68,7 +69,7 @@ public class MonetizationService {
   public MonetizationService(
       final MonetizedApplicationRepository monetizedApplicationRepositoryParam,
       final MeterRegistry meterRegistry,
-      final Logger loggerParam) {
+      @Qualifier("correlationLogger") final Logger loggerParam) {
     this.monetizedApplicationRepository = monetizedApplicationRepositoryParam;
     this.logger = loggerParam;
     this.payoutSuccessCounter =

@@ -13,6 +13,7 @@ import org.lab1.model.MonetizedApplication;
 import org.lab1.repository.InAppAddRepository;
 import org.lab1.repository.MonetizedApplicationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
@@ -59,7 +60,7 @@ public class InAppAddService {
       final MonetizedApplicationRepository monetizedApplicationRepositoryParam,
       final InAppAddMapper inAppAddMapperParam,
       final JtaTransactionManager transactionManagerParam,
-      final Logger loggerParam) {
+      @Qualifier("correlationLogger") final Logger loggerParam) {
     this.inAppAddRepository = inAppAddRepositoryParam;
     this.monetizedApplicationRepository = monetizedApplicationRepositoryParam;
     this.inAppAddMapper = inAppAddMapperParam;
@@ -234,18 +235,27 @@ public class InAppAddService {
   public final InAppAdd updateInAppAdd(final int id, final InAppAddJson inAppAddJson) {
     logger.info("Updating InAppAdd with ID: " + id);
 
-    InAppAdd existingInAppAdd = inAppAddRepository.findById(id)
-        .orElseThrow(() -> {
-          logger.error("InAppAdd not found with ID: " + id + " for update.");
-          return new NotFoundException("InAppAdd not found with ID: " + id);
-        });
+    InAppAdd existingInAppAdd =
+        inAppAddRepository
+            .findById(id)
+            .orElseThrow(
+                () -> {
+                  logger.error("InAppAdd not found with ID: " + id + " for update.");
+                  return new NotFoundException("InAppAdd not found with ID: " + id);
+                });
 
-    MonetizedApplication monetizedApplication = monetizedApplicationRepository
-        .findById(inAppAddJson.getMonetizedApplicationId())
-        .orElseThrow(() -> {
-          logger.error("Monetized Application not found with ID: " + inAppAddJson.getMonetizedApplicationId());
-          return new NotFoundException("Monetized Application not found with ID: " + inAppAddJson.getMonetizedApplicationId());
-        });
+    MonetizedApplication monetizedApplication =
+        monetizedApplicationRepository
+            .findById(inAppAddJson.getMonetizedApplicationId())
+            .orElseThrow(
+                () -> {
+                  logger.error(
+                      "Monetized Application not found with ID: "
+                          + inAppAddJson.getMonetizedApplicationId());
+                  return new NotFoundException(
+                      "Monetized Application not found with ID: "
+                          + inAppAddJson.getMonetizedApplicationId());
+                });
 
     existingInAppAdd.setTitle(inAppAddJson.getTitle());
     existingInAppAdd.setDescription(inAppAddJson.getDescription());
@@ -257,7 +267,8 @@ public class InAppAddService {
     return savedInAppAdd;
   }
 
-  public final InAppAddJson updateInAppAddAndReturnJson(final int id, final InAppAddJson inAppAddJson) {
+  public final InAppAddJson updateInAppAddAndReturnJson(
+      final int id, final InAppAddJson inAppAddJson) {
     InAppAdd updatedInAppAdd = updateInAppAdd(id, inAppAddJson);
     return inAppAddMapper.toDto(updatedInAppAdd);
   }

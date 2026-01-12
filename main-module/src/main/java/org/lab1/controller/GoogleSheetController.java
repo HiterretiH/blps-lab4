@@ -5,6 +5,7 @@ import org.lab1.model.User;
 import org.lab1.service.GoogleSheetService;
 import org.lab1.service.UserQueryService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -41,7 +42,7 @@ public class GoogleSheetController {
   public GoogleSheetController(
       final GoogleSheetService googleSheetServiceParam,
       final UserQueryService userQueryServiceParam,
-      final Logger loggerParam) {
+      @Qualifier("correlationLogger") final Logger loggerParam) {
     this.googleSheetService = googleSheetServiceParam;
     this.userQueryService = userQueryServiceParam;
     this.logger = loggerParam;

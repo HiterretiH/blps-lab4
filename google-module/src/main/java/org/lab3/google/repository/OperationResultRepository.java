@@ -10,6 +10,7 @@ import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
+import org.lab.logger.FileLogger;
 import org.lab.logger.Logger;
 import org.lab3.google.config.EnvConfig;
 import org.lab3.google.model.GoogleOperationResult;
@@ -30,7 +31,7 @@ public final class OperationResultRepository {
   private static final int FIVE = 5;
   private static final int SIX = 6;
 
-  private static final Logger LOGGER = Logger.getInstance("google-module-db");
+  private static final Logger LOGGER = FileLogger.getInstance("google-module-db");
   private final Connection connection;
 
   public OperationResultRepository() throws SQLException {

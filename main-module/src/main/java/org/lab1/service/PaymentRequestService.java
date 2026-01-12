@@ -5,6 +5,7 @@ import org.lab.logger.Logger;
 import org.lab1.model.PaymentRequest;
 import org.lab1.repository.PaymentRequestRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -26,7 +27,8 @@ public class PaymentRequestService {
 
   @Autowired
   public PaymentRequestService(
-      final PaymentRequestRepository paymentRequestRepositoryParam, final Logger loggerParam) {
+      final PaymentRequestRepository paymentRequestRepositoryParam,
+      @Qualifier("correlationLogger") final Logger loggerParam) {
     this.paymentRequestRepository = paymentRequestRepositoryParam;
     this.logger = loggerParam;
   }

@@ -11,6 +11,7 @@ import org.lab1.model.ApplicationType;
 import org.lab1.model.Developer;
 import org.lab1.service.ApplicationService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -50,7 +51,8 @@ public class ApplicationController {
 
   @Autowired
   public ApplicationController(
-      final ApplicationService applicationServiceParam, final Logger loggerParam) {
+      final ApplicationService applicationServiceParam,
+      @Qualifier("correlationLogger") final Logger loggerParam) {
     this.applicationService = applicationServiceParam;
     this.logger = loggerParam;
   }

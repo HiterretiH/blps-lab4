@@ -5,6 +5,7 @@ import org.lab.logger.Logger;
 import org.lab1.model.GoogleOperationResult;
 import org.lab1.repository.GoogleOperationResultRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,7 +29,8 @@ public class GoogleOperationResultService {
 
   @Autowired
   public GoogleOperationResultService(
-      final GoogleOperationResultRepository repositoryParam, final Logger loggerParam) {
+      final GoogleOperationResultRepository repositoryParam,
+      @Qualifier("correlationLogger") final Logger loggerParam) {
     this.repository = repositoryParam;
     this.logger = loggerParam;
   }

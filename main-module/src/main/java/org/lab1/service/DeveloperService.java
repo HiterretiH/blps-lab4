@@ -9,6 +9,7 @@ import org.lab1.model.Developer;
 import org.lab1.model.User;
 import org.lab1.repository.DeveloperRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -38,7 +39,7 @@ public class DeveloperService {
   public DeveloperService(
       final DeveloperRepository developerRepositoryParam,
       final DeveloperMapper developerMapperParam,
-      final Logger loggerParam) {
+      @Qualifier("correlationLogger") final Logger loggerParam) {
     this.developerRepository = developerRepositoryParam;
     this.developerMapper = developerMapperParam;
     this.logger = loggerParam;
@@ -131,7 +132,7 @@ public class DeveloperService {
     return developerMapper.toDto(updatedDeveloper);
   }
 
-  public Optional<Developer> getDeveloperByUserId(int userId) {
+  public Optional<Developer> getDeveloperByUserId(final int userId) {
     return developerRepository.findByUserId(userId);
   }
 

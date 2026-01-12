@@ -6,6 +6,7 @@ import org.lab.logger.Logger;
 import org.lab1.model.PayoutLog;
 import org.lab1.repository.PayoutLogRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -16,7 +17,10 @@ public class PayoutLogService {
   private static final String DELETE_LOG = "Deleting PayoutLog by ID: ";
 
   @Autowired private PayoutLogRepository payoutLogRepository;
-  @Autowired private Logger logger;
+
+  @Autowired
+  @Qualifier("correlationLogger")
+  private Logger logger;
 
   public final PayoutLog save(final PayoutLog payoutLog) {
     logger.info(SAVE_LOG);

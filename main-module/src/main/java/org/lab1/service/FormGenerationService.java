@@ -10,6 +10,7 @@ import org.lab1.exception.UnauthorizedException;
 import org.lab1.model.FormField;
 import org.lab1.repository.FormFieldRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
@@ -53,7 +54,7 @@ public class FormGenerationService {
       final JtaTransactionManager transactionManagerParam,
       final GoogleTaskSender googleTaskSenderParam,
       final GoogleOAuthQueryService googleOAuthQueryServiceParam,
-      final Logger loggerParam) {
+      @Qualifier("correlationLogger") final Logger loggerParam) {
     this.formFieldRepository = formFieldRepositoryParam;
     this.transactionManager = transactionManagerParam;
     this.googleTaskSender = googleTaskSenderParam;

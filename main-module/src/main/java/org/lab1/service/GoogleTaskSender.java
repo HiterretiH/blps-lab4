@@ -13,6 +13,7 @@ import org.springframework.amqp.core.MessageBuilder;
 import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -65,7 +66,7 @@ public class GoogleTaskSender {
       final RabbitTemplate rabbitTemplateParam,
       final GoogleOAuthQueryService googleOAuthQueryServiceParam,
       final ObjectMapper objectMapperParam,
-      final Logger loggerParam) {
+      @Qualifier("correlationLogger") final Logger loggerParam) {
     this.rabbitTemplate = rabbitTemplateParam;
     this.googleOAuthQueryService = googleOAuthQueryServiceParam;
     this.objectMapper = objectMapperParam;

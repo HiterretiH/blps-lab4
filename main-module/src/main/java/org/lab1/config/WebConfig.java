@@ -1,5 +1,7 @@
 package org.lab1.config;
 
+import org.lab.logger.CorrelationLogger;
+import org.lab.logger.FileLogger;
 import org.lab.logger.Logger;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Bean;
@@ -19,7 +21,8 @@ public class WebConfig implements WebMvcConfigurer {
   private static final String[] ALLOWED_METHODS = {"GET", "POST", "PUT", "DELETE", "OPTIONS"};
   private static final String PASSWORD_ENCODER_BEAN = "passwordEncoder";
   private static final String REST_TEMPLATE_BEAN = "restTemplate";
-  private static final String LOGGER_BEAN = "logger";
+  private static final String FILE_LOGGER_BEAN = "fileLogger";
+  private static final String CORRELATION_LOGGER_BEAN = "correlationLogger";
   private static final String APP_LOGGER_NAME = "app";
   private static final String SCOPE_SINGLETON = ConfigurableBeanFactory.SCOPE_SINGLETON;
 
@@ -42,9 +45,15 @@ public class WebConfig implements WebMvcConfigurer {
     return new RestTemplate();
   }
 
-  @Bean(name = LOGGER_BEAN)
+  @Bean(name = FILE_LOGGER_BEAN)
   @Scope(value = SCOPE_SINGLETON)
-  public Logger logger() {
-    return Logger.getInstance(APP_LOGGER_NAME);
+  public Logger fileLogger() {
+    return FileLogger.getInstance(APP_LOGGER_NAME);
+  }
+
+  @Bean(name = CORRELATION_LOGGER_BEAN)
+  @Scope(value = SCOPE_SINGLETON)
+  public Logger correlationLogger() {
+    return CorrelationLogger.getInstance(APP_LOGGER_NAME);
   }
 }

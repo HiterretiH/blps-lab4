@@ -34,6 +34,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.lab.logger.FileLogger;
 import org.lab.logger.Logger;
 import org.lab3.google.json.MonetizationEvent;
 import org.lab3.google.resource.GoogleManagedConnection;
@@ -48,7 +49,7 @@ public final class GoogleConnectionImpl implements GoogleConnection {
   private final Sheets sheetsService;
   private final GoogleManagedConnection managedConnection;
   private final MetricsManager metrics = MetricsManager.getInstance();
-  private static final Logger LOGGER = Logger.getInstance("google-module");
+  private static final Logger LOGGER = FileLogger.getInstance("google-module");
 
   private static final float LIGHT_GRAY_RED = 0.9f;
   private static final float LIGHT_GRAY_GREEN = 0.9f;

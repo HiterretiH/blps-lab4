@@ -9,9 +9,17 @@ import org.lab1.json.InAppPurchasesJson;
 import org.lab1.model.InAppPurchase;
 import org.lab1.service.InAppPurchaseService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.PathVariable;
 
 @RestController
 @RequestMapping("/api/in-app-purchases")
@@ -27,8 +35,10 @@ public class InAppPurchaseController {
   private static final String LIST_FOUND_LOG = "Found ";
   private static final String GET_REQUEST_LOG = "Received request to get InAppPurchase by ID: ";
   private static final String GET_NOT_FOUND_LOG = "InAppPurchase not found with ID: ";
-  private static final String CREATE_SINGLE_REQUEST_LOG = "Received request to create single InAppPurchase";
-  private static final String CREATE_SINGLE_SUCCESS_LOG = "Successfully created single InAppPurchase";
+  private static final String CREATE_SINGLE_REQUEST_LOG =
+      "Received request to create single InAppPurchase";
+  private static final String CREATE_SINGLE_SUCCESS_LOG =
+      "Successfully created single InAppPurchase";
   private static final String UPDATE_REQUEST_LOG = "Received request to update InAppPurchase ID: ";
   private static final String UPDATE_SUCCESS_LOG = "Successfully updated InAppPurchase ID: ";
   private static final String DELETE_REQUEST_LOG = "Received request to delete InAppPurchase ID: ";
@@ -46,7 +56,8 @@ public class InAppPurchaseController {
 
   @Autowired
   public InAppPurchaseController(
-      final InAppPurchaseService inAppPurchaseServiceParam, final Logger loggerParam) {
+      final InAppPurchaseService inAppPurchaseServiceParam,
+      @Qualifier("correlationLogger") final Logger loggerParam) {
     this.inAppPurchaseService = inAppPurchaseServiceParam;
     this.logger = loggerParam;
   }
@@ -140,8 +151,7 @@ public class InAppPurchaseController {
   @PreAuthorize("hasAuthority('in_app_purchase.manage')")
   @PutMapping("/{id}")
   public ResponseEntity<InAppPurchase> updateInAppPurchase(
-      @PathVariable final int id,
-      @RequestBody final InAppPurchaseJson purchaseJson) {
+      @PathVariable final int id, @RequestBody final InAppPurchaseJson purchaseJson) {
     logger.info(UPDATE_REQUEST_LOG + id);
 
     try {

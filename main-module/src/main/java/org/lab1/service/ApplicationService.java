@@ -14,6 +14,7 @@ import org.lab1.model.Developer;
 import org.lab1.repository.ApplicationRepository;
 import org.lab1.repository.DeveloperRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -61,7 +62,7 @@ public class ApplicationService {
       final ApplicationRepository applicationRepositoryParam,
       final DeveloperRepository developerRepositoryParam,
       final ApplicationMapper applicationMapperParam,
-      final Logger loggerParam) {
+      @Qualifier("correlationLogger") final Logger loggerParam) {
     this.applicationRepository = applicationRepositoryParam;
     this.developerRepository = developerRepositoryParam;
     this.applicationMapper = applicationMapperParam;

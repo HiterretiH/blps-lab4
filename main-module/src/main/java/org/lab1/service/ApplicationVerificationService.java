@@ -7,6 +7,7 @@ import org.lab1.model.ApplicationForm;
 import org.lab1.model.VerificationLog;
 import org.lab1.repository.VerificationLogRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -35,7 +36,8 @@ public class ApplicationVerificationService {
 
   @Autowired
   public ApplicationVerificationService(
-      final VerificationLogRepository verificationLogRepositoryParam, final Logger loggerParam) {
+      final VerificationLogRepository verificationLogRepositoryParam,
+      @Qualifier("correlationLogger") final Logger loggerParam) {
     this.verificationLogRepository = verificationLogRepositoryParam;
     this.logger = loggerParam;
   }

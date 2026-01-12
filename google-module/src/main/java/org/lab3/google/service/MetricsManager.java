@@ -6,12 +6,13 @@ import io.prometheus.client.exporter.HTTPServer;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import org.lab.logger.FileLogger;
 import org.lab.logger.Logger;
 
 public final class MetricsManager {
   private static final int METRICS_PORT = 8080;
   private static MetricsManager instance;
-  private static final Logger LOGGER = Logger.getInstance("google-module");
+  private static final Logger LOGGER = FileLogger.getInstance("google-module");
 
   private static final String TOTAL_REQUESTS_NAME = "google_module_requests_total";
   private static final String SUCCESSFUL_REQUESTS_NAME = "google_module_requests_success_total";

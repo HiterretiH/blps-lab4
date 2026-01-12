@@ -11,6 +11,7 @@ public interface MonetizedApplicationRepository
   MonetizedApplication findByApplicationId(int applicationId);
 
   List<MonetizedApplication> findByDeveloperUserId(int developerUserId);
-  //@Query("SELECT m FROM MonetizedApplication m WHERE m.developerId = :developerId")
+
+  // @Query("SELECT m FROM MonetizedApplication m WHERE m.developerId = :developerId")
   List<MonetizedApplication> findByDeveloper_Id(int developerId);
 }

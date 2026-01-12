@@ -16,6 +16,7 @@ import org.lab1.model.User;
 import org.lab1.repository.ApplicationRepository;
 import org.lab1.repository.MonetizedApplicationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -71,7 +72,7 @@ public class GoogleSheetService {
       final UserQueryService userQueryServiceParam,
       final MonetizedApplicationRepository monetizedApplicationRepositoryParam,
       final ApplicationRepository applicationRepositoryParam,
-      final Logger loggerParam) {
+      @Qualifier("correlationLogger") final Logger loggerParam) {
     this.googleTaskSender = googleTaskSenderParam;
     this.googleOAuthQueryService = googleOAuthQueryServiceParam;
     this.userQueryService = userQueryServiceParam;

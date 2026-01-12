@@ -1,5 +1,6 @@
 package org.lab3.google.quartz;
 
+import org.lab.logger.FileLogger;
 import org.lab.logger.Logger;
 import org.lab3.google.model.GoogleOperationResult;
 import org.lab3.google.repository.OperationResultRepository;
@@ -9,7 +10,7 @@ import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 
 public final class UpdateAppsTopJob implements Job {
-  private static final Logger LOGGER = Logger.getInstance("google-module-job");
+  private static final Logger LOGGER = FileLogger.getInstance("google-module-job");
   private static final String UPDATE_APPS_TOP_OPERATION = "updateAppsTop";
   private static final String ALL_SPREADSHEETS_TARGET = "All spreadsheets";
   private static final String SUCCESS_RESULT = "Apps top updated";

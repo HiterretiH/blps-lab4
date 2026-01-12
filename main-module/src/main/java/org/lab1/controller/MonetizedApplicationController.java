@@ -1,11 +1,13 @@
 package org.lab1.controller;
 
+import java.util.List;
 import org.lab.logger.Logger;
 import org.lab1.exception.NotFoundException;
 import org.lab1.json.MonetizedApplicationJson;
 import org.lab1.model.MonetizedApplication;
 import org.lab1.service.MonetizedApplicationService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,8 +16,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/monetized-applications")
@@ -35,7 +35,7 @@ public class MonetizedApplicationController {
   @Autowired
   public MonetizedApplicationController(
       final MonetizedApplicationService monetizedApplicationServiceParam,
-      final Logger loggerParam) {
+      @Qualifier("correlationLogger") final Logger loggerParam) {
     this.monetizedApplicationService = monetizedApplicationServiceParam;
     this.logger = loggerParam;
   }
@@ -85,7 +85,11 @@ public class MonetizedApplicationController {
     List<MonetizedApplication> monetizedApplications =
         monetizedApplicationService.getMonetizedApplicationsByDeveloperId(developerId);
 
-    logger.info("Found " + monetizedApplications.size() + " MonetizedApplications for developer ID: " + developerId);
+    logger.info(
+        "Found "
+            + monetizedApplications.size()
+            + " MonetizedApplications for developer ID: "
+            + developerId);
     return ResponseEntity.ok(monetizedApplications);
   }
 }

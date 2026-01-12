@@ -11,6 +11,7 @@ import org.lab1.model.ApplicationStats;
 import org.lab1.repository.ApplicationRepository;
 import org.lab1.repository.ApplicationStatsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -39,7 +40,7 @@ public class ApplicationStatsService {
       final ApplicationStatsRepository applicationStatsRepositoryParam,
       final ApplicationRepository applicationRepositoryParam,
       final ApplicationStatsMapper applicationStatsMapperParam,
-      final Logger loggerParam) {
+      @Qualifier("correlationLogger") final Logger loggerParam) {
     this.applicationStatsRepository = applicationStatsRepositoryParam;
     this.applicationRepository = applicationRepositoryParam;
     this.applicationStatsMapper = applicationStatsMapperParam;

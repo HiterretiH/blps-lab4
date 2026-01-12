@@ -8,10 +8,18 @@ import org.lab1.json.InAppAddJson;
 import org.lab1.model.InAppAdd;
 import org.lab1.service.InAppAddService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.PathVariable;
 
 @RestController
 @RequestMapping("/api/in-app-ads")
@@ -36,11 +44,15 @@ public class InAppAddController {
   private static final String FOR_APP_ID_LOG = " for MonetizedApplication ID: ";
   private static final String DELETE_REQUEST_LOG = "Received request to delete InAppAdd with ID: ";
   private static final String DELETE_SUCCESS_LOG = "Successfully deleted InAppAdd with ID: ";
-  private static final String BULK_DELETE_REQUEST_LOG = "Received request to delete multiple InAppAdds. Count: ";
+  private static final String BULK_DELETE_REQUEST_LOG =
+      "Received request to delete multiple InAppAdds. Count: ";
   private static final String BULK_DELETE_SUCCESS_LOG = "Successfully deleted ";
-  private static final String BULK_DELETE_ERROR_LOG = "Failed to delete multiple InAppAdds. Reason: ";
-  private static final String DELETE_BY_APP_REQUEST_LOG = "Received request to delete all InAppAdds for MonetizedApplication ID: ";
-  private static final String DELETE_BY_APP_SUCCESS_LOG = "Successfully deleted all InAppAdds for MonetizedApplication ID: ";
+  private static final String BULK_DELETE_ERROR_LOG =
+      "Failed to delete multiple InAppAdds. Reason: ";
+  private static final String DELETE_BY_APP_REQUEST_LOG =
+      "Received request to delete all InAppAdds for MonetizedApplication ID: ";
+  private static final String DELETE_BY_APP_SUCCESS_LOG =
+      "Successfully deleted all InAppAdds for MonetizedApplication ID: ";
   private static final String UPDATE_REQUEST_LOG = "Received request to update InAppAdd with ID: ";
   private static final String UPDATE_SUCCESS_LOG = "Successfully updated InAppAdd with ID: ";
 
@@ -48,7 +60,9 @@ public class InAppAddController {
   private final Logger logger;
 
   @Autowired
-  public InAppAddController(final InAppAddService inAppAddServiceParam, final Logger loggerParam) {
+  public InAppAddController(
+      final InAppAddService inAppAddServiceParam,
+      @Qualifier("correlationLogger") final Logger loggerParam) {
     this.inAppAddService = inAppAddServiceParam;
     this.logger = loggerParam;
   }
@@ -127,8 +141,7 @@ public class InAppAddController {
   @PreAuthorize("hasAuthority('in_app_add.manage')")
   @PutMapping("/{id}")
   public ResponseEntity<InAppAdd> updateInAppAdd(
-      @PathVariable final int id,
-      @RequestBody final InAppAddJson inAppAddJson) {
+      @PathVariable final int id, @RequestBody final InAppAddJson inAppAddJson) {
     logger.info(UPDATE_REQUEST_LOG + id);
     InAppAdd updatedInAppAdd = inAppAddService.updateInAppAdd(id, inAppAddJson);
     logger.info(UPDATE_SUCCESS_LOG + id);

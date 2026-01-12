@@ -5,6 +5,7 @@ import org.lab1.exception.NotFoundException;
 import org.lab1.model.VerificationLog;
 import org.lab1.service.VerificationLogService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -25,7 +26,8 @@ public class VerificationLogController {
 
   @Autowired
   public VerificationLogController(
-      final VerificationLogService verificationLogServiceParam, final Logger loggerParam) {
+      final VerificationLogService verificationLogServiceParam,
+      @Qualifier("correlationLogger") final Logger loggerParam) {
     this.verificationLogService = verificationLogServiceParam;
     this.logger = loggerParam;
   }

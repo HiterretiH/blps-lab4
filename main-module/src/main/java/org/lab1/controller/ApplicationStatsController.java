@@ -7,6 +7,7 @@ import org.lab1.json.ApplicationStatsJson;
 import org.lab1.model.ApplicationStats;
 import org.lab1.service.ApplicationStatsService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -41,7 +42,8 @@ public class ApplicationStatsController {
 
   @Autowired
   public ApplicationStatsController(
-      final ApplicationStatsService applicationStatsServiceParam, final Logger loggerParam) {
+      final ApplicationStatsService applicationStatsServiceParam,
+      @Qualifier("correlationLogger") final Logger loggerParam) {
     this.applicationStatsService = applicationStatsServiceParam;
     this.logger = loggerParam;
   }

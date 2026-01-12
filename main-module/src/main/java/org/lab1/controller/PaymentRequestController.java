@@ -6,6 +6,7 @@ import org.lab1.exception.ValidationException;
 import org.lab1.model.PaymentRequest;
 import org.lab1.service.PaymentRequestService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -37,7 +38,8 @@ public class PaymentRequestController {
 
   @Autowired
   public PaymentRequestController(
-      final PaymentRequestService paymentRequestServiceParam, final Logger loggerParam) {
+      final PaymentRequestService paymentRequestServiceParam,
+      @Qualifier("correlationLogger") final Logger loggerParam) {
     this.paymentRequestService = paymentRequestServiceParam;
     this.logger = loggerParam;
   }

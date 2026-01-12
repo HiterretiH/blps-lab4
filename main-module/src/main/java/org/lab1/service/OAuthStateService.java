@@ -5,6 +5,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import org.lab.logger.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -22,7 +23,9 @@ public class OAuthStateService {
 
   private final Map<Integer, StateInfo> stateStorage = new ConcurrentHashMap<>();
 
-  @Autowired private Logger logger;
+  @Autowired
+  @Qualifier("correlationLogger")
+  private Logger logger;
 
   public final void storeGoogleAuthState(final int userId, final String stateParam) {
     stateStorage.put(userId, new StateInfo(stateParam, System.currentTimeMillis()));

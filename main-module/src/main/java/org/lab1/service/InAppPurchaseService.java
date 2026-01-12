@@ -13,6 +13,7 @@ import org.lab1.model.MonetizedApplication;
 import org.lab1.repository.InAppPurchaseRepository;
 import org.lab1.repository.MonetizedApplicationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
@@ -65,7 +66,7 @@ public class InAppPurchaseService {
       final MonetizedApplicationRepository monetizedApplicationRepositoryParam,
       final InAppPurchaseMapper inAppPurchaseMapperParam,
       final JtaTransactionManager transactionManagerParam,
-      final Logger loggerParam) {
+      @Qualifier("correlationLogger") final Logger loggerParam) {
     this.inAppPurchaseRepository = inAppPurchaseRepositoryParam;
     this.monetizedApplicationRepository = monetizedApplicationRepositoryParam;
     this.inAppPurchaseMapper = inAppPurchaseMapperParam;
@@ -224,7 +225,7 @@ public class InAppPurchaseService {
     return purchases.stream().map(inAppPurchaseMapper::toDto).toList();
   }
 
-  public InAppPurchase createSingleInAppPurchase(InAppPurchaseJson purchaseJson) {
+  public InAppPurchase createSingleInAppPurchase(final InAppPurchaseJson purchaseJson) {
     logger.info(CREATE_SINGLE_LOG);
 
     if (purchaseJson.getTitle() == null || purchaseJson.getTitle().trim().isEmpty()) {
@@ -237,14 +238,16 @@ public class InAppPurchaseService {
 
     InAppPurchase purchase = new InAppPurchase();
     purchase.setTitle(purchaseJson.getTitle());
-    purchase.setDescription(purchaseJson.getDescription() != null ? purchaseJson.getDescription() : "");
+    purchase.setDescription(
+        purchaseJson.getDescription() != null ? purchaseJson.getDescription() : "");
     purchase.setPrice(purchaseJson.getPrice());
 
     // Если указан monetizedApplicationId, пытаемся привязать
     if (purchaseJson.getMonetizedApplicationId() != null) {
-      MonetizedApplication monetizedApp = monetizedApplicationRepository
-          .findById(purchaseJson.getMonetizedApplicationId())
-          .orElseThrow(() -> new NotFoundException("Monetized application not found"));
+      MonetizedApplication monetizedApp =
+          monetizedApplicationRepository
+              .findById(purchaseJson.getMonetizedApplicationId())
+              .orElseThrow(() -> new NotFoundException("Monetized application not found"));
       purchase.setMonetizedApplication(monetizedApp);
     }
 
@@ -253,7 +256,7 @@ public class InAppPurchaseService {
     return saved;
   }
 
-  public InAppPurchase updateInAppPurchase(int id, InAppPurchaseJson purchaseJson) {
+  public InAppPurchase updateInAppPurchase(final int id, final InAppPurchaseJson purchaseJson) {
     logger.info(UPDATE_LOG + id);
 
     InAppPurchase purchase = getInAppPurchaseByIdOrThrow(id);
@@ -275,7 +278,7 @@ public class InAppPurchaseService {
     return updated;
   }
 
-  public void deleteInAppPurchase(int id) {
+  public void deleteInAppPurchase(final int id) {
     logger.info(DELETE_LOG + id);
 
     InAppPurchase purchase = getInAppPurchaseByIdOrThrow(id);
@@ -283,7 +286,7 @@ public class InAppPurchaseService {
     logger.info("Deleted purchase ID: " + id);
   }
 
-  public List<InAppPurchase> getPurchasesByMonetizedApp(int monetizedAppId) {
+  public List<InAppPurchase> getPurchasesByMonetizedApp(final int monetizedAppId) {
     logger.info("Getting purchases for monetized app ID: " + monetizedAppId);
 
     return inAppPurchaseRepository.findByMonetizedApplicationId(monetizedAppId);

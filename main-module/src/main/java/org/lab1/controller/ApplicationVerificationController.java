@@ -6,6 +6,7 @@ import org.lab1.model.ApplicationForm;
 import org.lab1.model.VerificationLog;
 import org.lab1.service.ApplicationVerificationService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -33,7 +34,7 @@ public class ApplicationVerificationController {
   @Autowired
   public ApplicationVerificationController(
       final ApplicationVerificationService applicationVerificationServiceParam,
-      final Logger loggerParam) {
+      @Qualifier("correlationLogger") final Logger loggerParam) {
     this.applicationVerificationService = applicationVerificationServiceParam;
     this.logger = loggerParam;
   }

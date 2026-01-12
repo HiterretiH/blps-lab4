@@ -13,6 +13,7 @@ import org.lab1.repository.ApplicationRepository;
 import org.lab1.repository.DeveloperRepository;
 import org.lab1.repository.MonetizedApplicationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -42,7 +43,7 @@ public class MonetizedApplicationService {
       final DeveloperRepository developerRepositoryParam,
       final ApplicationRepository applicationRepositoryParam,
       final MonetizedApplicationMapper monetizedApplicationMapperParam,
-      final Logger loggerParam) {
+      @Qualifier("correlationLogger") final Logger loggerParam) {
     this.monetizedApplicationRepository = monetizedApplicationRepositoryParam;
     this.developerRepository = developerRepositoryParam;
     this.applicationRepository = applicationRepositoryParam;
@@ -141,17 +142,20 @@ public class MonetizedApplicationService {
     return monetizedApp;
   }
 
-  public final List<MonetizedApplication> getMonetizedApplicationsByDeveloperId(final int developerId) {
+  public final List<MonetizedApplication> getMonetizedApplicationsByDeveloperId(
+      final int developerId) {
     logger.info("Fetching MonetizedApplications for developer ID: " + developerId);
 
-    List<MonetizedApplication> apps = monetizedApplicationRepository.findByDeveloper_Id(developerId);
+    List<MonetizedApplication> apps =
+        monetizedApplicationRepository.findByDeveloper_Id(developerId);
 
     logger.info("Found " + apps.size() + " MonetizedApplications for developer ID: " + developerId);
     return apps;
   }
 
   // Или если хотите по developer.id (а не developer.userId):
-  public final List<MonetizedApplication> getMonetizedApplicationsByDeveloperUserId(final int userId) {
+  public final List<MonetizedApplication> getMonetizedApplicationsByDeveloperUserId(
+      final int userId) {
     logger.info("Fetching MonetizedApplications for user ID: " + userId);
 
     // Находим developer по userId

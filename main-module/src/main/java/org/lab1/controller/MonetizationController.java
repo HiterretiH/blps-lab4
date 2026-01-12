@@ -7,6 +7,7 @@ import org.lab1.model.MonetizedApplication;
 import org.lab1.model.PaymentRequest;
 import org.lab1.service.MonetizationService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -42,7 +43,8 @@ public class MonetizationController {
 
   @Autowired
   public MonetizationController(
-      final MonetizationService monetizationServiceParam, final Logger loggerParam) {
+      final MonetizationService monetizationServiceParam,
+      @Qualifier("correlationLogger") final Logger loggerParam) {
     this.monetizationService = monetizationServiceParam;
     this.logger = loggerParam;
   }

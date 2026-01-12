@@ -5,6 +5,7 @@ import org.lab1.exception.NotFoundException;
 import org.lab1.model.Developer;
 import org.lab1.service.DeveloperService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -34,7 +35,8 @@ public class DeveloperController {
 
   @Autowired
   public DeveloperController(
-      final DeveloperService developerServiceParam, final Logger loggerParam) {
+      final DeveloperService developerServiceParam,
+      @Qualifier("correlationLogger") final Logger loggerParam) {
     this.developerService = developerServiceParam;
     this.logger = loggerParam;
   }
