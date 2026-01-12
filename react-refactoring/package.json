@@ -14,11 +14,16 @@
     "validate": "npm run lint && npm run format:check && tsc --noEmit"
   },
   "dependencies": {
+    "@hookform/resolvers": "^5.2.2",
+    "@sentry/react": "^10.32.1",
+    "@sentry/tracing": "^7.120.4",
     "axios": "^1.13.2",
     "lucide-react": "^0.562.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
+    "react-hook-form": "^7.71.0",
     "react-router-dom": "^7.11.0",
+    "zod": "^4.3.5",
     "zustand": "^5.0.9"
   },
   "devDependencies": {

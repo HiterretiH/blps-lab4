@@ -16,6 +16,17 @@ import { useEffect } from 'react';
 import { useAuthStore } from './store/auth.store';
 import { UserDownloadsPage } from './pages/UserDownloadsPage.tsx';
 import { DownloadAppPage } from './pages/DownloadAppPage.tsx';
+import { SentryErrorBoundary } from './lib/sentry.ts';
+import { ToastContainer } from './components/ui/ToastContainer.tsx';
+
+function ErrorFallback() {
+  return (
+    <div className="flex min-h-screen flex-col items-center justify-center">
+      <h1 className="text-2xl font-bold text-red-600">Something went wrong</h1>
+      <p className="mt-2 text-gray-600">We are already working on it</p>
+    </div>
+  );
+}
 
 function App() {
   const { checkAuth } = useAuthStore();
@@ -25,6 +36,7 @@ function App() {
   }, [checkAuth]);
 
   return (
+    <SentryErrorBoundary fallback={<ErrorFallback />}>
     <Router>
       <div className="min-h-screen bg-gray-50">
         <Header />
@@ -163,6 +175,8 @@ function App() {
         </main>
       </div>
     </Router>
+    <ToastContainer />
+    </SentryErrorBoundary>
   );
 }
 

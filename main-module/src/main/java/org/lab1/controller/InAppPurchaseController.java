@@ -4,18 +4,14 @@ import java.util.List;
 import org.lab.logger.Logger;
 import org.lab1.exception.NotFoundException;
 import org.lab1.exception.ValidationException;
+import org.lab1.json.InAppPurchaseJson;
 import org.lab1.json.InAppPurchasesJson;
 import org.lab1.model.InAppPurchase;
 import org.lab1.service.InAppPurchaseService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/in-app-purchases")
@@ -31,6 +27,12 @@ public class InAppPurchaseController {
   private static final String LIST_FOUND_LOG = "Found ";
   private static final String GET_REQUEST_LOG = "Received request to get InAppPurchase by ID: ";
   private static final String GET_NOT_FOUND_LOG = "InAppPurchase not found with ID: ";
+  private static final String CREATE_SINGLE_REQUEST_LOG = "Received request to create single InAppPurchase";
+  private static final String CREATE_SINGLE_SUCCESS_LOG = "Successfully created single InAppPurchase";
+  private static final String UPDATE_REQUEST_LOG = "Received request to update InAppPurchase ID: ";
+  private static final String UPDATE_SUCCESS_LOG = "Successfully updated InAppPurchase ID: ";
+  private static final String DELETE_REQUEST_LOG = "Received request to delete InAppPurchase ID: ";
+  private static final String DELETE_SUCCESS_LOG = "Successfully deleted InAppPurchase ID: ";
   private static final String LINK_REQUEST_LOG =
       "Received request to link InAppPurchases to MonetizedApplication ID: ";
   private static final String LINK_SUCCESS_LOG = "Successfully linked ";
@@ -117,5 +119,66 @@ public class InAppPurchaseController {
       logger.error(LINK_ERROR_LOG + monetizedApplicationId + REASON_LOG + exception.getMessage());
       throw new ValidationException(exception.getMessage());
     }
+  }
+
+  @PreAuthorize("hasAuthority('in_app_purchase.manage')")
+  @PostMapping("/create-single")
+  public ResponseEntity<InAppPurchase> createSingleInAppPurchase(
+      @RequestBody final InAppPurchaseJson purchaseJson) {
+    logger.info(CREATE_SINGLE_REQUEST_LOG);
+
+    try {
+      InAppPurchase purchase = inAppPurchaseService.createSingleInAppPurchase(purchaseJson);
+      logger.info(CREATE_SINGLE_SUCCESS_LOG + " with ID: " + purchase.getId());
+      return ResponseEntity.ok(purchase);
+    } catch (IllegalArgumentException exception) {
+      logger.error("Failed to create single InAppPurchase. Reason: " + exception.getMessage());
+      throw new ValidationException(exception.getMessage());
+    }
+  }
+
+  @PreAuthorize("hasAuthority('in_app_purchase.manage')")
+  @PutMapping("/{id}")
+  public ResponseEntity<InAppPurchase> updateInAppPurchase(
+      @PathVariable final int id,
+      @RequestBody final InAppPurchaseJson purchaseJson) {
+    logger.info(UPDATE_REQUEST_LOG + id);
+
+    try {
+      InAppPurchase updatedPurchase = inAppPurchaseService.updateInAppPurchase(id, purchaseJson);
+      logger.info(UPDATE_SUCCESS_LOG + id);
+      return ResponseEntity.ok(updatedPurchase);
+    } catch (NotFoundException exception) {
+      logger.error("InAppPurchase not found for update. ID: " + id);
+      throw exception;
+    } catch (IllegalArgumentException exception) {
+      logger.error("Failed to update InAppPurchase. Reason: " + exception.getMessage());
+      throw new ValidationException(exception.getMessage());
+    }
+  }
+
+  @PreAuthorize("hasAuthority('in_app_purchase.manage')")
+  @DeleteMapping("/{id}")
+  public ResponseEntity<Void> deleteInAppPurchase(@PathVariable final int id) {
+    logger.info(DELETE_REQUEST_LOG + id);
+
+    try {
+      inAppPurchaseService.deleteInAppPurchase(id);
+      logger.info(DELETE_SUCCESS_LOG + id);
+      return ResponseEntity.noContent().build();
+    } catch (NotFoundException exception) {
+      logger.error("InAppPurchase not found for deletion. ID: " + id);
+      throw exception;
+    }
+  }
+
+  @PreAuthorize("hasAuthority('in_app_purchase.read')")
+  @GetMapping("/by-monetized-app/{monetizedAppId}")
+  public ResponseEntity<List<InAppPurchase>> getPurchasesByMonetizedApp(
+      @PathVariable final int monetizedAppId) {
+    logger.info("Getting purchases for monetized app ID: " + monetizedAppId);
+
+    List<InAppPurchase> purchases = inAppPurchaseService.getPurchasesByMonetizedApp(monetizedAppId);
+    return ResponseEntity.ok(purchases);
   }
 }

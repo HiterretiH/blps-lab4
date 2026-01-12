@@ -222,4 +222,35 @@ export const monetizationService = {
       };
     }
   },
+
+  async monetizeApplication(applicationId: number, developerId: number): Promise<any> {
+    try {
+      const response = await fetch(`http://localhost:727/api/monetized-applications`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+        },
+        body: JSON.stringify({
+          developerId,
+          applicationId,
+          currentBalance: 0,
+          revenue: 0,
+          downloadRevenue: 0,
+          adsRevenue: 0,
+          purchasesRevenue: 0,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || 'Failed to monetize application');
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Monetization error:', error);
+      throw error;
+    }
+  },
 };

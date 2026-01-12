@@ -26,6 +26,10 @@ public class InAppAddService {
   private static final String MONETIZED_APP_NOT_FOUND_LOG =
       "Monetized Application not found with ID: ";
   private static final String MONETIZED_APP_NOT_FOUND_MSG = "Monetized Application not found";
+  private static final String UPDATE_LOG = "Updating InAppAdd with ID: ";
+  private static final String UPDATE_NOT_FOUND_LOG = "InAppAdd not found with ID: ";
+  private static final String UPDATE_FOR_UPDATE_LOG = " for update.";
+  private static final String UPDATE_SUCCESS_LOG = "Successfully updated InAppAdd with ID: ";
   private static final String CREATED_IN_APP_ADD_LOG = "InAppAdd created with ID: ";
   private static final String FOR_MONETIZED_APP_LOG = " for MonetizedApplication ID: ";
   private static final String BULK_CREATE_LOG = "Creating multiple InAppAdds. Count: ";
@@ -213,5 +217,48 @@ public class InAppAddService {
       final int monetizedApplicationId) {
     List<InAppAdd> inAppAdds = getInAppAddByMonetizedApplication(monetizedApplicationId);
     return inAppAdds.stream().map(inAppAddMapper::toDto).toList();
+  }
+
+  public final void deleteInAppAdd(final int id) {
+    logger.info("Deleting InAppAdd with ID: " + id);
+
+    if (!inAppAddRepository.existsById(id)) {
+      logger.error("InAppAdd not found with ID: " + id + " for deletion.");
+      throw new NotFoundException("InAppAdd not found with ID: " + id);
+    }
+
+    inAppAddRepository.deleteById(id);
+    logger.info("Successfully deleted InAppAdd with ID: " + id);
+  }
+
+  public final InAppAdd updateInAppAdd(final int id, final InAppAddJson inAppAddJson) {
+    logger.info("Updating InAppAdd with ID: " + id);
+
+    InAppAdd existingInAppAdd = inAppAddRepository.findById(id)
+        .orElseThrow(() -> {
+          logger.error("InAppAdd not found with ID: " + id + " for update.");
+          return new NotFoundException("InAppAdd not found with ID: " + id);
+        });
+
+    MonetizedApplication monetizedApplication = monetizedApplicationRepository
+        .findById(inAppAddJson.getMonetizedApplicationId())
+        .orElseThrow(() -> {
+          logger.error("Monetized Application not found with ID: " + inAppAddJson.getMonetizedApplicationId());
+          return new NotFoundException("Monetized Application not found with ID: " + inAppAddJson.getMonetizedApplicationId());
+        });
+
+    existingInAppAdd.setTitle(inAppAddJson.getTitle());
+    existingInAppAdd.setDescription(inAppAddJson.getDescription());
+    existingInAppAdd.setPrice(inAppAddJson.getPrice());
+    existingInAppAdd.setMonetizedApplication(monetizedApplication);
+
+    InAppAdd savedInAppAdd = inAppAddRepository.save(existingInAppAdd);
+    logger.info("Successfully updated InAppAdd with ID: " + id);
+    return savedInAppAdd;
+  }
+
+  public final InAppAddJson updateInAppAddAndReturnJson(final int id, final InAppAddJson inAppAddJson) {
+    InAppAdd updatedInAppAdd = updateInAppAdd(id, inAppAddJson);
+    return inAppAddMapper.toDto(updatedInAppAdd);
   }
 }

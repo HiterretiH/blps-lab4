@@ -59,11 +59,12 @@ export const AppCard: React.FC<AppCardProps> = ({ application, onDelete, current
     if (!cardDetails.expiryDate.match(cardRegex.expiryDate)) {
       errors.push('Expiry date must be in format DD.MM.YYYY or MM.DD.YYYY (e.g., 01.12.2025)');
     } else {
-      const [month, year] = cardDetails.expiryDate.split('.').map(Number);
+      const [day, month, year] = cardDetails.expiryDate.split('.').map(Number);
       const now = new Date();
       const currentYear = now.getFullYear();
       const currentMonth = now.getMonth() + 1;
-
+      
+      // Проверяем месяц и год (игнорируем день)
       if (year < currentYear || (year === currentYear && month < currentMonth)) {
         errors.push('Card has expired');
       }

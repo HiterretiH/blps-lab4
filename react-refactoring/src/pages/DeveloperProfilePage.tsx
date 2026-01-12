@@ -1,3 +1,4 @@
+// DeveloperProfilePage.tsx (обновленная версия)
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
@@ -17,6 +18,7 @@ import { useApplicationsStore } from '../store/applications.store';
 import { useMonetizationStore } from '../store/monetization.store';
 import { monetizationService } from '../services/monetization.service';
 import { statsService } from '../services/stats.service';
+import { MonetizeConfirmationModal } from '../components/monetization/MonetizeConfirmationModal'; // Импорт нового компонента
 import {
   User,
   DollarSign,
@@ -32,12 +34,15 @@ import {
   CheckCircle,
   Clock,
   XCircle,
+  Zap,
 } from 'lucide-react';
+
 export const DeveloperProfilePage: React.FC = () => {
   const navigate = useNavigate();
   const { user, developerId } = useAuthStore();
   const { applications, fetchMyApplications } = useApplicationsStore();
   const { stats, fetchStats } = useMonetizationStore();
+  
   const [totalRevenue, setTotalRevenue] = useState(0);
   const [totalDownloads, setTotalDownloads] = useState(0);
   const [monetizedAppsData, setMonetizedAppsData] = useState<any[]>([]);
@@ -45,19 +50,29 @@ export const DeveloperProfilePage: React.FC = () => {
   const [appDetails, setAppDetails] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  // Состояния для модального окна монетизации
+  const [showMonetizeModal, setShowMonetizeModal] = useState(false);
+  const [selectedApp, setSelectedApp] = useState<any>(null);
+  const [isMonetizing, setIsMonetizing] = useState(false);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
   const isMounted = useRef(true);
   const isLoadingRef = useRef(false);
+
   useEffect(() => {
     isMounted.current = true;
     return () => {
       isMounted.current = false;
     };
   }, []);
+
   const loadDeveloperData = useCallback(async () => {
     if (!developerId || isLoadingRef.current) return;
     isLoadingRef.current = true;
     setIsLoading(true);
     setError(null);
+    
     try {
       console.log('🔄 Loading developer statistics for ID:', developerId);
       const [apps, appStats, monetizedApps, devStats] = await Promise.all([
@@ -66,9 +81,12 @@ export const DeveloperProfilePage: React.FC = () => {
         monetizationService.getAllMonetizedAppsByDeveloper(developerId),
         statsService.getStatsByDeveloper(developerId),
       ]);
+
       if (!isMounted.current) return;
+
       setMonetizedAppsData(monetizedApps);
       setDeveloperStats(devStats);
+
       const appDetailsData = apps.map(app => {
         const appStats = devStats.find((stat: any) => stat.application.id === app.id);
         const monetization = monetizedApps.find((m: any) => m.application.id === app.id);
@@ -84,7 +102,9 @@ export const DeveloperProfilePage: React.FC = () => {
           isMonetized: !!monetization,
         };
       });
+
       setAppDetails(appDetailsData);
+
       let totalRev = 0;
       let totalDls = 0;
       monetizedApps.forEach((app: any) => {
@@ -93,6 +113,7 @@ export const DeveloperProfilePage: React.FC = () => {
       devStats.forEach((stat: any) => {
         totalDls += stat.downloads || 0;
       });
+
       setTotalRevenue(totalRev);
       setTotalDownloads(totalDls);
     } catch (err) {
@@ -107,6 +128,7 @@ export const DeveloperProfilePage: React.FC = () => {
       isLoadingRef.current = false;
     }
   }, [developerId, fetchMyApplications, fetchStats]);
+
   useEffect(() => {
     if (!user || user.role !== 'DEVELOPER') {
       navigate('/dashboard');
@@ -116,6 +138,49 @@ export const DeveloperProfilePage: React.FC = () => {
       loadDeveloperData();
     }
   }, [user, navigate, developerId, loadDeveloperData]);
+
+  // Функция для монетизации приложения
+  const handleMonetizeApp = async () => {
+    if (!selectedApp || !developerId) return;
+
+    setIsMonetizing(true);
+    setError(null);
+    setSuccessMessage(null);
+
+    try {
+      // Вызываем сервис монетизации
+      const monetizedApp = await monetizationService.monetizeApplication(
+        selectedApp.id,
+        developerId
+      );
+
+      // Показываем сообщение об успехе
+      setSuccessMessage(`✅ "${selectedApp.name}" has been successfully monetized!`);
+
+      // Закрываем модальное окно через 2 секунды
+      setTimeout(() => {
+        setShowMonetizeModal(false);
+        setSelectedApp(null);
+        // Перезагружаем данные
+        loadDeveloperData();
+      }, 2000);
+
+    } catch (err: any) {
+      console.error('Monetization error:', err);
+      setError(err.message || 'Failed to monetize application');
+    } finally {
+      setIsMonetizing(false);
+    }
+  };
+
+  // Обработчик нажатия кнопки "Monetize"
+  const handleMonetizeClick = (app: any) => {
+    setSelectedApp(app);
+    setShowMonetizeModal(true);
+    setError(null);
+    setSuccessMessage(null);
+  };
+
   const { monetizedAppsCount, activeAppsCount, pendingAppsCount, rejectedAppsCount } =
     React.useMemo(() => {
       return {
@@ -125,6 +190,7 @@ export const DeveloperProfilePage: React.FC = () => {
         rejectedAppsCount: appDetails.filter(app => app.status === 2).length,
       };
     }, [appDetails]);
+
   const { totalDownloadRevenue, totalPurchaseRevenue, totalAdRevenue, avgRating } =
     React.useMemo(() => {
       return {
@@ -139,10 +205,12 @@ export const DeveloperProfilePage: React.FC = () => {
             : '0.0',
       };
     }, [appDetails]);
+
   if (!user || user.role !== 'DEVELOPER') {
     navigate('/dashboard');
     return null;
   }
+
   const getStatusBadge = (status: number) => {
     switch (status) {
       case 1:
@@ -170,6 +238,7 @@ export const DeveloperProfilePage: React.FC = () => {
         return <Badge variant="secondary">UNKNOWN</Badge>;
     }
   };
+
   const getTypeBadge = (type: string) => {
     const colors: Record<string, string> = {
       GAME: 'bg-purple-100 text-purple-800',
@@ -186,6 +255,7 @@ export const DeveloperProfilePage: React.FC = () => {
       <span className={`px-2 py-1 rounded-full text-xs font-medium ${colorClass}`}>{type}</span>
     );
   };
+
   return (
     <div className="space-y-6">
       <div className="flex items-start justify-between">
@@ -217,11 +287,20 @@ export const DeveloperProfilePage: React.FC = () => {
           New Application
         </Button>
       </div>
+
+      {/* Сообщение об успехе */}
+      {successMessage && (
+        <Alert variant="success" title="Success">
+          {successMessage}
+        </Alert>
+      )}
+
       {error && (
         <Alert variant="danger" title="Error">
           {error}
         </Alert>
       )}
+
       {isLoading ? (
         <div className="flex flex-col items-center justify-center py-12">
           <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-primary-600"></div>
@@ -229,7 +308,7 @@ export const DeveloperProfilePage: React.FC = () => {
         </div>
       ) : (
         <>
-          {}
+          {/* Статистические карточки */}
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
             <StatCard
               title="Total Revenue"
@@ -264,7 +343,8 @@ export const DeveloperProfilePage: React.FC = () => {
               </CardContent>
             </Card>
           </div>
-          {}
+
+          {/* Разбивка доходов */}
           <Card>
             <CardHeader>
               <CardTitle>Revenue Breakdown</CardTitle>
@@ -328,7 +408,8 @@ export const DeveloperProfilePage: React.FC = () => {
               </div>
             </CardContent>
           </Card>
-          {}
+
+          {/* Таблица приложений */}
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>All Applications ({appDetails.length})</CardTitle>
@@ -421,18 +502,20 @@ export const DeveloperProfilePage: React.FC = () => {
                                   variant="secondary"
                                   size="sm"
                                   onClick={() => navigate(`/monetization/${app.id}`)}
+                                  className="flex items-center gap-1"
                                 >
-                                  <DollarSign className="h-4 w-4 mr-1" />
+                                  <DollarSign className="h-4 w-4" />
                                   Monetize
                                 </Button>
                               ) : (
                                 <Button
-                                  variant="outline"
+                                  variant="primary"
                                   size="sm"
-                                  onClick={() => navigate(`/monetization/setup/${app.id}`)}
+                                  onClick={() => handleMonetizeClick(app)}
+                                  className="flex items-center gap-1 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
                                 >
-                                  <TrendingUp className="h-4 w-4 mr-1" />
-                                  Setup Monetization
+                                  <Zap className="h-4 w-4" />
+                                  Monetize
                                 </Button>
                               )}
                             </div>
@@ -441,7 +524,8 @@ export const DeveloperProfilePage: React.FC = () => {
                       ))}
                     </TableBody>
                   </Table>
-                  {}
+                  
+                  {/* Итоговая статистика */}
                   <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4 border-t pt-6">
                     <div className="text-center">
                       <p className="text-sm text-gray-600">Total Applications Value</p>
@@ -468,10 +552,27 @@ export const DeveloperProfilePage: React.FC = () => {
           </Card>
         </>
       )}
+
+      {/* Модальное окно подтверждения монетизации */}
+      {selectedApp && developerId && (
+        <MonetizeConfirmationModal
+          isOpen={showMonetizeModal}
+          onClose={() => {
+            setShowMonetizeModal(false);
+            setSelectedApp(null);
+          }}
+          onConfirm={handleMonetizeApp}
+          applicationName={selectedApp.name}
+          applicationId={selectedApp.id}
+          developerId={developerId}
+          isLoading={isMonetizing}
+        />
+      )}
     </div>
   );
 };
 
+// Компонент StatCard остается без изменений
 const StatCard: React.FC<{
   title: string;
   value: string;

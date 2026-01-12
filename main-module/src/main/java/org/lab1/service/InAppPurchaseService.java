@@ -42,6 +42,9 @@ public class InAppPurchaseService {
   private static final String MONETIZED_APP_NOT_FOUND_LOG =
       "Monetized application not found with ID: ";
   private static final String MONETIZED_APP_NOT_FOUND_MSG = "Monetized application not found";
+  private static final String CREATE_SINGLE_LOG = "Creating single InAppPurchase";
+  private static final String UPDATE_LOG = "Updating InAppPurchase ID: ";
+  private static final String DELETE_LOG = "Deleting InAppPurchase ID: ";
   private static final String FOUND_NULL_PURCHASES_LOG = "Found ";
   private static final String NULL_PURCHASES_LOG =
       " InAppPurchases with null MonetizedApplication.";
@@ -219,5 +222,70 @@ public class InAppPurchaseService {
       final int monetizedApplicationId) {
     List<InAppPurchase> purchases = linkMonetizedAppToPurchases(monetizedApplicationId);
     return purchases.stream().map(inAppPurchaseMapper::toDto).toList();
+  }
+
+  public InAppPurchase createSingleInAppPurchase(InAppPurchaseJson purchaseJson) {
+    logger.info(CREATE_SINGLE_LOG);
+
+    if (purchaseJson.getTitle() == null || purchaseJson.getTitle().trim().isEmpty()) {
+      throw new ValidationException("Title is required");
+    }
+
+    if (purchaseJson.getPrice() <= 0) {
+      throw new ValidationException("Price must be greater than 0");
+    }
+
+    InAppPurchase purchase = new InAppPurchase();
+    purchase.setTitle(purchaseJson.getTitle());
+    purchase.setDescription(purchaseJson.getDescription() != null ? purchaseJson.getDescription() : "");
+    purchase.setPrice(purchaseJson.getPrice());
+
+    // Если указан monetizedApplicationId, пытаемся привязать
+    if (purchaseJson.getMonetizedApplicationId() != null) {
+      MonetizedApplication monetizedApp = monetizedApplicationRepository
+          .findById(purchaseJson.getMonetizedApplicationId())
+          .orElseThrow(() -> new NotFoundException("Monetized application not found"));
+      purchase.setMonetizedApplication(monetizedApp);
+    }
+
+    InAppPurchase saved = inAppPurchaseRepository.save(purchase);
+    logger.info("Created single purchase with ID: " + saved.getId());
+    return saved;
+  }
+
+  public InAppPurchase updateInAppPurchase(int id, InAppPurchaseJson purchaseJson) {
+    logger.info(UPDATE_LOG + id);
+
+    InAppPurchase purchase = getInAppPurchaseByIdOrThrow(id);
+
+    if (purchaseJson.getTitle() != null) {
+      purchase.setTitle(purchaseJson.getTitle());
+    }
+
+    if (purchaseJson.getDescription() != null) {
+      purchase.setDescription(purchaseJson.getDescription());
+    }
+
+    if (purchaseJson.getPrice() > 0) {
+      purchase.setPrice(purchaseJson.getPrice());
+    }
+
+    InAppPurchase updated = inAppPurchaseRepository.save(purchase);
+    logger.info("Updated purchase ID: " + id);
+    return updated;
+  }
+
+  public void deleteInAppPurchase(int id) {
+    logger.info(DELETE_LOG + id);
+
+    InAppPurchase purchase = getInAppPurchaseByIdOrThrow(id);
+    inAppPurchaseRepository.delete(purchase);
+    logger.info("Deleted purchase ID: " + id);
+  }
+
+  public List<InAppPurchase> getPurchasesByMonetizedApp(int monetizedAppId) {
+    logger.info("Getting purchases for monetized app ID: " + monetizedAppId);
+
+    return inAppPurchaseRepository.findByMonetizedApplicationId(monetizedAppId);
   }
 }

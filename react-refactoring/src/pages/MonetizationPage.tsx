@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
@@ -6,6 +6,11 @@ import { Alert } from '../components/ui/Alert';
 import { Tabs, TabPanel } from '../components/ui/Tabs';
 import { Badge } from '../components/ui/Badge';
 import { Input } from '../components/ui/Input';
+import { Modal } from '../components/ui/Modal';
+import { InAppPurchaseForm } from '@/components/purchases/InAppPurchaseForm';
+import { InAppPurchaseTable } from '@/components/purchases/InAppPurchaseTable';
+import { DeletePurchaseModal } from '@/components/purchases/DeletePurchaseModal';
+import { useInAppAdds } from '@/hooks/useInAppAdds';
 import {
   Table,
   TableBody,
@@ -20,6 +25,13 @@ import { paymentService } from '../services/payment.service';
 import { applicationsService } from '../services/applications.service';
 import { adsService } from '../services/ads.service';
 import { purchasesService } from '../services/purchases.service';
+import { useInAppPurchases } from '@/hooks/useInAppPurchases';
+import { useToast } from '@/hooks/useToast';
+import { InAppPurchase, InAppAdd } from '@/types';
+import { InAppAddForm } from '@/components/adds/InAppAddForm';
+import { InAppAddTable } from '@/components/adds/InAppAddTable';
+import { DeleteAddModal } from '@/components/adds/DeleteAppModal';
+import { inAppAddSchema } from '@/components/schemas/inAppAdd.schema';
 import {
   DollarSign,
   CreditCard,
@@ -28,7 +40,7 @@ import {
   Download,
   Globe,
   PlusCircle,
-  Link,
+  Link as LinkIcon,
   ArrowLeft,
   CheckCircle,
   XCircle,
@@ -40,64 +52,128 @@ export const MonetizationPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuthStore();
+  const { toast } = useToast();
 
   const [application, setApplication] = useState<any>(null);
   const [monetizationInfo, setMonetizationInfo] = useState<any>(null);
-  const [ads, setAds] = useState<any[]>([]);
-  const [purchases, setPurchases] = useState<any[]>([]);
   const [payoutAmount, setPayoutAmount] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('overview');
-  const [showCreateAd, setShowCreateAd] = useState(false);
-  const [newAd, setNewAd] = useState({ title: '', description: '', price: '' });
   const [isProcessingPayout, setIsProcessingPayout] = useState(false);
   const [monetizedAppId, setMonetizedAppId] = useState<number | null>(null);
+  
+  // Состояния для управления покупками
+  const [purchaseToEdit, setPurchaseToEdit] = useState<InAppPurchase | null>(null);
+  const [purchaseToDelete, setPurchaseToDelete] = useState<number | null>(null);
+  const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [isLinkingPurchases, setIsLinkingPurchases] = useState(false);
+  
+  // Состояния для загрузки
+  const [isCreatingPurchase, setIsCreatingPurchase] = useState(false);
+  const [isUpdatingPurchase, setIsUpdatingPurchase] = useState(false);
+  const [isDeletingPurchase, setIsDeletingPurchase] = useState(false);
 
-  useEffect(() => {
-    const loadData = async () => {
-      if (!id) return;
+  const [adToEdit, setAdToEdit] = useState<InAppAdd | null>(null);
+  const [adToDelete, setAdToDelete] = useState<number | null>(null);
+  const [isDeleteAdModalOpen, setDeleteAdModalOpen] = useState(false);
+  const [isCreatingAd, setIsCreatingAd] = useState(false);
+  const [isUpdatingAd, setIsUpdatingAd] = useState(false);
+  const [isDeletingAd, setIsDeletingAd] = useState(false);
 
-      if (!monetizedAppId && monetizationInfo) {
-        setMonetizedAppId(monetizationInfo.id);
+  // Используем ref для отслеживания
+  const hasLoadedData = useRef(false);
+  const hasFetchedPurchases = useRef(false);
+
+  // Используем кастомные хуки
+  const {
+    purchases,
+    isLoading: isLoadingPurchases,
+    error: purchasesError,
+    fetchPurchases,
+    createPurchase: createPurchaseHook,
+    updatePurchase: updatePurchaseHook,
+    deletePurchase: deletePurchaseHook,
+  } = useInAppPurchases();
+
+  const {
+    ads,
+    isLoading: isLoadingAds,
+    error: adsError,
+    fetchAds,
+    createAd,
+    updateAd,
+    deleteAd,
+  } = useInAppAdds(monetizedAppId || undefined);
+
+  // Основная загрузка данных
+  const loadData = useCallback(async () => {
+    if (!id) return;
+    
+    // Предотвращаем повторную загрузку
+    if (hasLoadedData.current) {
+      console.log('Data already loaded, skipping');
+      return;
+    }
+    
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const appId = parseInt(id);
+      console.log(`Loading data for app ID: ${appId}`);
+
+      // Загружаем приложение
+      const app = await applicationsService.getApplicationById(appId);
+      setApplication(app);
+
+      // Загружаем информацию о монетизации
+      const monetization = await monetizationService.getMonetizationInfo(appId);
+      if (monetization) {
+        console.log(`Found monetization for app ${appId}:`, monetization);
+        setMonetizationInfo(monetization);
+        setMonetizedAppId(monetization.id);
+      } else {
+        console.log(`No monetization found for app ${appId}`);
       }
-
-      setIsLoading(true);
-
-      try {
-        const appId = parseInt(id);
-
-        const app = await applicationsService.getApplicationById(appId);
-        setApplication(app);
-
-
-        const monetization = await monetizationService.getMonetizationInfo(appId);
-        if (monetization) {
-          setMonetizationInfo(monetization);
-          setMonetizedAppId(monetization.id);
-
-          try {
-            const adsData = await adsService.getAdsByMonetizedApp(monetization.id);
-            setAds(adsData);
-          } catch (adsError) {
-            console.error('Error loading ads:', adsError);
-            setAds([]);
-          }
-
-          const allPurchases = await purchasesService.getAllPurchases();
-          setPurchases(allPurchases);
-        }
-      } catch (err: any) {
-        console.error('Failed to load data:', err);
-        setError(err.message || 'Failed to load monetization data');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadData();
+      
+      hasLoadedData.current = true;
+    } catch (err: any) {
+      console.error('Failed to load data:', err);
+      setError(err.message || 'Failed to load monetization data');
+    } finally {
+      setIsLoading(false);
+    }
   }, [id]);
+
+  // Загрузка при монтировании
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  // Загружаем покупки и рекламу когда изменился monetizedAppId
+  useEffect(() => {
+    if (monetizedAppId && !hasFetchedPurchases.current) {
+      console.log(`monetizedAppId changed to ${monetizedAppId}, fetching data`);
+      hasFetchedPurchases.current = true;
+      
+      // Загружаем покупки
+      fetchPurchases();
+      // Загружаем рекламу
+      fetchAds();
+    }
+  }, [monetizedAppId, fetchPurchases, fetchAds]);
+
+  // Обновляем ошибки из хуков
+  useEffect(() => {
+    if (purchasesError) {
+      setError(purchasesError);
+    }
+    if (adsError) {
+      setError(adsError);
+    }
+  }, [purchasesError, adsError]);
 
   const handleRequestPayout = async () => {
     if (!monetizationInfo || !payoutAmount) {
@@ -119,28 +195,20 @@ export const MonetizationPage: React.FC = () => {
         return;
       }
 
-      console.log('Step 1: Creating payment request...');
       const paymentRequest = await paymentService.createPaymentRequest(
         monetizationInfo.application.id,
         amount
       );
-      console.log('Payment request created:', paymentRequest);
-
-      console.log('Step 2: Validating card...');
-      console.log(
-        `Using payment request ID: ${paymentRequest.id} (not applicationId: ${paymentRequest.applicationId})`
-      );
 
       const isValid = await paymentService.validateCard(paymentRequest.id);
-      console.log('Card validation result:', isValid);
 
       if (isValid) {
-        console.log('Step 3: Making payout...');
         const result = await monetizationService.makePayout(paymentRequest);
 
         setSuccess(`✅ Payout successful! ${result}`);
         setPayoutAmount('');
 
+        // Обновляем информацию о монетизации
         if (application) {
           const updated = await monetizationService.getMonetizationInfo(application.id);
           setMonetizationInfo(updated);
@@ -156,72 +224,140 @@ export const MonetizationPage: React.FC = () => {
     }
   };
 
-  const handleCreateAd = async () => {
-    if (!monetizedAppId || !newAd.title || !newAd.price) {
-      setError('Please fill all required fields');
-      return;
-    }
-
-    try {
-      await adsService.createAd({
-        monetizedApplicationId: monetizedAppId,
-        title: newAd.title,
-        description: newAd.description,
-        price: parseFloat(newAd.price),
-      });
-
-      const adsData = await adsService.getAdsByMonetizedApp(monetizedAppId);
-      setAds(adsData);
-
-      setNewAd({ title: '', description: '', price: '' });
-      setShowCreateAd(false);
-      setSuccess('Ad created successfully!');
-    } catch (err: any) {
-      console.error('Create ad error:', err);
-      setError(err.message || 'Failed to create ad');
-    }
-  };
-
   const handleLinkPurchases = async () => {
     if (!monetizationInfo) return;
 
-    try {
-      const linked = await purchasesService.linkToMonetizedApp(monetizationInfo.id);
-      setPurchases(linked);
-      setSuccess('Purchases linked successfully!');
+    setIsLinkingPurchases(true);
+    setError(null);
 
-      const allPurchases = await purchasesService.getAllPurchases();
-      setPurchases(allPurchases);
+    try {
+      await purchasesService.linkToMonetizedApp(monetizationInfo.id);
+      setSuccess('Purchases linked successfully!');
+      
+      // Обновляем список покупок
+      await fetchPurchases();
     } catch (err: any) {
       console.error('Link purchases error:', err);
       setError(err.message || 'Failed to link purchases');
+    } finally {
+      setIsLinkingPurchases(false);
     }
   };
 
-  const handleCreatePurchase = async () => {
+  const handleCreatePurchase = async (data: any) => {
+    setIsCreatingPurchase(true);
+    setError(null);
+
     try {
-      const newPurchases = await purchasesService.createPurchases({
-        titles: ['New Item'],
-        descriptions: ['New item description'],
-        prices: [0.99],
+      await createPurchaseHook({
+        ...data,
+        monetizedApplicationId: monetizationInfo?.id,
       });
-
-      if (monetizationInfo && newPurchases.length > 0) {
-        await purchasesService.linkToMonetizedApp(monetizationInfo.id);
-      }
-
-      const updatedPurchases = await purchasesService.getAllPurchases();
-      setPurchases(updatedPurchases);
-      setSuccess('Purchase created and linked successfully!');
+      setSuccess('Purchase created successfully!');
     } catch (err: any) {
       console.error('Create purchase error:', err);
       setError(err.message || 'Failed to create purchase');
+    } finally {
+      setIsCreatingPurchase(false);
     }
   };
 
+  const handleUpdatePurchase = async (id: number, data: any) => {
+    setIsUpdatingPurchase(true);
+    setError(null);
+
+    try {
+      await updatePurchaseHook(id, data);
+      setSuccess('Purchase updated successfully!');
+      setPurchaseToEdit(null);
+    } catch (err: any) {
+      console.error('Update purchase error:', err);
+      setError(err.message || 'Failed to update purchase');
+    } finally {
+      setIsUpdatingPurchase(false);
+    }
+  };
+
+  const handleDeletePurchase = async (id: number) => {
+    setIsDeletingPurchase(true);
+    setError(null);
+
+    try {
+      await deletePurchaseHook(id);
+      setSuccess('Purchase deleted successfully!');
+      setDeleteModalOpen(false);
+      setPurchaseToDelete(null);
+    } catch (err: any) {
+      console.error('Delete purchase error:', err);
+      setError(err.message || 'Failed to delete purchase');
+    } finally {
+      setIsDeletingPurchase(false);
+    }
+  };
+
+  const handleCreateAd = async (data: any) => {
+  if (!monetizedAppId) return;
+  
+  setIsCreatingAd(true);
+  setError(null);
+
+  try {
+    await createAd({
+      ...data,
+      monetizedApplicationId: monetizedAppId,
+    });
+    setSuccess('Ad created successfully!');
+  } catch (err: any) {
+    console.error('Create ad error:', err);
+    setError(err.message || 'Failed to create ad');
+  } finally {
+    setIsCreatingAd(false); // Правильное состояние
+  }
+};
+
+const handleUpdateAd = async (id: number, data: any) => {
+  setIsUpdatingAd(true);
+  setError(null);
+
+  try {
+    await updateAd(id, {
+      title: data.title,
+      description: data.description,
+      price: data.price,
+      monetizedApplicationId: monetizedAppId,
+    });
+    setSuccess('Ad updated successfully!');
+    setAdToEdit(null); // Закрываем модальное окно редактирования
+  } catch (err: any) {
+    console.error('Update ad error:', err);
+    setError(err.message || 'Failed to update ad');
+  } finally {
+    setIsUpdatingAd(false);
+  }
+};
+
+const handleDeleteAd = async (id: number) => {
+  setIsDeletingAd(true);
+  setError(null);
+
+  try {
+    await deleteAd(id);
+    setSuccess('Ad deleted successfully!');
+    setDeleteAdModalOpen(false); // Закрываем модальное окно удаления
+    setAdToDelete(null); // Сбрасываем ID рекламы для удаления
+  } catch (err: any) {
+    console.error('Delete ad error:', err);
+    setError(err.message || 'Failed to delete ad');
+  } finally {
+    setIsDeletingAd(false); // Правильное состояние
+  }
+};
+
+  // Фильтруем покупки, привязанные к текущему приложению
   const appPurchases = purchases.filter(
     purchase =>
-      purchase.monetizedApplication && purchase.monetizedApplication.id === monetizationInfo?.id
+      purchase.monetizedApplication && 
+      purchase.monetizedApplication.id === monetizationInfo?.id
   );
 
   const tabs = [
@@ -327,6 +463,9 @@ export const MonetizationPage: React.FC = () => {
                   });
                   setMonetizationInfo(newMonetized);
                   setSuccess('Monetization setup successful!');
+                  
+                  // Перезагружаем данные
+                  loadData();
                 } catch (err: any) {
                   console.error('Failed to create monetization:', err);
                   setError(err.message || 'Failed to create monetization');
@@ -494,273 +633,219 @@ export const MonetizationPage: React.FC = () => {
                 {/* Purchases Tab */}
                 <TabPanel id="purchases">
                   <div className="p-6">
-                    <div className="mb-6 flex items-center justify-between">
-                      <div>
-                        <h3 className="text-lg font-medium text-gray-900">In-App Purchases</h3>
-                        <p className="mt-1 text-sm text-gray-600">
-                          {appPurchases.length} purchases linked to this application
-                        </p>
-                      </div>
-                      <div className="flex space-x-2">
-                        <Button
-                          variant="outline"
-                          onClick={handleLinkPurchases}
-                          className="flex items-center gap-2"
-                        >
-                          <Link className="h-4 w-4" />
-                          Link Purchases
-                        </Button>
-                        <Button onClick={handleCreatePurchase} className="flex items-center gap-2">
-                          <PlusCircle className="h-4 w-4" />
-                          Create New
-                        </Button>
-                      </div>
+                    <div className="mb-6">
+                      <h3 className="text-lg font-medium text-gray-900">In-App Purchases</h3>
+                      <p className="mt-1 text-sm text-gray-600">
+                        Create and manage in-app purchases for your application
+                      </p>
                     </div>
 
-                    {appPurchases.length === 0 ? (
-                      <div className="py-12 text-center">
-                        <ShoppingBag className="mx-auto h-12 w-12 text-gray-400" />
-                        <h3 className="mt-4 text-lg font-medium text-gray-900">
-                          No purchases linked
-                        </h3>
-                        <p className="mt-1 text-gray-600">
-                          Link existing purchases or create new ones for this application
-                        </p>
-                        <div className="mt-6 flex justify-center space-x-3">
-                          <Button onClick={handleLinkPurchases}>Link Existing Purchases</Button>
-                          <Button variant="outline" onClick={handleCreatePurchase}>
-                            Create New
+                    {/* Форма создания покупки */}
+                    <div className="mb-8">
+                      <InAppPurchaseForm
+                        onSubmit={handleCreatePurchase}
+                        monetizedAppId={monetizationInfo?.id}
+                        isLoading={isCreatingPurchase}
+                        submitButtonText="Create Purchase"
+                      />
+                    </div>
+
+                    {/* Таблица покупок */}
+                    <div>
+                      <div className="mb-4 flex items-center justify-between">
+                        <h4 className="font-medium text-gray-900">
+                          Linked Purchases ({appPurchases.length})
+                        </h4>
+                        <div className="flex space-x-2">
+                          <Button
+                            variant="outline"
+                            onClick={handleLinkPurchases}
+                            isLoading={isLinkingPurchases}
+                          >
+                            <LinkIcon className="h-4 w-4 mr-2" />
+                            Link All Unlinked
                           </Button>
                         </div>
                       </div>
-                    ) : (
-                      <div className="overflow-x-auto">
-                        <Table>
-                          <TableHeader>
-                            <TableRow>
-                              <TableHead>ID</TableHead>
-                              <TableHead>Title</TableHead>
-                              <TableHead>Description</TableHead>
-                              <TableHead>Price</TableHead>
-                              <TableHead>Status</TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {appPurchases.map(purchase => (
-                              <TableRow key={purchase.id}>
-                                <TableCell className="font-medium">#{purchase.id}</TableCell>
-                                <TableCell className="font-medium">{purchase.title}</TableCell>
-                                <TableCell>
-                                  <p className="text-sm text-gray-600">{purchase.description}</p>
-                                </TableCell>
-                                <TableCell className="font-medium">
-                                  ${purchase.price?.toFixed(2) || '0.00'}
-                                </TableCell>
-                                <TableCell>
-                                  <Badge variant="success">
-                                    <CheckCircle className="h-3 w-3 mr-1" />
-                                    Active
-                                  </Badge>
-                                </TableCell>
-                              </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
 
-                        <div className="mt-4 text-sm text-gray-500">
-                          Total purchases value: $
-                          {appPurchases.reduce((sum, p) => sum + (p.price || 0), 0).toFixed(2)}
-                        </div>
-                      </div>
-                    )}
+                      <InAppPurchaseTable
+                        purchases={appPurchases}
+                        monetizedAppId={monetizationInfo?.id}
+                        onEdit={(purchase) => setPurchaseToEdit(purchase)}
+                        onDelete={(id) => {
+                          setPurchaseToDelete(id);
+                          setDeleteModalOpen(true);
+                        }}
+                        isLoading={isLoadingPurchases}
+                      />
 
-                    {/* Все доступные покупки */}
-                    <div className="mt-8">
-                      <h4 className="mb-4 font-medium text-gray-900">
-                        All Available Purchases ({purchases.length})
-                      </h4>
-                      {purchases.length > 0 && (
-                        <div className="rounded-lg border">
-                          <div className="max-h-60 overflow-y-auto">
-                            <Table>
-                              <TableHeader>
-                                <TableRow>
-                                  <TableHead>ID</TableHead>
-                                  <TableHead>Title</TableHead>
-                                  <TableHead>Price</TableHead>
-                                  <TableHead>Linked To</TableHead>
-                                </TableRow>
-                              </TableHeader>
-                              <TableBody>
-                                {purchases.slice(0, 10).map(purchase => (
-                                  <TableRow key={purchase.id}>
-                                    <TableCell className="font-medium">#{purchase.id}</TableCell>
-                                    <TableCell>{purchase.title}</TableCell>
-                                    <TableCell className="font-medium">
-                                      ${purchase.price?.toFixed(2) || '0.00'}
-                                    </TableCell>
-                                    <TableCell>
-                                      {purchase.monetizedApplication &&
-                                      purchase.monetizedApplication.id === monetizationInfo.id ? (
-                                        <Badge variant="success">This App</Badge>
-                                      ) : purchase.monetizedApplication ? (
-                                        <Badge variant="warning">Another App</Badge>
-                                      ) : (
-                                        <Badge variant="secondary">Not Linked</Badge>
-                                      )}
-                                    </TableCell>
-                                  </TableRow>
-                                ))}
-                              </TableBody>
-                            </Table>
-                          </div>
-                          {purchases.length > 10 && (
-                            <div className="border-t p-3 text-center text-sm text-gray-500">
-                              Showing 10 of {purchases.length} purchases
-                            </div>
-                          )}
-                        </div>
+                      {/* Модальное окно редактирования */}
+                      {purchaseToEdit && (
+                        <Modal
+                          isOpen={!!purchaseToEdit}
+                          onClose={() => setPurchaseToEdit(null)}
+                          title="Edit Purchase"
+                        >
+                          <InAppPurchaseForm
+                            defaultValues={{
+                              title: purchaseToEdit.title,
+                              description: purchaseToEdit.description || '',
+                              price: purchaseToEdit.price,
+                            }}
+                            onSubmit={async (data) => {
+                              await handleUpdatePurchase(purchaseToEdit.id, data);
+                            }}
+                            isLoading={isUpdatingPurchase}
+                            submitButtonText="Save Changes"
+                          />
+                        </Modal>
                       )}
+
+                      {/* Модальное окно удаления */}
+                      <DeletePurchaseModal
+                        isOpen={isDeleteModalOpen}
+                        onClose={() => {
+                          setDeleteModalOpen(false);
+                          setPurchaseToDelete(null);
+                        }}
+                        onConfirm={async () => {
+                          if (purchaseToDelete) {
+                            await handleDeletePurchase(purchaseToDelete);
+                          }
+                        }}
+                        purchaseTitle={
+                          purchases.find(p => p.id === purchaseToDelete)?.title
+                        }
+                        isLoading={isDeletingPurchase}
+                      />
                     </div>
                   </div>
                 </TabPanel>
 
                 {/* Ads Tab */}
                 <TabPanel id="ads">
-                  <div className="p-6">
-                    <div className="mb-6 flex items-center justify-between">
-                      <h3 className="text-lg font-medium text-gray-900">Advertisements</h3>
-                      <Button
-                        onClick={() => setShowCreateAd(true)}
-                        className="flex items-center gap-2"
-                      >
-                        <PlusCircle className="h-4 w-4" />
-                        Create Ad
-                      </Button>
+                <div className="p-6">
+                  <div className="mb-6">
+                    <h3 className="text-lg font-medium text-gray-900">Advertisements</h3>
+                    <p className="mt-1 text-sm text-gray-600">
+                      Create and manage in-app advertisements for revenue generation
+                    </p>
+                  </div>
+
+                  {/* Форма создания рекламы */}
+                  <div className="mb-8">
+                    <InAppAddForm
+                      onSubmit={handleCreateAd}
+                      monetizedAppId={monetizationInfo?.id}
+                      isLoading={isCreatingAd}
+                      submitButtonText="Create Ad"
+                    />
+                  </div>
+
+                  {/* Таблица рекламы */}
+                  <div>
+                    <div className="mb-4 flex items-center justify-between">
+                      <h4 className="font-medium text-gray-900">
+                        Active Ads ({ads.length})
+                      </h4>
                     </div>
 
-                    {showCreateAd && (
-                      <Card className="mb-6">
-                        <CardContent className="p-6">
-                          <h4 className="mb-4 font-medium text-gray-900">Create New Ad</h4>
-                          <div className="space-y-4">
-                            <Input
-                              label="Ad Title"
-                              value={newAd.title}
-                              onChange={e => setNewAd({ ...newAd, title: e.target.value })}
-                              placeholder="Enter ad title"
-                            />
-                            <Input
-                              label="Description"
-                              value={newAd.description}
-                              onChange={e => setNewAd({ ...newAd, description: e.target.value })}
-                              placeholder="Enter ad description"
-                            />
-                            <Input
-                              label="Price per View"
-                              type="number"
-                              step="0.01"
-                              value={newAd.price}
-                              onChange={e => setNewAd({ ...newAd, price: e.target.value })}
-                              placeholder="0.50"
-                            />
-                            <div className="flex justify-end space-x-3">
-                              <Button variant="outline" onClick={() => setShowCreateAd(false)}>
-                                Cancel
-                              </Button>
-                              <Button onClick={handleCreateAd}>Create Ad</Button>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    )}
+                    <InAppAddTable
+                      ads={ads}
+                      onEdit={(ad) => setAdToEdit(ad)}
+                      onDelete={(id) => {
+                        setAdToDelete(id);
+                        setDeleteAdModalOpen(true);
+                      }}
+                      onViewStats={(id) => {
+                        // TODO: Реализовать просмотр статистики
+                        toast.info('Ad statistics view coming soon');
+                      }}
+                      isLoading={isLoadingAds}
+                    />
 
-                    {ads.length === 0 ? (
-                      <div className="py-12 text-center">
-                        <Globe className="mx-auto h-12 w-12 text-gray-400" />
-                        <h3 className="mt-4 text-lg font-medium text-gray-900">
-                          No ads configured
-                        </h3>
-                        <p className="mt-1 text-gray-600">
-                          Create ads to generate revenue from views
-                        </p>
-                        <Button className="mt-6" onClick={() => setShowCreateAd(true)}>
-                          Create Your First Ad
-                        </Button>
-                      </div>
-                    ) : (
-                      <div className="overflow-x-auto">
-                        <Table>
-                          <TableHeader>
-                            <TableRow>
-                              <TableHead>ID</TableHead>
-                              <TableHead>Title</TableHead>
-                              <TableHead>Description</TableHead>
-                              <TableHead>Price per View</TableHead>
-                              <TableHead>Status</TableHead>
-                              <TableHead>Actions</TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {ads.map(ad => (
-                              <TableRow key={ad.id}>
-                                <TableCell className="font-medium">#{ad.id}</TableCell>
-                                <TableCell className="font-medium">{ad.title}</TableCell>
-                                <TableCell>
-                                  <p className="text-sm text-gray-600">{ad.description}</p>
-                                </TableCell>
-                                <TableCell className="font-medium">
-                                  ${ad.price?.toFixed(2) || '0.00'}
-                                </TableCell>
-                                <TableCell>
-                                  <Badge variant="success">
-                                    <CheckCircle className="h-3 w-3 mr-1" />
-                                    Active
-                                  </Badge>
-                                </TableCell>
-                                <TableCell>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="text-red-600"
-                                    onClick={async () => {
-                                      if (
-                                        window.confirm('Are you sure you want to delete this ad?')
-                                      ) {
-                                        try {
-                                          await adsService.deleteAd(ad.id);
+                    {/* Модальное окно редактирования рекламы */}
+                    {adToEdit && (
+                    <Modal
+                      isOpen={!!adToEdit}
+                      onClose={() => setAdToEdit(null)}
+                      title="Edit Advertisement"
+                    >
+                      <InAppAddForm
+                        defaultValues={{
+                          title: adToEdit.title,
+                          description: adToEdit.description || '',
+                          price: adToEdit.price,
+                          monetizedApplicationId: monetizedAppId, // Добавьте это
+                        }}
+                        onSubmit={async (data) => {
+                          await handleUpdateAd(adToEdit.id, data);
+                        }}
+                        isLoading={isUpdatingAd} // Используйте isUpdatingAd
+                        submitButtonText="Save Changes"
+                      />
+                    </Modal>
+                  )}
 
-                                          if (monetizedAppId) {
-                                            const updatedAds =
-                                              await adsService.getAdsByMonetizedApp(monetizedAppId);
-                                            setAds(updatedAds);
-                                          }
-                                          setSuccess('Ad deleted successfully!');
-                                        } catch (err) {
-                                          console.error('Failed to delete ad:', err);
-                                          setError('Failed to delete ad');
-                                        }
-                                      }
-                                    }}
-                                  >
-                                    <XCircle className="h-4 w-4 mr-1" />
-                                    Delete
-                                  </Button>
-                                </TableCell>
-                              </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
+                    {/* Модальное окно удаления рекламы */}
+                    <DeleteAddModal
+                      isOpen={isDeleteAdModalOpen}
+                      onClose={() => {
+                        setDeleteAdModalOpen(false);
+                        setAdToDelete(null);
+                      }}
+                      onConfirm={async () => {
+                        if (adToDelete) {
+                          await handleDeleteAd(adToDelete);
+                        }
+                      }}
+                      adTitle={
+                        ads.find(ad => ad.id === adToDelete)?.title
+                      }
+                      isLoading={isDeletingAd}
+                    />
+                  </div>
 
-                        <div className="mt-4 text-sm text-gray-500">
-                          Total ads: {ads.length} | Total daily potential: $
-                          {(ads.reduce((sum, ad) => sum + (ad.price || 0), 0) * 100).toFixed(2)}{' '}
-                          (estimated)
+                  {/* Блок статистики рекламы */}
+                  {ads.length > 0 && (
+                    <div className="mt-8 rounded-lg bg-gradient-to-r from-blue-50 to-indigo-50 p-6">
+                      <h4 className="mb-4 text-lg font-medium text-gray-900">Ad Revenue Insights</h4>
+                      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                        <div className="rounded-lg bg-white p-4 shadow">
+                          <p className="text-sm text-gray-600">Estimated Daily Revenue</p>
+                          <p className="mt-1 text-2xl font-bold text-green-600">
+                            ${(ads.reduce((sum, ad) => sum + ad.price * 100, 0)).toFixed(2)}
+                          </p>
+                          <p className="text-xs text-gray-500">Based on 100 views per ad per day</p>
+                        </div>
+                        
+                        <div className="rounded-lg bg-white p-4 shadow">
+                          <p className="text-sm text-gray-600">Monthly Potential</p>
+                          <p className="mt-1 text-2xl font-bold text-blue-600">
+                            ${(ads.reduce((sum, ad) => sum + ad.price * 100 * 30, 0)).toFixed(2)}
+                          </p>
+                          <p className="text-xs text-gray-500">30-day projection</p>
+                        </div>
+                        
+                        <div className="rounded-lg bg-white p-4 shadow">
+                          <p className="text-sm text-gray-600">Average Price per View</p>
+                          <p className="mt-1 text-2xl font-bold text-purple-600">
+                            ${(ads.reduce((sum, ad) => sum + ad.price, 0) / ads.length).toFixed(2)}
+                          </p>
+                          <p className="text-xs text-gray-500">Across all ads</p>
                         </div>
                       </div>
-                    )}
-                  </div>
-                </TabPanel>
+                      
+                      <div className="mt-4 text-sm text-gray-600">
+                        <p>
+                          💡 <strong>Tip:</strong> Higher-priced ads (${'>'}1.00) typically perform better in premium apps. 
+                          Consider A/B testing different ad placements and formats.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </TabPanel>
 
                 {/* Payout Tab */}
                 <TabPanel id="payout">

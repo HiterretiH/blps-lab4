@@ -11,12 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/in-app-ads")
@@ -39,6 +34,15 @@ public class InAppAddController {
       "Received request to get InAppAdds by MonetizedApplication ID: ";
   private static final String GET_BY_APP_FOUND_LOG = "Found ";
   private static final String FOR_APP_ID_LOG = " for MonetizedApplication ID: ";
+  private static final String DELETE_REQUEST_LOG = "Received request to delete InAppAdd with ID: ";
+  private static final String DELETE_SUCCESS_LOG = "Successfully deleted InAppAdd with ID: ";
+  private static final String BULK_DELETE_REQUEST_LOG = "Received request to delete multiple InAppAdds. Count: ";
+  private static final String BULK_DELETE_SUCCESS_LOG = "Successfully deleted ";
+  private static final String BULK_DELETE_ERROR_LOG = "Failed to delete multiple InAppAdds. Reason: ";
+  private static final String DELETE_BY_APP_REQUEST_LOG = "Received request to delete all InAppAdds for MonetizedApplication ID: ";
+  private static final String DELETE_BY_APP_SUCCESS_LOG = "Successfully deleted all InAppAdds for MonetizedApplication ID: ";
+  private static final String UPDATE_REQUEST_LOG = "Received request to update InAppAdd with ID: ";
+  private static final String UPDATE_SUCCESS_LOG = "Successfully updated InAppAdd with ID: ";
 
   private final InAppAddService inAppAddService;
   private final Logger logger;
@@ -109,5 +113,25 @@ public class InAppAddController {
         inAppAddService.getInAppAddByMonetizedApplication(monetizedApplicationId);
     logger.info(GET_BY_APP_FOUND_LOG + inAppAdds.size() + FOR_APP_ID_LOG + monetizedApplicationId);
     return ResponseEntity.ok(inAppAdds);
+  }
+
+  @PreAuthorize("hasAuthority('in_app_add.manage')")
+  @DeleteMapping("/{id}")
+  public ResponseEntity<Void> deleteInAppAdd(@PathVariable final int id) {
+    logger.info(DELETE_REQUEST_LOG + id);
+    inAppAddService.deleteInAppAdd(id);
+    logger.info(DELETE_SUCCESS_LOG + id);
+    return ResponseEntity.noContent().build();
+  }
+
+  @PreAuthorize("hasAuthority('in_app_add.manage')")
+  @PutMapping("/{id}")
+  public ResponseEntity<InAppAdd> updateInAppAdd(
+      @PathVariable final int id,
+      @RequestBody final InAppAddJson inAppAddJson) {
+    logger.info(UPDATE_REQUEST_LOG + id);
+    InAppAdd updatedInAppAdd = inAppAddService.updateInAppAdd(id, inAppAddJson);
+    logger.info(UPDATE_SUCCESS_LOG + id);
+    return ResponseEntity.ok(updatedInAppAdd);
   }
 }
