@@ -18,6 +18,9 @@
   <suppress checks="OperatorWrap" message="':' should be on the previous line." files=".*"/>
   <suppress checks="DesignForExtension" message="Class .* looks like designed for extension.*" files=".*"/>
   <suppress checks="HideUtilityClassConstructor" files=".*"/>
+  <suppress checks="MethodName"
+            files=".*repository.*"
+            message="Name '.*_.*' must match pattern"/>
 
   <suppress checks="WhitespaceAround"
             files=".*"
