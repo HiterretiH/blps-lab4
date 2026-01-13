@@ -1,6 +1,7 @@
 import { api } from './api';
 import { Application, ApiApplication } from '../types';
 import { authService } from './auth.service';
+import { getApiStats } from '@/lib/api-monitoring';
 
 interface ApiError {
   message?: string;
@@ -25,6 +26,9 @@ export const applicationsService = {
       console.log(`🔄 Получение приложений для developerId: ${developerId}`);
 
       const response = await api.get<ApiApplication[]>(`/applications/developer/${developerId}`);
+
+      const stats = getApiStats();
+      console.log(stats);
 
       console.log(`✅ Получено ${response.data.length} приложений`);
       return response.data.map(app => ({

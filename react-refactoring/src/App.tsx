@@ -18,6 +18,22 @@ import { UserDownloadsPage } from './pages/UserDownloadsPage.tsx';
 import { DownloadAppPage } from './pages/DownloadAppPage.tsx';
 import { SentryErrorBoundary } from './lib/sentry.ts';
 import { ToastContainer } from './components/ui/ToastContainer.tsx';
+import { setupApiMonitoring } from './lib/api-monitoring';
+import { PerformanceDebugPanel } from './pages/PerformanceDebugPanel.tsx';
+import { trackWebVitals } from './lib/web-vitals';
+
+let apiMonitoringInitialized = false;
+
+export const initializeApiMonitoring = () => {
+  if (!apiMonitoringInitialized) {
+    console.log('🚀 Force initializing API monitoring...');
+    setupApiMonitoring();
+    apiMonitoringInitialized = true;
+  }
+};
+
+setupApiMonitoring();
+trackWebVitals();
 
 function ErrorFallback() {
   return (
@@ -32,6 +48,7 @@ function App() {
   const { checkAuth } = useAuthStore();
 
   useEffect(() => {
+    initializeApiMonitoring();
     checkAuth();
   }, [checkAuth]);
 
@@ -171,6 +188,18 @@ function App() {
                 </div>
               }
             />
+
+            <Route
+            path="/debug/performance"
+            element={
+              <ProtectedRoute>
+                <div className="space-y-6">
+                  <h1 className="text-3xl font-bold text-gray-900">Performance Monitor</h1>
+                  <PerformanceDebugPanel />
+                </div>
+              </ProtectedRoute>
+            }
+          />
           </Routes>
         </main>
       </div>

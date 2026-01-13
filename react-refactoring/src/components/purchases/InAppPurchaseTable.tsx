@@ -42,7 +42,6 @@ export const InAppPurchaseTable: React.FC<InAppPurchaseTableProps> = ({
     try {
       await purchasesService.linkToMonetizedApp(monetizedAppId);
       toast.success('Purchase linked successfully');
-      // Обновляем список покупок через родительский компонент
     } catch (error: any) {
       toast.error(error.message || 'Failed to link purchase');
     } finally {

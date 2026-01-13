@@ -1,4 +1,3 @@
-// DeveloperProfilePage.tsx (обновленная версия)
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
@@ -18,7 +17,7 @@ import { useApplicationsStore } from '../store/applications.store';
 import { useMonetizationStore } from '../store/monetization.store';
 import { monetizationService } from '../services/monetization.service';
 import { statsService } from '../services/stats.service';
-import { MonetizeConfirmationModal } from '../components/monetization/MonetizeConfirmationModal'; // Импорт нового компонента
+import { MonetizeConfirmationModal } from '../components/monetization/MonetizeConfirmationModal';
 import {
   User,
   DollarSign,
@@ -51,7 +50,6 @@ export const DeveloperProfilePage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
-  // Состояния для модального окна монетизации
   const [showMonetizeModal, setShowMonetizeModal] = useState(false);
   const [selectedApp, setSelectedApp] = useState<any>(null);
   const [isMonetizing, setIsMonetizing] = useState(false);
@@ -139,7 +137,6 @@ export const DeveloperProfilePage: React.FC = () => {
     }
   }, [user, navigate, developerId, loadDeveloperData]);
 
-  // Функция для монетизации приложения
   const handleMonetizeApp = async () => {
     if (!selectedApp || !developerId) return;
 
@@ -148,20 +145,16 @@ export const DeveloperProfilePage: React.FC = () => {
     setSuccessMessage(null);
 
     try {
-      // Вызываем сервис монетизации
       const monetizedApp = await monetizationService.monetizeApplication(
         selectedApp.id,
         developerId
       );
 
-      // Показываем сообщение об успехе
       setSuccessMessage(`✅ "${selectedApp.name}" has been successfully monetized!`);
 
-      // Закрываем модальное окно через 2 секунды
       setTimeout(() => {
         setShowMonetizeModal(false);
         setSelectedApp(null);
-        // Перезагружаем данные
         loadDeveloperData();
       }, 2000);
 
@@ -173,7 +166,6 @@ export const DeveloperProfilePage: React.FC = () => {
     }
   };
 
-  // Обработчик нажатия кнопки "Monetize"
   const handleMonetizeClick = (app: any) => {
     setSelectedApp(app);
     setShowMonetizeModal(true);
@@ -572,7 +564,6 @@ export const DeveloperProfilePage: React.FC = () => {
   );
 };
 
-// Компонент StatCard остается без изменений
 const StatCard: React.FC<{
   title: string;
   value: string;

@@ -46,7 +46,6 @@ export const InAppAddForm: React.FC<InAppAddFormProps> = ({
       await onSubmit(data);
       reset();
     } catch (error) {
-      // Ошибка обрабатывается в родительском компоненте
     }
   };
 

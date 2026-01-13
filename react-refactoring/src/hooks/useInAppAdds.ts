@@ -1,4 +1,3 @@
-// src/hooks/useInAppAdds.ts
 import { useState, useCallback, useRef } from 'react';
 import { adsService } from '@/services/ads.service';
 import { InAppAdd } from '@/types';
@@ -10,25 +9,21 @@ export const useInAppAdds = (monetizedAppId?: number) => {
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
   
-  // Используем ref для предотвращения рекурсивных вызовов
   const isFetching = useRef(false);
   const abortController = useRef<AbortController | null>(null);
   const lastFetchedAppId = useRef<number | undefined>();
 
   const fetchAds = useCallback(async (force = false) => {
-    // Если нет appId, не загружаем
     if (!monetizedAppId) {
       console.log('No monetizedAppId provided, skipping ads fetch');
       return;
     }
     
-    // Если уже загружаем и не форсировано, и appId не изменился
     if (isFetching.current && !force && lastFetchedAppId.current === monetizedAppId) {
       console.log('Already fetching ads for this app, skipping');
       return;
     }
     
-    // Отменяем предыдущий запрос если он есть
     if (abortController.current) {
       abortController.current.abort();
     }
@@ -46,7 +41,6 @@ export const useInAppAdds = (monetizedAppId?: number) => {
       
       setAds(adsData);
     } catch (err: any) {
-      // Игнорируем ошибку отмены запроса
       if (err.name === 'AbortError') {
         console.log('Ads fetch cancelled');
         return;
@@ -73,7 +67,6 @@ export const useInAppAdds = (monetizedAppId?: number) => {
     try {
       const newAd = await adsService.createAd(data);
       
-      // Обновляем локальное состояние
       setAds(prev => [...prev, newAd]);
       toast.success('Ad created successfully');
       return newAd;
@@ -90,7 +83,7 @@ export const useInAppAdds = (monetizedAppId?: number) => {
   title?: string;
   description?: string;
   price?: number;
-  monetizedApplicationId?: number; // Добавьте это поле
+  monetizedApplicationId?: number;
 }) => {
   setIsLoading(true);
   setError(null);
@@ -115,7 +108,6 @@ export const useInAppAdds = (monetizedAppId?: number) => {
     
     const updatedAd = await response.json();
     
-    // Обновляем локальное состояние
     setAds(prev => prev.map(ad => 
       ad.id === id ? updatedAd : ad
     ));
@@ -138,7 +130,6 @@ export const useInAppAdds = (monetizedAppId?: number) => {
     try {
       await adsService.deleteAd(id);
       
-      // Обновляем локальное состояние
       setAds(prev => prev.filter(ad => ad.id !== id));
       toast.success('Ad deleted successfully');
     } catch (err: any) {

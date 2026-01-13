@@ -1,4 +1,3 @@
-// src/hooks/useInAppPurchases.ts
 import { useState, useCallback, useRef } from 'react';
 import { purchasesService } from '@/services/purchases.service';
 import { InAppPurchase } from '@/types';
@@ -10,17 +9,14 @@ export const useInAppPurchases = () => {
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
   
-  // Используем ref для предотвращения рекурсивных вызовов
   const isFetching = useRef(false);
   const abortController = useRef<AbortController | null>(null);
 
   const fetchPurchases = useCallback(async (force = false) => {
-    // Если уже загружаем и не форсировано
     if (isFetching.current && !force) {
       return;
     }
     
-    // Отменяем предыдущий запрос если он есть
     if (abortController.current) {
       abortController.current.abort();
     }
@@ -37,7 +33,6 @@ export const useInAppPurchases = () => {
       
       setPurchases(purchasesData);
     } catch (err: any) {
-      // Игнорируем ошибку отмены запроса
       if (err.name === 'AbortError') {
         console.log('Purchase fetch cancelled');
         return;
@@ -81,7 +76,6 @@ export const useInAppPurchases = () => {
       
       const newPurchase = await response.json();
       
-      // Обновляем локальное состояние
       setPurchases(prev => [...prev, newPurchase]);
       toast.success('Purchase created successfully');
       return newPurchase;
@@ -122,7 +116,6 @@ export const useInAppPurchases = () => {
       
       const updatedPurchase = await response.json();
       
-      // Обновляем локальное состояние
       setPurchases(prev => prev.map(p => 
         p.id === id ? updatedPurchase : p
       ));
@@ -158,7 +151,6 @@ export const useInAppPurchases = () => {
         throw new Error(errorData.message || 'Failed to delete purchase');
       }
       
-      // Обновляем локальное состояние
       setPurchases(prev => prev.filter(p => p.id !== id));
       toast.success('Purchase deleted successfully');
     } catch (err: any) {

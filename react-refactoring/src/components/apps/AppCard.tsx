@@ -64,7 +64,6 @@ export const AppCard: React.FC<AppCardProps> = ({ application, onDelete, current
       const currentYear = now.getFullYear();
       const currentMonth = now.getMonth() + 1;
       
-      // Проверяем месяц и год (игнорируем день)
       if (year < currentYear || (year === currentYear && month < currentMonth)) {
         errors.push('Card has expired');
       }

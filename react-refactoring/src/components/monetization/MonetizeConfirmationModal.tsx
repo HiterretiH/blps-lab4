@@ -29,7 +29,6 @@ export const MonetizeConfirmationModal: React.FC<MonetizeConfirmationModalProps>
     setError(null);
     try {
       await onConfirm();
-      // Закрытие будет обработано в родительском компоненте
     } catch (err: any) {
       console.error('Monetization error:', err);
       setError(err.message || 'Failed to monetize application');

@@ -8,6 +8,8 @@ import { Card, CardContent } from '../components/ui/Card';
 import { useAuthStore } from '../store/auth.store';
 import { useApplicationsStore } from '../store/applications.store';
 import { Loader2, Package, User, Filter, Download, DollarSign } from 'lucide-react';
+import { captureComponentError, measureDataFetch } from '../lib/performance-monitoring';
+import { SentryRouteBoundary } from '@/components/shared/SentryRouteBondry';
 
 interface AppData {
   name: string;
@@ -37,6 +39,7 @@ export const ApplicationsPage: React.FC = () => {
 
   const loadApplications = useCallback(async () => {
     if (hasFetched || isLoading) return;
+    const perf = measureDataFetch('applications');
 
     try {
       if (isDeveloper) {
@@ -45,7 +48,9 @@ export const ApplicationsPage: React.FC = () => {
         await fetchMonetizedApplications();
       }
       setHasFetched(true);
+      perf.success();
     } catch (err) {
+      perf.error(err);
       console.error('Failed to load applications:', err);
     }
   }, [isDeveloper, fetchMyApplications, fetchMonetizedApplications, hasFetched, isLoading]);
@@ -93,6 +98,7 @@ export const ApplicationsPage: React.FC = () => {
   }
 
   return (
+    <SentryRouteBoundary componentName="ApplicationsPage">
     <div className="space-y-6">
       <div className="flex items-start justify-between">
         <div>
@@ -278,5 +284,6 @@ export const ApplicationsPage: React.FC = () => {
         />
       )}
     </div>
+    </SentryRouteBoundary>
   );
 };

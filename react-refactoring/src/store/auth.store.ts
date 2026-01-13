@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { authService } from '../services/auth.service';
+import { setSentryUser, clearSentryUser } from '../lib/sentry';
 
 interface AuthState {
   user: {
@@ -42,6 +43,13 @@ export const useAuthStore = create<AuthState>()(
           developerId: null,
         });
 
+        setSentryUser({
+          id: userId?.toString(),
+          username,
+          email,
+          role,
+        });
+
         localStorage.setItem('auth_token', token);
         localStorage.setItem(
           'user',
@@ -60,6 +68,9 @@ export const useAuthStore = create<AuthState>()(
         localStorage.removeItem('auth_token');
         localStorage.removeItem('user');
         localStorage.removeItem('developer');
+
+        clearSentryUser();
+
         set({
           user: null,
           token: null,

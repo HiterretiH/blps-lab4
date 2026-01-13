@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { setupApiMonitoring } from '../lib/api-monitoring';
 
 const API_BASE_URL = 'http://localhost:727/api';
 
@@ -9,6 +10,9 @@ export const api = axios.create({
   },
   timeout: 10000,
 });
+
+console.log('🔧 Configuring API monitoring for custom instance...');
+setupApiMonitoring(api);
 
 const requestCache = new Map<string, { data: any; timestamp: number }>();
 const CACHE_DURATION = 30000;

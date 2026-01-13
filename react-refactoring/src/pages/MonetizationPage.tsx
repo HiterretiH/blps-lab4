@@ -64,13 +64,11 @@ export const MonetizationPage: React.FC = () => {
   const [isProcessingPayout, setIsProcessingPayout] = useState(false);
   const [monetizedAppId, setMonetizedAppId] = useState<number | null>(null);
   
-  // Состояния для управления покупками
   const [purchaseToEdit, setPurchaseToEdit] = useState<InAppPurchase | null>(null);
   const [purchaseToDelete, setPurchaseToDelete] = useState<number | null>(null);
   const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
   const [isLinkingPurchases, setIsLinkingPurchases] = useState(false);
   
-  // Состояния для загрузки
   const [isCreatingPurchase, setIsCreatingPurchase] = useState(false);
   const [isUpdatingPurchase, setIsUpdatingPurchase] = useState(false);
   const [isDeletingPurchase, setIsDeletingPurchase] = useState(false);
@@ -82,11 +80,9 @@ export const MonetizationPage: React.FC = () => {
   const [isUpdatingAd, setIsUpdatingAd] = useState(false);
   const [isDeletingAd, setIsDeletingAd] = useState(false);
 
-  // Используем ref для отслеживания
   const hasLoadedData = useRef(false);
   const hasFetchedPurchases = useRef(false);
 
-  // Используем кастомные хуки
   const {
     purchases,
     isLoading: isLoadingPurchases,
@@ -107,11 +103,9 @@ export const MonetizationPage: React.FC = () => {
     deleteAd,
   } = useInAppAdds(monetizedAppId || undefined);
 
-  // Основная загрузка данных
   const loadData = useCallback(async () => {
     if (!id) return;
     
-    // Предотвращаем повторную загрузку
     if (hasLoadedData.current) {
       console.log('Data already loaded, skipping');
       return;
@@ -124,11 +118,9 @@ export const MonetizationPage: React.FC = () => {
       const appId = parseInt(id);
       console.log(`Loading data for app ID: ${appId}`);
 
-      // Загружаем приложение
       const app = await applicationsService.getApplicationById(appId);
       setApplication(app);
 
-      // Загружаем информацию о монетизации
       const monetization = await monetizationService.getMonetizationInfo(appId);
       if (monetization) {
         console.log(`Found monetization for app ${appId}:`, monetization);
@@ -147,25 +139,20 @@ export const MonetizationPage: React.FC = () => {
     }
   }, [id]);
 
-  // Загрузка при монтировании
   useEffect(() => {
     loadData();
   }, [loadData]);
 
-  // Загружаем покупки и рекламу когда изменился monetizedAppId
   useEffect(() => {
     if (monetizedAppId && !hasFetchedPurchases.current) {
       console.log(`monetizedAppId changed to ${monetizedAppId}, fetching data`);
       hasFetchedPurchases.current = true;
       
-      // Загружаем покупки
       fetchPurchases();
-      // Загружаем рекламу
       fetchAds();
     }
   }, [monetizedAppId, fetchPurchases, fetchAds]);
 
-  // Обновляем ошибки из хуков
   useEffect(() => {
     if (purchasesError) {
       setError(purchasesError);
@@ -208,7 +195,6 @@ export const MonetizationPage: React.FC = () => {
         setSuccess(`✅ Payout successful! ${result}`);
         setPayoutAmount('');
 
-        // Обновляем информацию о монетизации
         if (application) {
           const updated = await monetizationService.getMonetizationInfo(application.id);
           setMonetizationInfo(updated);
@@ -234,7 +220,6 @@ export const MonetizationPage: React.FC = () => {
       await purchasesService.linkToMonetizedApp(monetizationInfo.id);
       setSuccess('Purchases linked successfully!');
       
-      // Обновляем список покупок
       await fetchPurchases();
     } catch (err: any) {
       console.error('Link purchases error:', err);
@@ -311,7 +296,7 @@ export const MonetizationPage: React.FC = () => {
     console.error('Create ad error:', err);
     setError(err.message || 'Failed to create ad');
   } finally {
-    setIsCreatingAd(false); // Правильное состояние
+    setIsCreatingAd(false);
   }
 };
 
@@ -327,7 +312,7 @@ const handleUpdateAd = async (id: number, data: any) => {
       monetizedApplicationId: monetizedAppId,
     });
     setSuccess('Ad updated successfully!');
-    setAdToEdit(null); // Закрываем модальное окно редактирования
+    setAdToEdit(null);
   } catch (err: any) {
     console.error('Update ad error:', err);
     setError(err.message || 'Failed to update ad');
@@ -343,17 +328,16 @@ const handleDeleteAd = async (id: number) => {
   try {
     await deleteAd(id);
     setSuccess('Ad deleted successfully!');
-    setDeleteAdModalOpen(false); // Закрываем модальное окно удаления
-    setAdToDelete(null); // Сбрасываем ID рекламы для удаления
+    setDeleteAdModalOpen(false);
+    setAdToDelete(null);
   } catch (err: any) {
     console.error('Delete ad error:', err);
     setError(err.message || 'Failed to delete ad');
   } finally {
-    setIsDeletingAd(false); // Правильное состояние
+    setIsDeletingAd(false);
   }
 };
 
-  // Фильтруем покупки, привязанные к текущему приложению
   const appPurchases = purchases.filter(
     purchase =>
       purchase.monetizedApplication && 
@@ -464,7 +448,6 @@ const handleDeleteAd = async (id: number) => {
                   setMonetizationInfo(newMonetized);
                   setSuccess('Monetization setup successful!');
                   
-                  // Перезагружаем данные
                   loadData();
                 } catch (err: any) {
                   console.error('Failed to create monetization:', err);
@@ -758,13 +741,11 @@ const handleDeleteAd = async (id: number) => {
                         setDeleteAdModalOpen(true);
                       }}
                       onViewStats={(id) => {
-                        // TODO: Реализовать просмотр статистики
                         toast.info('Ad statistics view coming soon');
                       }}
                       isLoading={isLoadingAds}
                     />
 
-                    {/* Модальное окно редактирования рекламы */}
                     {adToEdit && (
                     <Modal
                       isOpen={!!adToEdit}
@@ -776,12 +757,12 @@ const handleDeleteAd = async (id: number) => {
                           title: adToEdit.title,
                           description: adToEdit.description || '',
                           price: adToEdit.price,
-                          monetizedApplicationId: monetizedAppId, // Добавьте это
+                          monetizedApplicationId: monetizedAppId,
                         }}
                         onSubmit={async (data) => {
                           await handleUpdateAd(adToEdit.id, data);
                         }}
-                        isLoading={isUpdatingAd} // Используйте isUpdatingAd
+                        isLoading={isUpdatingAd}
                         submitButtonText="Save Changes"
                       />
                     </Modal>

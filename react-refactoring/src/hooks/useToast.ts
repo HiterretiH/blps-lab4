@@ -14,7 +14,6 @@ export const useToast = () => {
     const id = Date.now().toString();
     setToasts(prev => [...prev, { id, title, message: message || title, type }]);
     
-    // Автоматическое удаление через 5 секунд
     setTimeout(() => {
       setToasts(prev => prev.filter(t => t.id !== id));
     }, 5000);
