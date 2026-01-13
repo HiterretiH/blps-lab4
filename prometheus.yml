@@ -5,7 +5,7 @@ scrape_configs:
   - job_name: 'spring-app'
     metrics_path: '/actuator/prometheus'
     static_configs:
-      - targets: ['app:727']
+      - targets: ['main-app:727']
 
   - job_name: 'google-module'
     static_configs:
